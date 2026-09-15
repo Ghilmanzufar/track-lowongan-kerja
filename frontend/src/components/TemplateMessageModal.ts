@@ -6,7 +6,7 @@ import { EMAIL_TEMPLATES, compileTemplate, TemplateVariables, EmailTemplate } fr
 import { showAlertDialog } from './Dialog';
 
 export class TemplateMessageModal {
-  private static modalEl: HTMLElement | null = null;
+  private static dialog: HTMLDialogElement | null = null;
   private static currentItem: ApplicationItem | null = null;
   private static selectedTemplateId: string = EMAIL_TEMPLATES[0].id;
   private static currentVariables: TemplateVariables = {};
@@ -70,43 +70,54 @@ export class TemplateMessageModal {
   private static render(): void {
     if (!this.currentItem) return;
 
-    // Remove existing if any
-    const existing = document.getElementById('templateMessageModalOverlay');
-    if (existing) existing.remove();
+    if (!this.dialog) {
+      this.dialog = document.createElement('dialog');
+      this.dialog.id = 'templateMessageDialog';
+      this.dialog.className = 'app-dialog template-message-dialog';
+      this.dialog.style.maxWidth = '820px';
+      this.dialog.style.width = '94vw';
+      this.dialog.style.padding = '0';
+      this.dialog.style.borderRadius = 'var(--radius-md)';
+      this.dialog.style.border = '1px solid var(--border-color)';
+      this.dialog.style.backgroundColor = 'var(--bg-surface)';
+      this.dialog.style.color = 'var(--text-primary)';
+      this.dialog.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.35)';
+
+      this.dialog.addEventListener('click', (e) => {
+        if (e.target === this.dialog) this.dialog?.close();
+      });
+
+      document.body.appendChild(this.dialog);
+    }
 
     const template = this.getSelectedTemplate();
     const compiledSubject = compileTemplate(template.subjectTemplate, this.currentVariables);
     const compiledBody = compileTemplate(template.bodyTemplate, this.currentVariables);
 
-    const overlay = document.createElement('div');
-    overlay.id = 'templateMessageModalOverlay';
-    overlay.className = 'modal-backdrop custom-modal-overlay active';
-    overlay.innerHTML = `
-      <div class="custom-modal-dialog template-message-dialog" role="dialog" aria-modal="true">
-        <div class="modal-header">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <div class="modal-header-icon" style="color: var(--primary);">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    this.dialog.innerHTML = `
+      <div style="display: flex; flex-direction: column; max-height: 88vh;">
+        <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-surface);">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: var(--radius-xs); background-color: rgba(37, 99, 235, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                 <polyline points="22,6 12,13 2,6"/>
               </svg>
             </div>
             <div>
-              <h3 class="modal-title" style="margin: 0; font-size: 16px;">Template Pesan HRD / Recruiter</h3>
+              <h3 class="modal-title" style="margin: 0; font-size: 15.5px; font-weight: 700;">Template Pesan HRD / Recruiter</h3>
               <p style="margin: 0; font-size: 12px; color: var(--text-muted);">${this.currentItem.company.name} — ${this.currentItem.jobPosting.title}</p>
             </div>
           </div>
-          <button type="button" class="btn btn-icon btn-secondary btn-sm btn-close-template-modal" title="Tutup">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
+          <button type="button" class="modal-close btn-close-template-modal" title="Tutup" style="background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text-muted);">✕</button>
         </div>
 
-        <div class="modal-body template-modal-body">
+        <div class="modal-body template-modal-body" style="padding: 18px; overflow-y: auto;">
           <!-- Left / Top: Template Selector & Variables -->
           <div class="template-sidebar">
             <div class="form-group" style="margin-bottom: 12px;">
-              <label class="form-label" style="font-size: 12px; font-weight: 600;">Pilih Template:</label>
-              <select class="form-control form-control-sm" id="tmplSelectId">
+              <label class="form-label" style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Pilih Template:</label>
+              <select class="form-control form-control-sm" id="tmplSelectId" style="width: 100%;">
                 ${EMAIL_TEMPLATES.map(t => `
                   <option value="${t.id}" ${t.id === this.selectedTemplateId ? 'selected' : ''}>
                     [${t.language.toUpperCase()}] ${t.title}
@@ -119,26 +130,26 @@ export class TemplateMessageModal {
             </div>
 
             <div class="template-variables-box">
-              <h5 style="font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px;">Variabel Pesan</h5>
+              <h5 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px; font-weight: 700;">Variabel Pesan</h5>
               
-              <div class="grid-2-cols" style="gap: 8px;">
+              <div class="grid-2-cols" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                 <div class="form-group">
-                  <label class="form-label text-xs">Nama Anda</label>
+                  <label class="form-label" style="font-size: 11px; margin-bottom: 2px; display: block;">Nama Anda</label>
                   <input type="text" class="form-control form-control-xs tmpl-var-input" data-var="candidateName" value="${this.currentVariables.candidateName || ''}">
                 </div>
                 <div class="form-group">
-                  <label class="form-label text-xs">Nama HRD / Pewawancara</label>
+                  <label class="form-label" style="font-size: 11px; margin-bottom: 2px; display: block;">Nama HRD</label>
                   <input type="text" class="form-control form-control-xs tmpl-var-input" data-var="recruiterName" value="${this.currentVariables.recruiterName || ''}">
                 </div>
               </div>
 
-              <div class="grid-2-cols" style="gap: 8px; margin-top: 6px;">
+              <div class="grid-2-cols" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px;">
                 <div class="form-group">
-                  <label class="form-label text-xs">Waktu / Jam</label>
+                  <label class="form-label" style="font-size: 11px; margin-bottom: 2px; display: block;">Waktu / Jam</label>
                   <input type="text" class="form-control form-control-xs tmpl-var-input" data-var="interviewTime" value="${this.currentVariables.interviewTime || ''}">
                 </div>
                 <div class="form-group">
-                  <label class="form-label text-xs">Platform / Lokasi</label>
+                  <label class="form-label" style="font-size: 11px; margin-bottom: 2px; display: block;">Platform / Lokasi</label>
                   <input type="text" class="form-control form-control-xs tmpl-var-input" data-var="interviewPlatform" value="${this.currentVariables.interviewPlatform || ''}">
                 </div>
               </div>
@@ -146,21 +157,21 @@ export class TemplateMessageModal {
           </div>
 
           <!-- Right / Bottom: Live Preview & Action Buttons -->
-          <div class="template-preview-area">
+          <div class="template-preview-area" style="display: flex; flex-direction: column;">
             <div class="form-group" style="margin-bottom: 8px;">
-              <label class="form-label text-xs" style="font-weight: 600;">Subjek Email:</label>
-              <div class="copy-input-group">
-                <input type="text" id="tmplSubjectField" class="form-control form-control-sm mono" value="${compiledSubject}" readonly>
+              <label class="form-label" style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 2px;">Subjek Email:</label>
+              <div class="copy-input-group" style="display: flex; gap: 6px;">
+                <input type="text" id="tmplSubjectField" class="form-control form-control-sm mono" value="${compiledSubject}" readonly style="flex: 1;">
                 <button type="button" class="btn btn-secondary btn-xs btn-copy-subject" title="Salin Subjek">Salin</button>
               </div>
             </div>
 
             <div class="form-group" style="margin-bottom: 12px; flex: 1; display: flex; flex-direction: column;">
-              <label class="form-label text-xs" style="font-weight: 600;">Isi Pesan:</label>
-              <textarea id="tmplBodyField" class="form-control form-control-sm template-body-textarea" rows="12">${compiledBody}</textarea>
+              <label class="form-label" style="font-size: 11px; font-weight: 600; display: block; margin-bottom: 2px;">Isi Pesan:</label>
+              <textarea id="tmplBodyField" class="form-control form-control-sm template-body-textarea" rows="12" style="width: 100%; min-height: 220px; font-size: 12px; resize: vertical;">${compiledBody}</textarea>
             </div>
 
-            <div class="template-actions-footer">
+            <div class="template-actions-footer" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: auto;">
               <button type="button" class="btn btn-secondary btn-sm btn-open-mailto" title="Buka di Aplikasi Email">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 <span>Buka di Email</span>
@@ -175,28 +186,24 @@ export class TemplateMessageModal {
       </div>
     `;
 
-    document.body.appendChild(overlay);
+    if (!this.dialog.open) {
+      this.dialog.showModal();
+    }
 
     // Event listeners
-    overlay.querySelector('.btn-close-template-modal')?.addEventListener('click', () => {
-      overlay.remove();
-    });
-
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) {
-        overlay.remove();
-      }
+    this.dialog.querySelector('.btn-close-template-modal')?.addEventListener('click', () => {
+      this.dialog?.close();
     });
 
     // Select template change
-    const selectEl = overlay.querySelector('#tmplSelectId') as HTMLSelectElement;
+    const selectEl = this.dialog.querySelector('#tmplSelectId') as HTMLSelectElement;
     selectEl?.addEventListener('change', () => {
       this.selectedTemplateId = selectEl.value;
       this.render();
     });
 
     // Variable inputs live update
-    overlay.querySelectorAll<HTMLInputElement>('.tmpl-var-input').forEach(input => {
+    this.dialog.querySelectorAll<HTMLInputElement>('.tmpl-var-input').forEach(input => {
       input.addEventListener('input', () => {
         const varKey = input.getAttribute('data-var') as keyof TemplateVariables;
         if (varKey) {
@@ -207,8 +214,8 @@ export class TemplateMessageModal {
 
           // Update text in preview without full re-render
           const tmpl = this.getSelectedTemplate();
-          const subjEl = overlay.querySelector('#tmplSubjectField') as HTMLInputElement;
-          const bodyEl = overlay.querySelector('#tmplBodyField') as HTMLTextAreaElement;
+          const subjEl = this.dialog?.querySelector('#tmplSubjectField') as HTMLInputElement;
+          const bodyEl = this.dialog?.querySelector('#tmplBodyField') as HTMLTextAreaElement;
           if (subjEl) subjEl.value = compileTemplate(tmpl.subjectTemplate, this.currentVariables);
           if (bodyEl) bodyEl.value = compileTemplate(tmpl.bodyTemplate, this.currentVariables);
         }
@@ -216,8 +223,8 @@ export class TemplateMessageModal {
     });
 
     // Copy subject button
-    overlay.querySelector('.btn-copy-subject')?.addEventListener('click', async () => {
-      const subjEl = overlay.querySelector('#tmplSubjectField') as HTMLInputElement;
+    this.dialog.querySelector('.btn-copy-subject')?.addEventListener('click', async () => {
+      const subjEl = this.dialog?.querySelector('#tmplSubjectField') as HTMLInputElement;
       if (subjEl) {
         await navigator.clipboard.writeText(subjEl.value);
         await showAlertDialog('Subjek Berhasil Disalin', 'Subjek email telah disalin ke papan klip.');
@@ -225,8 +232,8 @@ export class TemplateMessageModal {
     });
 
     // Copy all body button
-    overlay.querySelector('.btn-copy-all')?.addEventListener('click', async () => {
-      const bodyEl = overlay.querySelector('#tmplBodyField') as HTMLTextAreaElement;
+    this.dialog.querySelector('.btn-copy-all')?.addEventListener('click', async () => {
+      const bodyEl = this.dialog?.querySelector('#tmplBodyField') as HTMLTextAreaElement;
       if (bodyEl) {
         await navigator.clipboard.writeText(bodyEl.value);
         await showAlertDialog('Pesan Berhasil Disalin', 'Isi pesan template telah berhasil disalin ke papan klip!');
@@ -234,9 +241,9 @@ export class TemplateMessageModal {
     });
 
     // Mailto button
-    overlay.querySelector('.btn-open-mailto')?.addEventListener('click', () => {
-      const subjEl = overlay.querySelector('#tmplSubjectField') as HTMLInputElement;
-      const bodyEl = overlay.querySelector('#tmplBodyField') as HTMLTextAreaElement;
+    this.dialog.querySelector('.btn-open-mailto')?.addEventListener('click', () => {
+      const subjEl = this.dialog?.querySelector('#tmplSubjectField') as HTMLInputElement;
+      const bodyEl = this.dialog?.querySelector('#tmplBodyField') as HTMLTextAreaElement;
       const recipient = this.currentItem?.contacts?.[0]?.email || '';
 
       const mailtoUrl = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subjEl?.value || '')}&body=${encodeURIComponent(bodyEl?.value || '')}`;
