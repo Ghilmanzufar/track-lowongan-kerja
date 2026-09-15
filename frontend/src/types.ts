@@ -127,6 +127,24 @@ export interface ActivityEvent {
   payload?: Record<string, any>;
 }
 
+export interface InterviewPrepItem {
+  companyResearch: {
+    about: string;
+    products: string;
+    culture: string;
+    questionsToAsk: string[];
+    completedChecklist: string[];
+  };
+  starStories: Array<{
+    id: string;
+    title: string;
+    situation: string;
+    task: string;
+    action: string;
+    result: string;
+  }>;
+}
+
 // Composite interface for views and joined queries
 export interface ApplicationItem {
   application: Application;
@@ -137,6 +155,7 @@ export interface ApplicationItem {
   documents: DocumentLink[];
   attachments?: Attachment[];
   activities: ActivityEvent[];
+  interviewPrep?: InterviewPrepItem;
 }
 
 export interface FilterCriteria {

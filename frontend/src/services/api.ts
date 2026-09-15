@@ -166,3 +166,20 @@ export function deleteDocument(id: string): Promise<{ success: boolean }> {
   return request(`/documents/${id}`, { method: 'DELETE' });
 }
 
+// ─── URL Checker ─────────────────────────────────────────────────────────────
+
+export interface UrlCheckResult {
+  url: string;
+  active: boolean;
+  statusCode?: number;
+  statusText?: string;
+  error?: string;
+}
+
+export function checkJobUrl(url: string): Promise<UrlCheckResult> {
+  return request<UrlCheckResult>('/check-url', {
+    method: 'POST',
+    body: JSON.stringify({ url })
+  });
+}
+

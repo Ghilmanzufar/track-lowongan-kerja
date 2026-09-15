@@ -41,7 +41,18 @@ function renderKanbanCard(item: ApplicationItem, now: string): string {
       <div class="card-title">${escapeHtml(item.jobPosting.title)}</div>
 
       ${
-        item.jobPosting.tags && item.jobPosting.tags.length > 0
+        item.jobPosting.sourceUrl
+          ? `<div class="card-meta-row" style="margin-top: 4px; display: flex; align-items: center; justify-content: space-between;">
+              <a href="${item.jobPosting.sourceUrl}" target="_blank" rel="noopener noreferrer" class="card-url-link" onclick="event.stopPropagation();" title="Buka tautan lowongan">
+                🔗 ${escapeHtml(new URL(item.jobPosting.sourceUrl).hostname.replace('www.', ''))} ↗
+              </a>
+              ${
+                item.jobPosting.tags && item.jobPosting.tags.length > 0
+                  ? `<span class="tag-badge">${escapeHtml(item.jobPosting.tags[0])}</span>`
+                  : ''
+              }
+            </div>`
+          : item.jobPosting.tags && item.jobPosting.tags.length > 0
           ? `<div class="card-meta-row">
               ${item.jobPosting.tags
                 .slice(0, 3)
