@@ -9,6 +9,7 @@ import {
   escapeHtml,
   formatSalary
 } from '../utils';
+import { OfferComparisonModal } from './OfferComparisonModal';
 
 type SortField = 'company' | 'title' | 'stage' | 'deadline' | 'updated';
 type SortOrder = 'asc' | 'desc';
@@ -34,10 +35,7 @@ export function renderListView(container: HTMLElement): void {
       const d2 = b.jobPosting.applyDeadline || '9999';
       comp = d1.localeCompare(d2);
     } else if (currentSortField === 'updated') {
-      comp =
-        new Date(b.application.lastActivityAt).getTime() -
-        new Date(a.application.lastActivityAt).getTime();
-      return currentSortOrder === 'desc' ? comp : -comp;
+      comp = a.application.lastActivityAt.localeCompare(b.application.lastActivityAt);
     }
     return currentSortOrder === 'asc' ? comp : -comp;
   });
@@ -51,9 +49,15 @@ export function renderListView(container: HTMLElement): void {
 
   container.innerHTML = `
     <div class="list-wrapper">
-      <div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+      <div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
         <div style="font-size: 12.5px; color: var(--text-secondary);">
           Menampilkan <strong>${sortedItems.length}</strong> lamaran
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" id="btnListOfferCompare" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;">
+            <span>⚖️</span>
+            <span>Bandingkan Penawaran</span>
+          </button>
         </div>
       </div>
 
@@ -229,5 +233,10 @@ export function renderListView(container: HTMLElement): void {
       const id = btn.getAttribute('data-action-view');
       if (id) store.setSelectedApplicationId(id);
     });
+  });
+
+  // Offer Comparison Modal Trigger from List View
+  container.querySelector('#btnListOfferCompare')?.addEventListener('click', () => {
+    OfferComparisonModal.open();
   });
 }

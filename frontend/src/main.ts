@@ -11,7 +11,6 @@ import { renderAnalyticsView } from './components/AnalyticsView';
 import { setupQuickAddModal } from './components/QuickAddModal';
 import { setupDetailModal } from './components/DetailModal';
 import { setupFilterDrawer } from './components/FilterDrawer';
-import { OfferComparisonModal } from './components/OfferComparisonModal';
 import { renderFooter } from './components/Footer';
 import { loadSeedData } from './services/seedData';
 import { notificationService } from './services/notification';
@@ -126,11 +125,6 @@ async function initApp(): Promise<void> {
   btnUserAccount?.addEventListener('click', handleProfileClick);
   sidebarProfileBtn?.addEventListener('click', handleProfileClick);
   mobileFabAdd?.addEventListener('click', triggerQuickAdd);
-
-  // Offer Comparison Modal Trigger
-  document.getElementById('btnOpenOfferComparison')?.addEventListener('click', () => {
-    OfferComparisonModal.open();
-  });
 
   // Global Search Input with debouncing
   let debounceTimeout: any = null;
