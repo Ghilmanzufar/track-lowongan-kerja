@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobTrack Clipper</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="clipper-container">
+    <!-- Header -->
+    <header class="clipper-header">
+      <div class="clipper-brand">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        </svg>
+        <span class="brand-name">JobTrack</span>
+        <span class="brand-tag">Clipper</span>
+      </div>
+      <div class="status-badge" id="backendStatus">
+        <span class="dot"></span>
+        <span id="backendStatusText">Memeriksa API...</span>
+      </div>
+    </header>
+
+    <!-- Main Form -->
+    <form id="clipForm" class="clipper-form">
+      <div class="form-group">
+        <label for="inputTitle">Posisi / Judul Lowongan <span class="req">*</span></label>
+        <input type="text" id="inputTitle" required placeholder="cth. Senior Frontend Developer">
+      </div>
+
+      <div class="form-group">
+        <label for="inputCompany">Nama Perusahaan <span class="req">*</span></label>
+        <input type="text" id="inputCompany" required placeholder="cth. PT Teknologi Maju">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label for="selectStage">Status / Tahap</label>
+          <select id="selectStage">
+            <option value="Saved" selected>Disimpan</option>
+            <option value="ToApply">Siap Dilamar</option>
+            <option value="Applied">Sudah Dilamar</option>
+          </select>
+        </div>
+
+        <div class="form-group flex-1">
+          <label for="selectWorkType">Sistem Kerja</label>
+          <select id="selectWorkType">
+            <option value="onsite">On-site</option>
+            <option value="hybrid">Hybrid</option>
+            <option value="remote">Remote</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="inputLocation">Lokasi Perusahaan</label>
+        <input type="text" id="inputLocation" placeholder="cth. Jakarta Selatan / Remote">
+      </div>
+
+      <div class="form-group">
+        <label for="inputSourceUrl">Tautan Lowongan (URL)</label>
+        <input type="url" id="inputSourceUrl" placeholder="https://..." readonly>
+      </div>
+
+      <div class="form-group">
+        <label for="inputNotes">Catatan Tambahan</label>
+        <textarea id="inputNotes" rows="2" placeholder="Catatan atau poin penting..."></textarea>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button type="button" id="btnReExtract" class="btn btn-secondary" title="Ekstrak ulang data dari halaman">
+          🔄 Muat Ulang
+        </button>
+        <button type="submit" id="btnSubmit" class="btn btn-primary">
+          💾 Simpan ke JobTrack
+        </button>
+      </div>
+    </form>
+
+    <!-- Success / Error Notice -->
+    <div id="noticeBox" class="notice-box hidden"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

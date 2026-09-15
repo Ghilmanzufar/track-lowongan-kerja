@@ -7,11 +7,16 @@ node_modules/
 dist/
 build/
 coverage/
+frontend/dist/
+backend/dist/
+
 
 # Environment variables
 .env
 .env.local
 .env.*.local
+backend/.env
+
 
 # IDE & Editors
 .vscode/

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobTrack — Personal Job Application Tracker</title>
+  <meta name="description" content="Aplikasi personal local-first pelacak lamaran kerja, pipeline Kanban, pengingat tugas, dan dokumen CV." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/styles/main.css" />
+</head>
+<body>
+  <div id="app" class="dashboard-app-layout">
+    <!-- Mobile Backdrop for Sidebar -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+
+    <!-- Left App Sidebar -->
+    <aside class="app-sidebar" id="appSidebar">
+      <div class="sidebar-top">
+        <div class="sidebar-brand">
+          <div class="brand-logo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>
+          </div>
+          <div class="brand-info">
+            <span class="brand-name">JobTrack</span>
+          </div>
+        </div>
+        <button class="sidebar-collapse-btn" id="btnSidebarClose" title="Sembunyikan Sidebar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="18" x="3" y="3" rx="2"/>
+            <path d="M9 3v18"/>
+            <path d="m15 9-3 3 3 3"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Sidebar Navigation Groups -->
+      <nav class="sidebar-nav" id="navTabs">
+        <div class="nav-section-label">UTAMA</div>
+        
+        <button class="nav-item-btn tab-btn active" data-view="dashboard">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="7" height="9" x="3" y="3" rx="1"/>
+            <rect width="7" height="5" x="14" y="3" rx="1"/>
+            <rect width="7" height="9" x="14" y="12" rx="1"/>
+            <rect width="7" height="5" x="3" y="16" rx="1"/>
+          </svg>
+          <span>Dashboard</span>
+        </button>
+
+        <button class="nav-item-btn tab-btn" data-view="board">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="3" x2="12" y2="21"/>
+            <path d="M8 8v10"/>
+            <path d="M16 8v6"/>
+            <rect width="18" height="18" x="3" y="3" rx="2"/>
+          </svg>
+          <span>Kanban Board</span>
+          <span class="tab-count nav-badge" id="tabCountBoard">0</span>
+        </button>
+
+        <button class="nav-item-btn tab-btn" data-view="list">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="8" y1="6" x2="21" y2="6"/>
+            <line x1="8" y1="12" x2="21" y2="12"/>
+            <line x1="8" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/>
+            <line x1="3" y1="12" x2="3.01" y2="12"/>
+            <line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg>
+          <span>Daftar Lamaran</span>
+          <span class="tab-count nav-badge" id="tabCountList">0</span>
+        </button>
+
+        <div class="nav-section-label" style="margin-top: 14px;">JADWAL & METRIK</div>
+
+        <button class="nav-item-btn tab-btn" data-view="agenda">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span>Agenda & Tugas</span>
+          <span class="tab-count nav-badge" id="tabCountAgenda">0</span>
+        </button>
+
+        <button class="nav-item-btn tab-btn" data-view="analytics">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+          <span>Analitik & Funnel</span>
+        </button>
+
+        <div class="nav-section-label" style="margin-top: 14px;">SISTEM & DATA</div>
+
+        <button class="nav-item-btn tab-btn" data-view="export">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Ekspor / Impor</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="sidebar-profile-card" id="sidebarProfileBtn" title="Profil Pengguna" role="button" tabindex="0">
+          <div class="sidebar-profile-avatar">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <div class="sidebar-profile-info">
+            <span class="sidebar-profile-name">Profile</span>
+            <span class="sidebar-profile-sub">Akun Saya</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Layout -->
+    <div class="app-main-workspace">
+      <!-- Topbar Header -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <button class="topbar-burger-btn btn btn-secondary btn-icon" id="btnSidebarToggle" title="Buka / Sembunyikan Sidebar" aria-label="Buka menu navigasi">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+
+          <div class="topbar-heading">
+            <h2 id="topbarViewTitle" class="topbar-title">Dashboard</h2>
+            <span id="topbarViewSubtitle" class="topbar-subtitle">Ringkasan aktivitas dan pipeline lamaran</span>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <div class="header-search">
+            <span class="header-search-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </span>
+            <input type="search" id="globalSearchInput" placeholder="Cari lowongan..." />
+            <span class="search-shortcut-badge">/</span>
+          </div>
+
+          <button class="btn btn-secondary btn-icon" id="btnThemeToggle" title="Ganti Mode Gelap / Terang" aria-label="Ganti Mode Gelap / Terang">
+            <svg id="iconThemeDark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+            </svg>
+            <svg id="iconThemeLight" style="display: none;" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+            </svg>
+          </button>
+
+          <button class="btn btn-secondary btn-icon topbar-account-btn" id="btnUserAccount" title="Akun Pengguna" aria-label="Menu Akun Pengguna">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Content & Drawer Area -->
+      <div class="main-content">
+        <main id="viewContainer" class="view-container"></main>
+
+      <!-- Filter Drawer (hidden by default) -->
+      <aside id="filterDrawer" class="filter-drawer" style="display: none;">
+        <div class="drawer-header">
+          <h3 style="font-size: 13.5px; font-weight: 600;">Filter Lamaran</h3>
+          <button class="modal-close" id="btnCloseFilter">✕</button>
+        </div>
+        <div class="drawer-body">
+          <div class="form-group">
+            <label class="form-label">Berdasarkan Status</label>
+            <div id="filterStagesList" style="display: flex; flex-direction: column; gap: 6px;"></div>
+          </div>
+
+          <div class="form-group" style="margin-top: 16px;">
+            <label class="form-label">Tipe Kerja</label>
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12.5px;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" name="filterWorkType" value="remote" /> Remote
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" name="filterWorkType" value="hybrid" /> Hybrid
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" name="filterWorkType" value="onsite" /> Onsite
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 16px;">
+            <label class="form-label">Keterlambatan Tugas</label>
+            <label style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; cursor: pointer;">
+              <input type="checkbox" id="filterOverdueOnly" /> Hanya yang memiliki tugas terlambat (!)
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" id="btnResetFilter">Reset</button>
+          <button class="btn btn-primary btn-sm" id="btnApplyFilter">Terapkan Filter</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+  <!-- Quick Add Dialog -->
+  <dialog id="quickAddDialog">
+    <div class="modal-header">
+      <h3 class="modal-title">Simpan Lowongan Pekerjaan Baru</h3>
+      <button class="modal-close" id="quickAddCloseBtn">✕</button>
+    </div>
+    <form id="quickAddForm">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="quickAddTitle">Posisi / Jabatan <span class="req">*</span></label>
+          <input type="text" id="quickAddTitle" class="form-input" placeholder="contoh: Junior Frontend Engineer" required autofocus />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="quickAddCompany">Nama Perusahaan <span class="req">*</span></label>
+            <input type="text" id="quickAddCompany" class="form-input" placeholder="contoh: PT Teknologi Maju" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="quickAddStage">Status Awal</label>
+            <select id="quickAddStage" class="form-select"></select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="quickAddUrl">Tautan Sumber Lowongan (URL)</label>
+          <input type="url" id="quickAddUrl" class="form-input" placeholder="https://www.linkedin.com/jobs/..." />
+        </div>
+
+        <div style="margin: 8px 0;">
+          <button type="button" class="btn btn-secondary btn-sm" id="quickAddToggleAdvanced">
+            + Tampilkan Opsi Tambahan
+          </button>
+        </div>
+
+        <div id="quickAddAdvancedFields" style="display: none; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 8px;">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="quickAddLocation">Lokasi</label>
+              <input type="text" id="quickAddLocation" class="form-input" placeholder="contoh: Jakarta Selatan" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="quickAddWorkType">Tipe Kerja</label>
+              <select id="quickAddWorkType" class="form-select">
+                <option value="">Pilih tipe...</option>
+                <option value="remote">Remote</option>
+                <option value="hybrid">Hybrid</option>
+                <option value="onsite">Onsite</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="quickAddSalaryMin">Gaji Min (Rp)</label>
+              <input type="number" id="quickAddSalaryMin" class="form-input" placeholder="8000000" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="quickAddSalaryMax">Gaji Max (Rp)</label>
+              <input type="number" id="quickAddSalaryMax" class="form-input" placeholder="12000000" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="quickAddDeadline">Batas Akhir Lamaran</label>
+              <input type="date" id="quickAddDeadline" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="quickAddTags">Tags (pisahkan koma)</label>
+              <input type="text" id="quickAddTags" class="form-input" placeholder="Frontend, React, TypeScript" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="quickAddNotes">Catatan Singkat</label>
+            <textarea id="quickAddNotes" class="form-textarea" rows="2" placeholder="Catatan kualifikasi, referal, atau kontak..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="quickAddCancelBtn">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan Lowongan</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Application Detail Dialog -->
+  <dialog id="detailDialog" style="max-width: 720px;">
+    <div class="modal-header">
+      <div id="detailHeaderTitle" style="display: flex; flex-direction: column; gap: 2px;"></div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <select id="detailHeaderStage" class="form-select" style="font-size: 12px; font-weight: 600;"></select>
+        <button class="modal-close" id="detailCloseBtn">✕</button>
+      </div>
+    </div>
+    <div class="detail-tabs" id="detailTabs"></div>
+    <div class="modal-body" id="detailBody"></div>
+  </dialog>
+
+  <!-- Toast Notifications Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Mobile Floating Action Button -->
+  <button id="mobileFabAdd" class="mobile-fab-add" title="Tambah Lowongan Baru">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+  </button>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

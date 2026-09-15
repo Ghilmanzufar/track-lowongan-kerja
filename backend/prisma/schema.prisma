@@ -1,0 +1,227 @@
+// JobTrack — Prisma Schema
+// Aligned with frontend/src/types/index.ts
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// USER
+// ─────────────────────────────────────────────
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  displayName  String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  companies    Company[]
+  applications Application[]
+}
+
+// ─────────────────────────────────────────────
+// COMPANY
+// ─────────────────────────────────────────────
+
+model Company {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String
+  industry    String?
+  size        String?
+  website     String?
+  location    String?
+  linkedinUrl String?
+  notes       String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  jobPostings JobPosting[]
+  contacts    Contact[]
+}
+
+// ─────────────────────────────────────────────
+// JOB POSTING
+// ─────────────────────────────────────────────
+
+model JobPosting {
+  id             String    @id @default(cuid())
+  companyId      String
+  company        Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  title          String
+  sourceUrl      String?
+  foundDate      DateTime?
+  applyDeadline  DateTime?
+  location       String?
+  workType       WorkType?
+  salaryMin      Int?
+  salaryMax      Int?
+  tags           String[]
+  keywords       String?
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  applications   Application[]
+}
+
+// ─────────────────────────────────────────────
+// APPLICATION
+// ─────────────────────────────────────────────
+
+model Application {
+  id                 String             @id @default(cuid())
+  userId             String
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobPostingId       String
+  jobPosting         JobPosting         @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+
+  stage              ApplicationStage   @default(Saved)
+  dateApplied        DateTime?
+  expectedSalary     Int?
+  benefits           String?
+  referral           Boolean            @default(false)
+  referralContactId  String?
+  notes              String?
+  lastActivityAt     DateTime           @default(now())
+
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  tasks              Task[]
+  contacts           Contact[]
+  documents          DocumentLink[]
+  activities         ActivityEvent[]
+}
+
+// ─────────────────────────────────────────────
+// TASK
+// ─────────────────────────────────────────────
+
+model Task {
+  id             String        @id @default(cuid())
+  applicationId  String
+  application    Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  type           TaskType
+  title          String
+  dueDate        DateTime?
+  priority       TaskPriority  @default(Med)
+  status         TaskStatus    @default(Open)
+  snoozeUntil    DateTime?
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+// ─────────────────────────────────────────────
+// CONTACT
+// ─────────────────────────────────────────────
+
+model Contact {
+  id             String       @id @default(cuid())
+  companyId      String?
+  company        Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  applicationId  String?
+  application    Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+
+  name           String
+  role           String?
+  email          String?
+  phone          String?
+  linkedinUrl    String?
+  notes          String?
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+// ─────────────────────────────────────────────
+// DOCUMENT LINK
+// ─────────────────────────────────────────────
+
+model DocumentLink {
+  id             String      @id @default(cuid())
+  applicationId  String
+  application    Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  label          String
+  url            String
+
+  createdAt      DateTime    @default(now())
+}
+
+// ─────────────────────────────────────────────
+// ACTIVITY EVENT
+// ─────────────────────────────────────────────
+
+model ActivityEvent {
+  id             String             @id @default(cuid())
+  applicationId  String
+  application    Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  type           ActivityEventType
+  at             DateTime           @default(now())
+  payload        Json?
+}
+
+// ─────────────────────────────────────────────
+// ENUMS  (mirror frontend/src/types/index.ts)
+// ─────────────────────────────────────────────
+
+enum ApplicationStage {
+  Saved
+  ToApply
+  Applied
+  Screening
+  Interview
+  Offer
+  Accepted
+  Rejected
+  Withdrawn
+}
+
+enum WorkType {
+  onsite
+  hybrid
+  remote
+}
+
+enum TaskType {
+  Apply
+  FollowUp
+  Interview
+  Assignment
+  ThankYou
+}
+
+enum TaskPriority {
+  Low
+  Med
+  High
+}
+
+enum TaskStatus {
+  Open
+  Done
+}
+
+enum ActivityEventType {
+  Created
+  StageChanged
+  TaskAdded
+  TaskDone
+  NoteEdited
+  ContactAdded
+  OfferRecorded
+}
