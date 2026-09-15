@@ -3454,6 +3454,17 @@ dialog::backdrop {
   gap: 8px;
 }
 
+.detail-pipeline-stepper::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: 36px;
+  right: 36px;
+  height: 2px;
+  background-color: var(--border-color);
+  z-index: 1;
+}
+
 .stepper-step {
   display: flex;
   flex-direction: column;
@@ -3484,9 +3495,10 @@ dialog::backdrop {
   font-size: 11px;
   font-weight: 700;
   border: 2px solid var(--border-color);
-  background-color: var(--bg-main);
+  background-color: var(--bg-surface);
   color: var(--text-muted);
   transition: all 0.2s ease;
+  box-shadow: 0 0 0 2px var(--bg-surface);
 }
 
 .stepper-step.completed .stepper-node {
@@ -3499,21 +3511,22 @@ dialog::backdrop {
   background-color: var(--primary);
   border-color: var(--primary);
   color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+  transform: scale(1.08);
 }
 
 .stepper-step.current-offer .stepper-node {
   background-color: #059669;
   border-color: #059669;
   color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.25);
 }
 
 .stepper-step.current-rejected .stepper-node {
   background-color: #ef4444;
   border-color: #ef4444;
   color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
 }
 
 .stepper-label {

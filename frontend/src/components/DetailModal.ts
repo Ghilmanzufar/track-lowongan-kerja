@@ -357,99 +357,120 @@ function renderRingkasanView(container: HTMLElement, item: ApplicationItem, dial
   container.innerHTML = `
     <div style="display: flex; flex-direction: column; gap: 16px;">
       
-      <!-- Visual Pipeline Progress Stepper -->
-      <div class="detail-pipeline-stepper" title="Klik pada tahap untuk mengubah status lamaran">
-        ${pipelineStages
-          .map((st, idx) => {
-            let stateClass = '';
-            if (st === item.application.stage) {
-              stateClass = st === 'Offer' || st === 'Accepted' ? 'current current-offer' : 'current';
-            } else if (currentStageIndex > -1 && idx < currentStageIndex) {
-              stateClass = 'completed';
-            }
-            return `
-              <button class="stepper-step ${stateClass}" data-step-stage="${st}" type="button">
-                <div class="stepper-node">
-                  ${idx < currentStageIndex ? '✓' : idx + 1}
-                </div>
-                <span class="stepper-label">${STAGES_CONFIG[st].label}</span>
-              </button>
-            `;
-          })
-          .join('')}
+      <!-- Visual Pipeline Progress Stepper Card -->
+      <div class="stepper-card-wrapper" style="background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted);">
+            Progres Tahap Lamaran
+          </span>
+          <span style="font-size: 11.5px; color: var(--primary); font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+            <span style="width: 6px; height: 6px; border-radius: 50%; background-color: var(--primary);"></span>
+            Status: ${STAGES_CONFIG[item.application.stage].label}
+          </span>
+        </div>
+        <div class="detail-pipeline-stepper" title="Klik pada tahap untuk mengubah status lamaran" style="border: none; padding: 4px 0; background: transparent;">
+          ${pipelineStages
+            .map((st, idx) => {
+              let stateClass = '';
+              if (st === item.application.stage) {
+                stateClass = st === 'Offer' || st === 'Accepted' ? 'current current-offer' : 'current';
+              } else if (currentStageIndex > -1 && idx < currentStageIndex) {
+                stateClass = 'completed';
+              }
+              return `
+                <button class="stepper-step ${stateClass}" data-step-stage="${st}" type="button">
+                  <div class="stepper-node">
+                    ${idx < currentStageIndex ? '✓' : idx + 1}
+                  </div>
+                  <span class="stepper-label">${STAGES_CONFIG[st].label}</span>
+                </button>
+              `;
+            })
+            .join('')}
+        </div>
       </div>
 
       <!-- Quick Action Buttons Bar -->
-      <div style="display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 12px; background-color: var(--bg-subtle); border-radius: var(--radius-sm); border: 1px solid var(--border-color); align-items: center;">
-        <span style="font-size: 11.5px; font-weight: 600; color: var(--text-secondary); margin-right: 4px;">Aksi Cepat:</span>
-        <button class="btn btn-secondary btn-sm" id="btnQuickAddTask" type="button" style="font-size: 11.5px;">+ Tambah Tugas</button>
-        <button class="btn btn-secondary btn-sm" id="btnQuickAddDoc" type="button" style="font-size: 11.5px;">+ Tautkan Dokumen</button>
-        <button class="btn btn-secondary btn-sm" id="btnQuickAddContact" type="button" style="font-size: 11.5px;">+ Tambah Kontak</button>
-        <button class="btn btn-secondary btn-sm" id="btnQuickOpenNotes" type="button" style="font-size: 11.5px;">Tulis Catatan</button>
-        <button class="btn btn-primary btn-sm" id="btnQuickOpenTmplMsg" type="button" style="font-size: 11.5px; background-color: var(--primary);">✉️ Template Pesan HRD</button>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 14px; background: linear-gradient(to right, var(--bg-subtle), var(--bg-surface)); border-radius: var(--radius-md); border: 1px solid var(--border-color); align-items: center;">
+        <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-right: 4px;">Aksi Cepat</span>
+        <button class="btn btn-secondary btn-sm" id="btnQuickAddTask" type="button" style="font-size: 12px; gap: 5px;">
+          <span>+</span> Tugas
+        </button>
+        <button class="btn btn-secondary btn-sm" id="btnQuickAddDoc" type="button" style="font-size: 12px; gap: 5px;">
+          <span>📎</span> Dokumen
+        </button>
+        <button class="btn btn-secondary btn-sm" id="btnQuickAddContact" type="button" style="font-size: 12px; gap: 5px;">
+          <span>👤</span> Kontak HR
+        </button>
+        <button class="btn btn-secondary btn-sm" id="btnQuickOpenNotes" type="button" style="font-size: 12px; gap: 5px;">
+          <span>📝</span> Catatan
+        </button>
+        <button class="btn btn-primary btn-sm" id="btnQuickOpenTmplMsg" type="button" style="font-size: 12px; margin-left: auto; gap: 6px; box-shadow: 0 2px 6px rgba(37,99,235,0.2);">
+          <span>✉️</span> Template Pesan HRD
+        </button>
       </div>
 
-      <!-- Information Grid -->
-      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 18px; font-size: 13px; background-color: var(--bg-surface); padding: 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+      <!-- Information Card Grid -->
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 18px; font-size: 13px; background-color: var(--bg-surface); padding: 18px; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
         <div>
-          <span style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 2px; text-transform: uppercase; font-weight: 600;">Perusahaan</span>
-          <strong style="font-size: 13.5px;">${escapeHtml(item.company.name)}</strong>
+          <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 3px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Perusahaan</span>
+          <strong style="font-size: 14px; color: var(--text-primary);">${escapeHtml(item.company.name)}</strong>
         </div>
         <div>
-          <span style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 2px; text-transform: uppercase; font-weight: 600;">Posisi / Jabatan</span>
-          <strong style="font-size: 13.5px;">${escapeHtml(item.jobPosting.title)}</strong>
+          <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 3px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Posisi / Jabatan</span>
+          <strong style="font-size: 14px; color: var(--text-primary);">${escapeHtml(item.jobPosting.title)}</strong>
         </div>
         <div>
-          <span style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 2px; text-transform: uppercase; font-weight: 600;">Lokasi</span>
-          <span>${escapeHtml(item.jobPosting.location || '-')}</span>
+          <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 3px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Lokasi</span>
+          <span style="color: var(--text-secondary);">${escapeHtml(item.jobPosting.location || '-')}</span>
         </div>
         <div>
-          <span style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 2px; text-transform: uppercase; font-weight: 600;">Tipe Kerja</span>
-          <span class="tag-badge" style="font-size: 11.5px;">${escapeHtml(workType)}</span>
+          <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 3px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Tipe Kerja</span>
+          <span class="tag-badge" style="font-size: 11px; text-transform: uppercase; font-weight: 600; padding: 2px 8px;">${escapeHtml(workType)}</span>
         </div>
         <div>
-          <span style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 2px; text-transform: uppercase; font-weight: 600;">Rentang Gaji Lowongan</span>
-          <span class="mono">${salary || '-'}</span>
+          <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 3px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Rentang Gaji Lowongan</span>
+          <span class="mono" style="font-weight: 600;">${salary || '-'}</span>
         </div>
         <div>
-          <span style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 2px; text-transform: uppercase; font-weight: 600;">Ekspektasi Gaji Anda</span>
-          <span class="mono" style="color: var(--accent-green); font-weight: 600;">${expectedSalary}</span>
+          <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 3px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Ekspektasi Gaji Anda</span>
+          <span class="mono" style="color: #10b981; font-weight: 700; font-size: 13.5px;">${expectedSalary}</span>
         </div>
         ${
           item.application.benefits
-            ? `<div style="grid-column: span 2;">
-                <span style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 2px; text-transform: uppercase; font-weight: 600;">Benefits & Fasilitas</span>
-                <span style="color: var(--text-primary); font-size: 12.5px;">${escapeHtml(item.application.benefits)}</span>
+            ? `<div style="grid-column: span 2; background-color: var(--bg-subtle); padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 3px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Benefits & Fasilitas</span>
+                <span style="color: var(--text-primary); font-size: 12.5px; line-height: 1.4;">${escapeHtml(item.application.benefits)}</span>
                </div>`
             : ''
         }
         <div>
-          <span style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 2px; text-transform: uppercase; font-weight: 600;">Batas Akhir Lamaran</span>
+          <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 3px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Batas Akhir Lamaran</span>
           <span class="mono">${item.jobPosting.applyDeadline ? formatDateWIB(item.jobPosting.applyDeadline) : '-'}</span>
         </div>
         <div>
-          <span style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 2px; text-transform: uppercase; font-weight: 600;">Tanggal Melamar</span>
+          <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 3px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Tanggal Melamar</span>
           <span class="mono">${item.application.dateApplied ? formatDateWIB(item.application.dateApplied) : '-'}</span>
         </div>
-        <div style="grid-column: span 2;">
-          <span style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 2px; text-transform: uppercase; font-weight: 600;">Aktivitas Terakhir</span>
-          <span class="mono" style="font-size: 12px;">${formatDateTimeWIB(item.application.lastActivityAt)} (${formatRelativeTime(item.application.lastActivityAt)})</span>
+        <div style="grid-column: span 2; border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 2px;">
+          <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 2px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Aktivitas Terakhir</span>
+          <span class="mono" style="font-size: 12px; color: var(--text-secondary);">${formatDateTimeWIB(item.application.lastActivityAt)} (${formatRelativeTime(item.application.lastActivityAt)})</span>
         </div>
       </div>
 
       ${
         item.jobPosting.sourceUrl
-          ? `<div style="padding: 10px 14px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 6px;">
+          ? `<div style="padding: 12px 16px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 8px;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="color: var(--text-muted); font-size: 11px; text-transform: uppercase; font-weight: 600;">Tautan Sumber Lowongan</span>
+                <span style="color: var(--text-muted); font-size: 10.5px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Tautan Sumber Lowongan</span>
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <span id="sourceUrlStatusBadge" class="url-status-tag status-unverified">⚪ Belum Dicek</span>
-                  <button type="button" class="btn btn-secondary btn-xs" id="btnCheckSourceUrl" style="font-size: 11px; padding: 2px 7px;">
-                    🔍 Cek Status Tautan
+                  <button type="button" class="btn btn-secondary btn-xs" id="btnCheckSourceUrl" style="font-size: 11px; padding: 3px 8px; border-radius: var(--radius-xs);">
+                    🔍 Cek Status
                   </button>
                 </div>
               </div>
-              <a href="${item.jobPosting.sourceUrl}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-blue); word-break: break-all; font-size: 12.5px; text-decoration: underline;">
+              <a href="${item.jobPosting.sourceUrl}" target="_blank" rel="noopener noreferrer" style="color: var(--primary); word-break: break-all; font-size: 12.5px; text-decoration: underline; font-weight: 500;">
                 ${escapeHtml(item.jobPosting.sourceUrl)} ↗
               </a>
              </div>`
@@ -458,22 +479,22 @@ function renderRingkasanView(container: HTMLElement, item: ApplicationItem, dial
 
       ${
         item.jobPosting.tags && item.jobPosting.tags.length > 0
-          ? `<div>
-              <span style="color: var(--text-muted); font-size: 11px; display: block; margin-bottom: 6px; text-transform: uppercase; font-weight: 600;">Tags & Keahlian</span>
+          ? `<div style="padding: 12px 16px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+              <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 8px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Tags & Keahlian</span>
               <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                ${item.jobPosting.tags.map((t) => `<span class="tag-badge" style="font-size: 12px; padding: 3px 8px;">${escapeHtml(t)}</span>`).join('')}
+                ${item.jobPosting.tags.map((t) => `<span class="tag-badge" style="font-size: 11.5px; padding: 4px 9px;">${escapeHtml(t)}</span>`).join('')}
               </div>
              </div>`
           : ''
       }
 
       <!-- Bottom Actions -->
-      <div style="border-top: 1px solid var(--border-color); padding-top: 14px; display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-        <button class="btn btn-secondary btn-sm" id="btnToggleEditOverview" type="button">
-          ✎ Edit Informasi Lengkap
+      <div style="border-top: 1px solid var(--border-color); padding-top: 16px; display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+        <button class="btn btn-secondary btn-sm" id="btnToggleEditOverview" type="button" style="gap: 5px;">
+          <span>✎</span> Edit Informasi
         </button>
-        <button class="btn btn-danger btn-sm" id="btnDeleteApp" type="button">
-          🗑 Hapus Lamaran Ini
+        <button class="btn btn-danger btn-sm" id="btnDeleteApp" type="button" style="gap: 5px;">
+          <span>🗑</span> Hapus Lamaran
         </button>
       </div>
     </div>
