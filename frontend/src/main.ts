@@ -8,7 +8,6 @@ import { renderBoardView } from './components/BoardView';
 import { renderListView } from './components/ListView';
 import { renderAgendaView } from './components/AgendaView';
 import { renderAnalyticsView } from './components/AnalyticsView';
-import { renderExportImportView } from './components/ExportImportView';
 import { setupQuickAddModal } from './components/QuickAddModal';
 import { setupDetailModal } from './components/DetailModal';
 import { setupFilterDrawer } from './components/FilterDrawer';
@@ -172,10 +171,6 @@ async function initApp(): Promise<void> {
     analytics: {
       title: 'Analitik & Metrik',
       subtitle: 'Insights tingkat konversi dan rasio efektivitas'
-    },
-    export: {
-      title: 'Cadangan & Pemulihan',
-      subtitle: 'Ekspor data ke JSON/CSV dan impor cadangan lokal'
     }
   };
 
@@ -274,9 +269,6 @@ async function initApp(): Promise<void> {
       case 'analytics':
         renderAnalyticsView(viewContainer);
         break;
-      case 'export':
-        renderExportImportView(viewContainer);
-        break;
     }
 
     // Render footer
@@ -297,7 +289,7 @@ async function initApp(): Promise<void> {
   });
 
   // Handle hash routing
-  const validViews: AppView[] = ['dashboard', 'board', 'list', 'agenda', 'analytics', 'export'];
+  const validViews: AppView[] = ['dashboard', 'board', 'list', 'agenda', 'analytics'];
 
   window.addEventListener('hashchange', () => {
     const hash = window.location.hash.replace('#', '') as AppView;

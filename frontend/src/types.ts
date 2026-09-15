@@ -224,4 +224,4 @@ export const STAGES_CONFIG: Record<ApplicationStage, StageConfig> = {
   }
 };
 
-export type AppView = 'dashboard' | 'board' | 'list' | 'agenda' | 'analytics' | 'export';
+export type AppView = 'dashboard' | 'board' | 'list' | 'agenda' | 'analytics';

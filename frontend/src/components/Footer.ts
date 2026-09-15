@@ -36,7 +36,6 @@ export function renderFooter(container: HTMLElement): void {
           <button class="footer-nav-link" data-view-target="list">Daftar Lamaran</button>
           <button class="footer-nav-link" data-view-target="agenda">Agenda</button>
           <button class="footer-nav-link" data-view-target="analytics">Analitik</button>
-          <button class="footer-nav-link" data-view-target="export">Ekspor / Impor</button>
         </nav>
 
         <!-- Quick Action Buttons -->

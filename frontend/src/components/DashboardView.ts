@@ -5,7 +5,6 @@
 import { store } from '../services/store';
 import { ApplicationItem, ApplicationStage, STAGES_CONFIG } from '../types';
 import { formatRelativeTime, escapeHtml, formatSalary, formatDateTimeWIB } from '../utils';
-import { exportAllToJson, downloadFile } from '../services/exportImport';
 
 export function renderDashboardView(container: HTMLElement): void {
   const items = store.getItems();
@@ -438,31 +437,6 @@ export function renderDashboardView(container: HTMLElement): void {
           </div>
         </div>
 
-        <!-- Privacy & Local-first info card -->
-        <div class="dashboard-widget backup-widget">
-          <div class="widget-header">
-            <h2 class="widget-title">Privasi & Cadangan Lokal</h2>
-          </div>
-          <div class="widget-body">
-            <p class="backup-desc">
-              Semua catatan lowongan, kontak HR, dan dokumen tersimpan secara <strong>local-first</strong> pada IndexedDB di perangkat Anda. Data Anda 100% aman dan tidak dikirim ke server manapun.
-            </p>
-            <div class="backup-actions">
-              <button class="btn btn-secondary btn-sm" id="dashBtnDownloadJson">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                <span>Unduh Cadangan JSON</span>
-              </button>
-              <button class="btn btn-secondary btn-sm" id="dashBtnGoExport">
-                <span>Kelola Impor / Ekspor →</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
       </div>
 
     </div>
@@ -490,10 +464,6 @@ export function renderDashboardView(container: HTMLElement): void {
 
   container.querySelector('#dashBtnSeeAllAgenda')?.addEventListener('click', () => {
     store.setView('agenda');
-  });
-
-  container.querySelector('#dashBtnGoExport')?.addEventListener('click', () => {
-    store.setView('export');
   });
 
   // Pipeline step item click: filter stage and open board
@@ -537,21 +507,5 @@ export function renderDashboardView(container: HTMLElement): void {
         renderDashboardView(container);
       }
     });
-  });
-
-  // Download backup JSON
-  container.querySelector('#dashBtnDownloadJson')?.addEventListener('click', async () => {
-    try {
-      const json = await exportAllToJson();
-      const filename = `jobtrack-backup-${new Date().toISOString().slice(0, 10)}.json`;
-      downloadFile(json, filename, 'application/json');
-      if ((window as any).showToast) {
-        (window as any).showToast('Cadangan data JSON berhasil diunduh!', 'success');
-      }
-    } catch (err: any) {
-      if ((window as any).showToast) {
-        (window as any).showToast('Gagal mengunduh cadangan: ' + err.message, 'error');
-      }
-    }
   });
 }
