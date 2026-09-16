@@ -7,7 +7,8 @@ import type {
   WorkType,
   Task,
   Contact,
-  DocumentLink
+  DocumentLink,
+  Attachment
 } from '../types';
 
 const BASE = '/api/v1';
@@ -183,3 +184,92 @@ export function checkJobUrl(url: string): Promise<UrlCheckResult> {
   });
 }
 
+// ─── Attachments ─────────────────────────────────────────────────────────────
+
+export function fetchAttachments(applicationId: string): Promise<Attachment[]> {
+  return request<Attachment[]>(`/attachments?applicationId=${encodeURIComponent(applicationId)}`);
+}
+
+export function createAttachment(data: {
+  applicationId: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  dataUrl: string;
+  label: string;
+}): Promise<Attachment> {
+  return request<Attachment>('/attachments', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+export function deleteAttachment(id: string): Promise<{ success: boolean }> {
+  return request(`/attachments/${id}`, { method: 'DELETE' });
+}
+
+// ─── Interview Prep ──────────────────────────────────────────────────────────
+
+export function saveInterviewPrep(applicationId: string, data: unknown): Promise<{ success: boolean; interviewPrep: unknown }> {
+  return request(`/applications/${applicationId}/interview-prep`, {
+    method: 'PUT',
+    body: JSON.stringify(data)
+  });
+}
+
+// ─── Career Links (Global) ────────────────────────────────────────────────────
+
+import type { CareerLink, CareerLinkCategory, UserCareerLink } from '../types';
+
+export function fetchCareerLinks(params?: {
+  category?: CareerLinkCategory | 'all';
+  sector?: string;
+  search?: string;
+}): Promise<CareerLink[]> {
+  const qs = new URLSearchParams();
+  if (params?.category && params.category !== 'all') qs.set('category', params.category);
+  if (params?.sector && params.sector !== 'all') qs.set('sector', params.sector);
+  if (params?.search) qs.set('search', params.search);
+  const query = qs.toString() ? `?${qs}` : '';
+  return request<CareerLink[]>(`/career-links${query}`);
+}
+
+// ─── Career Links (User Personal) ────────────────────────────────────────────
+
+export function fetchUserCareerLinks(params?: {
+  category?: CareerLinkCategory | 'all';
+  sector?: string;
+}): Promise<UserCareerLink[]> {
+  const qs = new URLSearchParams();
+  if (params?.category && params.category !== 'all') qs.set('category', params.category);
+  if (params?.sector && params.sector !== 'all') qs.set('sector', params.sector);
+  const query = qs.toString() ? `?${qs}` : '';
+  return request<UserCareerLink[]>(`/career-links/user${query}`);
+}
+
+export function createUserCareerLink(data: {
+  name: string;
+  url: string;
+  category?: CareerLinkCategory;
+  sector?: string;
+  notes?: string;
+}): Promise<UserCareerLink> {
+  return request<UserCareerLink>('/career-links/user', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+export function updateUserCareerLink(
+  id: string,
+  data: { name?: string; url?: string; category?: CareerLinkCategory; sector?: string; notes?: string }
+): Promise<UserCareerLink> {
+  return request<UserCareerLink>(`/career-links/user/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data)
+  });
+}
+
+export function deleteUserCareerLink(id: string): Promise<{ success: boolean }> {
+  return request(`/career-links/user/${id}`, { method: 'DELETE' });
+}

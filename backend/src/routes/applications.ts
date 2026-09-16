@@ -25,6 +25,7 @@ async function buildApplicationItem(applicationId: string) {
       tasks: { orderBy: { createdAt: 'asc' } },
       contacts: { orderBy: { createdAt: 'asc' } },
       documents: { orderBy: { createdAt: 'asc' } },
+      attachments: { orderBy: { createdAt: 'desc' } },
       activities: { orderBy: { at: 'desc' } }
     }
   });
@@ -105,13 +106,24 @@ async function buildApplicationItem(applicationId: string) {
       url: d.url,
       createdAt: d.createdAt.toISOString()
     })),
+    attachments: (app.attachments || []).map((att) => ({
+      id: att.id,
+      applicationId: att.applicationId,
+      fileName: att.fileName,
+      fileSize: att.fileSize,
+      mimeType: att.mimeType,
+      dataUrl: att.dataUrl,
+      label: att.label,
+      createdAt: att.createdAt.toISOString()
+    })),
     activities: app.activities.map((a) => ({
       id: a.id,
       applicationId: a.applicationId,
       type: a.type,
       at: a.at.toISOString(),
       payload: (a.payload as Record<string, unknown>) ?? undefined
-    }))
+    })),
+    interviewPrep: (app.interviewPrep as Record<string, unknown>) ?? undefined
   };
 }
 
@@ -191,13 +203,24 @@ function mapApplicationList(applications: Awaited<ReturnType<typeof getApplicati
       url: d.url,
       createdAt: d.createdAt.toISOString()
     })),
+    attachments: (app.attachments || []).map((att) => ({
+      id: att.id,
+      applicationId: att.applicationId,
+      fileName: att.fileName,
+      fileSize: att.fileSize,
+      mimeType: att.mimeType,
+      dataUrl: att.dataUrl,
+      label: att.label,
+      createdAt: att.createdAt.toISOString()
+    })),
     activities: app.activities.map((a) => ({
       id: a.id,
       applicationId: a.applicationId,
       type: a.type,
       at: a.at.toISOString(),
       payload: (a.payload as Record<string, unknown>) ?? undefined
-    }))
+    })),
+    interviewPrep: (app.interviewPrep as Record<string, unknown>) ?? undefined
   }));
 }
 
@@ -209,11 +232,11 @@ async function getApplicationsFromDb(where: import('@prisma/client').Prisma.Appl
       tasks: { orderBy: { createdAt: 'asc' } },
       contacts: { orderBy: { createdAt: 'asc' } },
       documents: { orderBy: { createdAt: 'asc' } },
+      attachments: { orderBy: { createdAt: 'desc' } },
       activities: { orderBy: { at: 'desc' } }
     },
     orderBy: { lastActivityAt: 'desc' }
   });
-
 }
 
 // ─── GET /api/v1/applications ─────────────────────────────────────────────────
@@ -467,6 +490,29 @@ applicationsRouter.delete('/:id', async (req: Request<{ id: string }>, res: Resp
     res.json({ success: true });
   } catch (err) {
     console.error('[DELETE /applications/:id]', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ─── PUT /api/v1/applications/:id/interview-prep ──────────────────────────────
+applicationsRouter.put('/:id/interview-prep', async (req: Request<{ id: string }>, res: Response) => {
+  try {
+    const id = req.params.id;
+    const existing = await prisma.application.findUnique({ where: { id } });
+    if (!existing) return res.status(404).json({ error: 'Not found' });
+
+    const interviewPrep = req.body;
+    await prisma.application.update({
+      where: { id },
+      data: {
+        interviewPrep: interviewPrep ?? null,
+        lastActivityAt: new Date()
+      }
+    });
+
+    res.json({ success: true, interviewPrep });
+  } catch (err) {
+    console.error('[PUT /applications/:id/interview-prep]', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

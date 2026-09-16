@@ -243,4 +243,169 @@ export const STAGES_CONFIG: Record<ApplicationStage, StageConfig> = {
   }
 };
 
-export type AppView = 'dashboard' | 'board' | 'list' | 'agenda' | 'analytics';
+export type AppView = 'dashboard' | 'board' | 'list' | 'agenda' | 'analytics' | 'career-links';
+
+// ─── Career Links ─────────────────────────────────────────────────────
+
+export type CareerLinkCategory = 'Swasta' | 'BUMN' | 'Kementerian' | 'Multinasional' | 'JobBoard';
+
+export interface CareerLink {
+  id: string;
+  name: string;
+  url: string;
+  category: CareerLinkCategory;
+  sector?: string;
+  logoUrl?: string;
+  isVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserCareerLink {
+  id: string;
+  userId: string;
+  name: string;
+  url: string;
+  category: CareerLinkCategory;
+  sector?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IndustrySectorDef {
+  key: string;
+  name: string;
+  shortName: string;
+  icon: string;
+  description: string;
+}
+
+export const INDUSTRY_SECTORS: IndustrySectorDef[] = [
+  {
+    key: 'Pertanian, Kehutanan, dan Perikanan',
+    name: 'Pertanian, Kehutanan, dan Perikanan',
+    shortName: 'Pertanian & Kehutanan',
+    icon: '🌾',
+    description: 'Kelapa sawit, perkebunan, kehutanan, perikanan'
+  },
+  {
+    key: 'Pertambangan dan Penggalian',
+    name: 'Pertambangan dan Penggalian',
+    shortName: 'Pertambangan & Energi',
+    icon: '⛏️',
+    description: 'Minyak bumi, gas alam, batu bara, bijih logam, galian mineral'
+  },
+  {
+    key: 'Industri Pengolahan / Manufaktur',
+    name: 'Industri Pengolahan / Manufaktur',
+    shortName: 'Manufaktur & Pengolahan',
+    icon: '🏭',
+    description: 'FMCG, otomotif, kimia, semen, makanan-minuman, tekstil, farmasi'
+  },
+  {
+    key: 'Pengadaan Listrik, Gas, Uap/Air Panas, dan Udara Dingin',
+    name: 'Pengadaan Listrik, Gas, Uap/Air Panas, dan Udara Dingin',
+    shortName: 'Kelistrikan & Gas',
+    icon: '⚡',
+    description: 'Pembangkit listrik, transmisi, distribusi gas dan energi'
+  },
+  {
+    key: 'Pengelolaan Air, Pengelolaan Air Limbah, Pengelolaan dan Daur Ulang Sampah, serta Aktivitas Remediasi',
+    name: 'Pengelolaan Air, Pengelolaan Air Limbah, Pengelolaan dan Daur Ulang Sampah, serta Aktivitas Remediasi',
+    shortName: 'Air & Pengelolaan Limbah',
+    icon: '♻️',
+    description: 'Penyediaan air bersih, pengolahan limbah & daur ulang'
+  },
+  {
+    key: 'Konstruksi',
+    name: 'Konstruksi',
+    shortName: 'Konstruksi & Sipil',
+    icon: '🏗️',
+    description: 'Gedung, jalan tol, pelabuhan, instalasi infrastruktur sipil khusus'
+  },
+  {
+    key: 'Perdagangan Besar dan Eceran; Reparasi dan Perawatan Mobil dan Sepeda Motor',
+    name: 'Perdagangan Besar dan Eceran; Reparasi dan Perawatan Mobil dan Sepeda Motor',
+    shortName: 'Perdagangan & Ritel',
+    icon: '🛒',
+    description: 'Supermarket, minimarket, distributor, dealer & bengkel otomotif'
+  },
+  {
+    key: 'Pengangkutan dan Pergudangan',
+    name: 'Pengangkutan dan Pergudangan',
+    shortName: 'Logistik & Transportasi',
+    icon: '🚚',
+    description: 'Transportasi darat, laut, udara, kurir, ekspedisi dan pergudangan'
+  },
+  {
+    key: 'Penyediaan Akomodasi dan Penyediaan Makan Minum',
+    name: 'Penyediaan Akomodasi dan Penyediaan Makan Minum',
+    shortName: 'Perhotelan & F&B',
+    icon: '🍽️',
+    description: 'Hotel, resor, restoran, kafe, katering'
+  },
+  {
+    key: 'Informasi dan Komunikasi',
+    name: 'Informasi dan Komunikasi',
+    shortName: 'IT & Telekomunikasi',
+    icon: '💻',
+    description: 'Software, internet portal, telekomunikasi, penyiaran'
+  },
+  {
+    key: 'Aktivitas Keuangan dan Asuransi',
+    name: 'Aktivitas Keuangan dan Asuransi',
+    shortName: 'Keuangan & Perbankan',
+    icon: '💰',
+    description: 'Perbankan, pasar modal, fintech, asuransi, modal ventura'
+  },
+  {
+    key: 'Real Estat',
+    name: 'Real Estat',
+    shortName: 'Real Estat & Properti',
+    icon: '🏢',
+    description: 'Pengembangan kawasan, perumahan, pengelolaan properti'
+  },
+  {
+    key: 'Aktivitas Profesional, Ilmiah, dan Teknis',
+    name: 'Aktivitas Profesional, Ilmiah, dan Teknis',
+    shortName: 'Konsultan & Riset',
+    icon: '🔬',
+    description: 'Konsultan manajemen, riset sains, hukum, akuntansi, arsitektur'
+  },
+  {
+    key: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan, dan Penunjang Usaha Lainnya',
+    name: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan, dan Penunjang Usaha Lainnya',
+    shortName: 'Ketenagakerjaan & Karir',
+    icon: '🤝',
+    description: 'Perekrutan tenaga kerja, job board, agen perjalanan, outsourcing'
+  },
+  {
+    key: 'Administrasi Pemerintahan, Pertahanan, dan Jaminan Sosial Wajib',
+    name: 'Administrasi Pemerintahan, Pertahanan, dan Jaminan Sosial Wajib',
+    shortName: 'Pemerintahan & Lembaga',
+    icon: '🏛️',
+    description: 'Kementerian RI, lembaga negara, pertahanan, BPJS'
+  },
+  {
+    key: 'Pendidikan',
+    name: 'Pendidikan',
+    shortName: 'Pendidikan & Edukasi',
+    icon: '🎓',
+    description: 'Sekolah, perguruan tinggi, bimbel, edutech'
+  },
+  {
+    key: 'Aktivitas Kesehatan Manusia dan Aktivitas Sosial',
+    name: 'Aktivitas Kesehatan Manusia dan Aktivitas Sosial',
+    shortName: 'Kesehatan & Farmasi',
+    icon: '🏥',
+    description: 'Rumah sakit, klinik, panti sosial, layanan kesehatan'
+  },
+  {
+    key: 'Kesenian, Hiburan, dan Rekreasi',
+    name: 'Kesenian, Hiburan, dan Rekreasi',
+    shortName: 'Hiburan & Media Kreatif',
+    icon: '🎨',
+    description: 'Taman hiburan, produksi media kreatif, olahraga, rekreasi'
+  }
+];

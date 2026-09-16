@@ -7,6 +7,7 @@ import {
   Task,
   Contact,
   DocumentLink,
+  Attachment,
   ActivityEvent,
   ApplicationItem,
   ApplicationStage,
@@ -28,7 +29,10 @@ import {
   deleteContact as apiDeleteContact,
   createDocument as apiCreateDocument,
   updateDocument as apiUpdateDocument,
-  deleteDocument as apiDeleteDocument
+  deleteDocument as apiDeleteDocument,
+  createAttachment as apiCreateAttachment,
+  deleteAttachment as apiDeleteAttachment,
+  saveInterviewPrep as apiSaveInterviewPrep
 } from './api';
 
 type Listener = () => void;
@@ -342,7 +346,47 @@ class JobTrackStore {
     }
     this.notify();
   }
+
+  // --- Attachment Operations ---
+
+  public async addAttachment(
+    attData: Omit<Attachment, 'id' | 'createdAt'>
+  ): Promise<Attachment> {
+    const att = await apiCreateAttachment(attData);
+    const item = this.items.find((i) => i.application.id === att.applicationId);
+    if (item) {
+      if (!item.attachments) item.attachments = [];
+      item.attachments.unshift(att);
+    }
+    this.notify();
+    return att;
+  }
+
+  public async deleteAttachment(attachmentId: string): Promise<void> {
+    await apiDeleteAttachment(attachmentId);
+    for (const item of this.items) {
+      if (item.attachments) {
+        const idx = item.attachments.findIndex((a) => a.id === attachmentId);
+        if (idx !== -1) {
+          item.attachments.splice(idx, 1);
+          break;
+        }
+      }
+    }
+    this.notify();
+  }
+
+  // --- Interview Prep Operations ---
+
+  public async saveInterviewPrep(applicationId: string, prepData: unknown): Promise<void> {
+    await apiSaveInterviewPrep(applicationId, prepData);
+    const item = this.items.find((i) => i.application.id === applicationId);
+    if (item) {
+      item.interviewPrep = prepData as any;
+    }
+    this.notify();
+  }
 }
 
-
 export const store = new JobTrackStore();
+

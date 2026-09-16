@@ -8,11 +8,11 @@ import { renderBoardView } from './components/BoardView';
 import { renderListView } from './components/ListView';
 import { renderAgendaView } from './components/AgendaView';
 import { renderAnalyticsView } from './components/AnalyticsView';
+import { renderCareerLinksView } from './components/CareerLinksView';
 import { setupQuickAddModal } from './components/QuickAddModal';
 import { setupDetailModal } from './components/DetailModal';
 import { setupFilterDrawer } from './components/FilterDrawer';
 import { renderFooter } from './components/Footer';
-import { loadSeedData } from './services/seedData';
 import { notificationService } from './services/notification';
 import { AppView } from './types';
 
@@ -44,12 +44,8 @@ async function initApp(): Promise<void> {
   // 1. Theme Management (Light / Dark)
   setupTheme();
 
-  // 2. Initialize IndexedDB & Store
+  // 2. Initialize Store from Database Server
   await store.init();
-
-  if (store.getItems().length === 0) {
-    await loadSeedData();
-  }
 
   // Start periodic reminders check if notification permission is granted
   notificationService.startPeriodicCheck(() => store.getItems());
@@ -171,6 +167,10 @@ async function initApp(): Promise<void> {
     analytics: {
       title: 'Analitik & Metrik',
       subtitle: 'Insights tingkat konversi dan rasio efektivitas'
+    },
+    'career-links': {
+      title: 'Direktori Karir',
+      subtitle: 'Kumpulan link karir perusahaan swasta, BUMN, kementerian, dan multinasional'
     }
   };
 
@@ -269,6 +269,9 @@ async function initApp(): Promise<void> {
       case 'analytics':
         renderAnalyticsView(viewContainer);
         break;
+      case 'career-links':
+        renderCareerLinksView(viewContainer);
+        break;
     }
 
     // Render footer
@@ -289,7 +292,7 @@ async function initApp(): Promise<void> {
   });
 
   // Handle hash routing
-  const validViews: AppView[] = ['dashboard', 'board', 'list', 'agenda', 'analytics'];
+  const validViews: AppView[] = ['dashboard', 'board', 'list', 'agenda', 'analytics', 'career-links'];
 
   window.addEventListener('hashchange', () => {
     const hash = window.location.hash.replace('#', '') as AppView;

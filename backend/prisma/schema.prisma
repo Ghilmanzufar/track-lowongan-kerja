@@ -15,14 +15,15 @@ datasource db {
 // ─────────────────────────────────────────────
 
 model User {
-  id           String        @id @default(cuid())
-  email        String        @unique
+  id           String           @id @default(cuid())
+  email        String           @unique
   displayName  String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
-  companies    Company[]
-  applications Application[]
+  companies       Company[]
+  applications    Application[]
+  userCareerLinks UserCareerLink[]
 }
 
 // ─────────────────────────────────────────────
@@ -101,7 +102,9 @@ model Application {
   tasks              Task[]
   contacts           Contact[]
   documents          DocumentLink[]
+  attachments        Attachment[]
   activities         ActivityEvent[]
+  interviewPrep      Json?
 }
 
 // ─────────────────────────────────────────────
@@ -157,6 +160,24 @@ model DocumentLink {
 
   label          String
   url            String
+
+  createdAt      DateTime    @default(now())
+}
+
+// ─────────────────────────────────────────────
+// ATTACHMENT
+// ─────────────────────────────────────────────
+
+model Attachment {
+  id             String      @id @default(cuid())
+  applicationId  String
+  application    Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  fileName       String
+  fileSize       Int
+  mimeType       String
+  dataUrl        String      @db.Text
+  label          String
 
   createdAt      DateTime    @default(now())
 }
@@ -224,4 +245,50 @@ enum ActivityEventType {
   NoteEdited
   ContactAdded
   OfferRecorded
+}
+
+// ─────────────────────────────────────────────
+// CAREER LINK (Global Directory)
+// ─────────────────────────────────────────────
+
+model CareerLink {
+  id         String              @id @default(cuid())
+  name       String
+  url        String
+  category   CareerLinkCategory  @default(Swasta)
+  sector     String?
+  logoUrl    String?
+  isVerified Boolean             @default(true)
+
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  @@unique([name, url], name: "name_url")
+}
+
+// ─────────────────────────────────────────────
+// USER CAREER LINK (Personal per User)
+// ─────────────────────────────────────────────
+
+model UserCareerLink {
+  id        String             @id @default(cuid())
+  userId    String
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String
+  url       String
+  category  CareerLinkCategory @default(Swasta)
+  sector    String?
+  notes     String?
+
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+}
+
+enum CareerLinkCategory {
+  Swasta
+  BUMN
+  Kementerian
+  Multinasional
+  JobBoard
 }
