@@ -1,11 +1,15 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { prisma } from '../index.js';
+import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
 
 export const attachmentsRouter = Router();
 
+attachmentsRouter.use(requireAuth);
+
 // ─── POST /api/v1/attachments ──────────────────────────────────────────────────
-attachmentsRouter.post('/', async (req: Request, res: Response) => {
+attachmentsRouter.post('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const userId = req.user!.id;
     const body = req.body as {
       applicationId: string;
       fileName: string;
@@ -19,6 +23,13 @@ attachmentsRouter.post('/', async (req: Request, res: Response) => {
       return res.status(400).json({
         error: 'applicationId, fileName, dataUrl, and label are required'
       });
+    }
+
+    const app = await prisma.application.findFirst({
+      where: { id: body.applicationId, userId }
+    });
+    if (!app) {
+      return res.status(404).json({ error: 'Lamaran tidak ditemukan atau bukan milik Anda.' });
     }
 
     const att = await prisma.attachment.create({
@@ -49,11 +60,19 @@ attachmentsRouter.post('/', async (req: Request, res: Response) => {
 });
 
 // ─── GET /api/v1/attachments ───────────────────────────────────────────────────
-attachmentsRouter.get('/', async (req: Request, res: Response) => {
+attachmentsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const userId = req.user!.id;
     const applicationId = req.query.applicationId as string | undefined;
     if (!applicationId) {
       return res.status(400).json({ error: 'applicationId query param is required' });
+    }
+
+    const app = await prisma.application.findFirst({
+      where: { id: applicationId, userId }
+    });
+    if (!app) {
+      return res.status(404).json({ error: 'Lamaran tidak ditemukan atau bukan milik Anda.' });
     }
 
     const attachments = await prisma.attachment.findMany({
@@ -80,11 +99,20 @@ attachmentsRouter.get('/', async (req: Request, res: Response) => {
 });
 
 // ─── DELETE /api/v1/attachments/:id ───────────────────────────────────────────
-attachmentsRouter.delete('/:id', async (req: Request<{ id: string }>, res: Response) => {
+attachmentsRouter.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const id = req.params.id;
-    const existing = await prisma.attachment.findUnique({ where: { id } });
-    if (!existing) return res.status(404).json({ error: 'Not found' });
+    const userId = req.user!.id;
+    const id = String(req.params.id);
+    const existing = await prisma.attachment.findFirst({
+      where: {
+        id,
+        application: { userId }
+      }
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Lampiran tidak ditemukan atau bukan milik Anda.' });
+    }
 
     await prisma.attachment.delete({ where: { id } });
     res.json({ success: true });

@@ -1,18 +1,12 @@
-import { Router } from 'express';
+import { Router, Response } from 'express';
 import { prisma } from '../index.js';
 import { CareerLinkCategory } from '@prisma/client';
+import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
 
 export const careerLinksRouter = Router();
 
-// ─── Helper: ambil user pertama (sementara, sebelum autentikasi penuh) ─────────
-async function getDefaultUserId(): Promise<string> {
-  const user = await prisma.user.findFirst({ select: { id: true } });
-  if (!user) throw new Error('No user found in database.');
-  return user.id;
-}
-
 // ─── GET /api/v1/career-links ──────────────────────────────────────────────────
-// Ambil semua global career links dengan filter opsional
+// Ambil semua global career links dengan filter opsional (Public / Open directory)
 careerLinksRouter.get('/', async (req, res) => {
   try {
     const { category, sector, search } = req.query as {
@@ -51,9 +45,9 @@ careerLinksRouter.get('/', async (req, res) => {
 
 // ─── GET /api/v1/career-links/user ────────────────────────────────────────────
 // Ambil semua user career links milik user aktif
-careerLinksRouter.get('/user', async (req, res) => {
+careerLinksRouter.get('/user', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const userId = await getDefaultUserId();
+    const userId = req.user!.id;
     const { category, sector } = req.query as { category?: string; sector?: string };
 
     const where: any = { userId };
@@ -77,9 +71,9 @@ careerLinksRouter.get('/user', async (req, res) => {
 
 // ─── POST /api/v1/career-links/user ───────────────────────────────────────────
 // Buat user career link baru
-careerLinksRouter.post('/user', async (req, res) => {
+careerLinksRouter.post('/user', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const userId = await getDefaultUserId();
+    const userId = req.user!.id;
     const { name, url, category, sector, notes } = req.body as {
       name: string;
       url: string;
@@ -111,10 +105,10 @@ careerLinksRouter.post('/user', async (req, res) => {
 
 // ─── PATCH /api/v1/career-links/user/:id ──────────────────────────────────────
 // Edit user career link
-careerLinksRouter.patch('/user/:id', async (req, res) => {
+careerLinksRouter.patch('/user/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const userId = await getDefaultUserId();
-    const { id } = req.params;
+    const userId = req.user!.id;
+    const id = String(req.params.id);
     const { name, url, category, sector, notes } = req.body as {
       name?: string;
       url?: string;
@@ -123,9 +117,9 @@ careerLinksRouter.patch('/user/:id', async (req, res) => {
       notes?: string;
     };
 
-    // Pastikan link ini milik user yang benar
+    // Pastikan link ini milik user yang aktif
     const existing = await prisma.userCareerLink.findFirst({ where: { id, userId } });
-    if (!existing) return res.status(404).json({ error: 'Link tidak ditemukan.' });
+    if (!existing) return res.status(404).json({ error: 'Link tidak ditemukan atau bukan milik Anda.' });
 
     const updated = await prisma.userCareerLink.update({
       where: { id },
@@ -146,13 +140,13 @@ careerLinksRouter.patch('/user/:id', async (req, res) => {
 
 // ─── DELETE /api/v1/career-links/user/:id ─────────────────────────────────────
 // Hapus user career link
-careerLinksRouter.delete('/user/:id', async (req, res) => {
+careerLinksRouter.delete('/user/:id', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const userId = await getDefaultUserId();
-    const { id } = req.params;
+    const userId = req.user!.id;
+    const id = String(req.params.id);
 
     const existing = await prisma.userCareerLink.findFirst({ where: { id, userId } });
-    if (!existing) return res.status(404).json({ error: 'Link tidak ditemukan.' });
+    if (!existing) return res.status(404).json({ error: 'Link tidak ditemukan atau bukan milik Anda.' });
 
     await prisma.userCareerLink.delete({ where: { id } });
     res.json({ success: true });

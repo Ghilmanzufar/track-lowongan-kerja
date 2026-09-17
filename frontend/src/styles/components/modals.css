@@ -1,0 +1,289 @@
+/* ========================================= */
+/* BASE MODAL DIALOGS & SPECIALIZED POPUPS   */
+/* ========================================= */
+dialog {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 0;
+  margin: auto;
+  max-height: 88vh;
+  width: 92%;
+  max-width: 640px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+dialog:not([open]) {
+  display: none;
+}
+
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.modal-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-surface);
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 15px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-subtle);
+}
+
+.modal-body {
+  padding: 18px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 12px 18px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  background-color: var(--bg-subtle);
+  flex-shrink: 0;
+}
+
+/* Custom Dialog Styles */
+.custom-dialog {
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  padding: 24px;
+  max-width: 400px;
+  width: 90vw;
+  box-shadow: var(--shadow-lg);
+}
+.custom-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+.dialog-title {
+  margin-bottom: 12px;
+  font-size: 18px;
+}
+.dialog-message {
+  margin-bottom: 24px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TEMPLATE MESSAGE MODAL STYLES
+   ───────────────────────────────────────────────────────────────────────────── */
+.template-message-dialog {
+  width: 780px;
+  max-width: 95vw;
+}
+
+.template-modal-body {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 16px;
+  padding: 16px;
+}
+
+@media (max-width: 720px) {
+  .template-modal-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.template-sidebar {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-color);
+  padding-right: 16px;
+}
+
+@media (max-width: 720px) {
+  .template-sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+    padding-right: 0;
+    padding-bottom: 12px;
+  }
+}
+
+.template-variables-box {
+  background-color: var(--bg-subtle);
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.template-preview-area {
+  display: flex;
+  flex-direction: column;
+}
+
+.copy-input-group {
+  display: flex;
+  gap: 6px;
+}
+
+.template-body-textarea {
+  resize: vertical;
+  min-height: 180px;
+  font-size: 12px;
+  line-height: 1.5;
+  font-family: inherit;
+}
+
+.template-actions-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   URL STATUS CHECKER TAGS
+   ───────────────────────────────────────────────────────────────────────────── */
+.url-status-tag {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: var(--radius-xs);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.url-status-tag.status-active {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.url-status-tag.status-expired {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.url-status-tag.status-checking {
+  background-color: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.url-status-tag.status-unverified {
+  background-color: var(--bg-subtle);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   OFFER & SALARY COMPARISON MODAL
+   ───────────────────────────────────────────────────────────────────────────── */
+.comparison-table-wrapper {
+  overflow-x: auto;
+  margin-top: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.comparison-table th:last-child,
+.comparison-table td:last-child {
+  border-right: none;
+}
+
+.comparison-table tr:last-child td {
+  border-bottom: none;
+}
+
+.comparison-table th {
+  background-color: var(--bg-subtle);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.comparison-table .feature-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  background-color: var(--bg-subtle);
+  width: 200px;
+}
+
+.comparison-card-top {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.comparison-score-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.score-high {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.score-med {
+  background-color: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+}

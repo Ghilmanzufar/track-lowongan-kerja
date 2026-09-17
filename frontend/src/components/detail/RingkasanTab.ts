@@ -1,6 +1,8 @@
 import {
   ApplicationItem,
   ApplicationStage,
+  JobSource,
+  JOB_SOURCES_CONFIG,
   STAGES_CONFIG,
   WorkType
 } from '../../types';
@@ -138,6 +140,12 @@ function renderRingkasanView(
           <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 3px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Tanggal Melamar</span>
           <span class="mono">${item.application.dateApplied ? formatDateWIB(item.application.dateApplied) : '-'}</span>
         </div>
+        <div>
+          <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 3px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Sumber Lowongan</span>
+          <span class="tag-badge" style="font-size: 11px; font-weight: 600; padding: 2px 8px; color: ${item.jobPosting.source ? JOB_SOURCES_CONFIG[item.jobPosting.source]?.color : 'var(--text-secondary)'};">
+            ${item.jobPosting.source && JOB_SOURCES_CONFIG[item.jobPosting.source] ? `${JOB_SOURCES_CONFIG[item.jobPosting.source].icon} ${JOB_SOURCES_CONFIG[item.jobPosting.source].label}` : 'Manual / Direct'}
+          </span>
+        </div>
         <div style="grid-column: span 2; border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 2px;">
           <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 2px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Aktivitas Terakhir</span>
           <span class="mono" style="font-size: 12px; color: var(--text-secondary);">${formatDateTimeWIB(item.application.lastActivityAt)} (${formatRelativeTime(item.application.lastActivityAt)})</span>
@@ -173,6 +181,72 @@ function renderRingkasanView(
              </div>`
           : ''
       }
+
+      <!-- Job Description Snapshot Card -->
+      <div class="job-snapshot-card" style="padding: 14px 16px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 15px;">📸</span>
+            <div>
+              <span style="color: var(--text-primary); font-size: 13px; font-weight: 700; letter-spacing: 0.2px;">
+                Snapshot Lowongan Pekerjaan (Job Snapshot)
+              </span>
+              <span style="font-size: 11px; color: var(--text-muted); display: block;">
+                Arsip permanen deskripsi & kualifikasi jika URL lowongan kedaluwarsa/404.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        ${
+          !item.jobPosting.description && !item.jobPosting.responsibilities && !item.jobPosting.requirements
+            ? `<div style="font-size: 12px; color: var(--text-muted); font-style: italic; background: var(--bg-subtle); padding: 12px 14px; border-radius: var(--radius-sm); border: 1px dashed var(--border-color); line-height: 1.5;">
+                ℹ️ Belum ada arsip deskripsi lowongan ini. Klik <strong>Edit Informasi</strong> di bawah untuk menyimpan rangkuman deskripsi, tanggung jawab, dan kualifikasi saat lowongan masih aktif.
+               </div>`
+            : `
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                ${
+                  item.jobPosting.description
+                    ? `<div>
+                        <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; display: block; margin-bottom: 4px; letter-spacing: 0.3px;">
+                          Ringkasan Pekerjaan (Description):
+                        </span>
+                        <div style="font-size: 12.5px; line-height: 1.5; color: var(--text-primary); white-space: pre-line; background: var(--bg-subtle); padding: 10px 12px; border-radius: var(--radius-xs); border: 1px solid var(--border-color);">
+                          ${escapeHtml(item.jobPosting.description)}
+                        </div>
+                       </div>`
+                    : ''
+                }
+
+                ${
+                  item.jobPosting.responsibilities
+                    ? `<div>
+                        <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; display: block; margin-bottom: 4px; letter-spacing: 0.3px;">
+                          Tanggung Jawab (Responsibilities):
+                        </span>
+                        <div style="font-size: 12.5px; line-height: 1.5; color: var(--text-primary); white-space: pre-line; background: var(--bg-subtle); padding: 10px 12px; border-radius: var(--radius-xs); border: 1px solid var(--border-color);">
+                          ${escapeHtml(item.jobPosting.responsibilities)}
+                        </div>
+                       </div>`
+                    : ''
+                }
+
+                ${
+                  item.jobPosting.requirements
+                    ? `<div>
+                        <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; display: block; margin-bottom: 4px; letter-spacing: 0.3px;">
+                          Kualifikasi & Persyaratan (Requirements):
+                        </span>
+                        <div style="font-size: 12.5px; line-height: 1.5; color: var(--text-primary); white-space: pre-line; background: var(--bg-subtle); padding: 10px 12px; border-radius: var(--radius-xs); border: 1px solid var(--border-color);">
+                          ${escapeHtml(item.jobPosting.requirements)}
+                        </div>
+                       </div>`
+                    : ''
+                }
+              </div>
+            `
+        }
+      </div>
 
       <!-- Bottom Actions -->
       <div style="border-top: 1px solid var(--border-color); padding-top: 16px; display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
@@ -274,9 +348,14 @@ function renderRingkasanEditForm(
           <input type="text" id="editCompany" class="form-input" value="${escapeHtml(item.company.name)}" required />
         </div>
         <div class="form-group">
-          <label class="form-label" for="editTitle">Posisi / Jabatan <span class="req">*</span></label>
-          <input type="text" id="editTitle" class="form-input" value="${escapeHtml(item.jobPosting.title)}" required />
+          <label class="form-label" for="editCompanyIndustry">Industri / Sektor Perusahaan</label>
+          <input type="text" id="editCompanyIndustry" class="form-input" value="${escapeHtml(item.company.industry || '')}" placeholder="contoh: Teknologi & IT, Keuangan, FMCG" />
         </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="editTitle">Posisi / Jabatan <span class="req">*</span></label>
+        <input type="text" id="editTitle" class="form-input" value="${escapeHtml(item.jobPosting.title)}" required />
       </div>
 
       <div class="form-row">
@@ -327,14 +406,49 @@ function renderRingkasanEditForm(
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label" for="editSourceUrl">Tautan Sumber Lowongan (URL)</label>
-        <input type="url" id="editSourceUrl" class="form-input" value="${escapeHtml(item.jobPosting.sourceUrl || '')}" placeholder="https://..." />
+      <div class="form-row">
+        <div class="form-group" style="flex: 1.4;">
+          <label class="form-label" for="editSourceUrl">Tautan Sumber Lowongan (URL)</label>
+          <input type="url" id="editSourceUrl" class="form-input" value="${escapeHtml(item.jobPosting.sourceUrl || '')}" placeholder="https://..." />
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label class="form-label" for="editSource">Sumber Lowongan</label>
+          <select id="editSource" class="form-select">
+            <option value="">Otomatis / Pilih...</option>
+            <option value="LinkedIn" ${item.jobPosting.source === 'LinkedIn' ? 'selected' : ''}>💼 LinkedIn</option>
+            <option value="JobStreet" ${item.jobPosting.source === 'JobStreet' ? 'selected' : ''}>🔍 JobStreet</option>
+            <option value="Glints" ${item.jobPosting.source === 'Glints' ? 'selected' : ''}>🚀 Glints</option>
+            <option value="Kalibrr" ${item.jobPosting.source === 'Kalibrr' ? 'selected' : ''}>🎯 Kalibrr</option>
+            <option value="CompanyWebsite" ${item.jobPosting.source === 'CompanyWebsite' ? 'selected' : ''}>🌐 Website Perusahaan</option>
+            <option value="Indeed" ${item.jobPosting.source === 'Indeed' ? 'selected' : ''}>📋 Indeed</option>
+            <option value="Referral" ${item.jobPosting.source === 'Referral' ? 'selected' : ''}>🤝 Referral</option>
+            <option value="Other" ${item.jobPosting.source === 'Other' ? 'selected' : ''}>📌 Lainnya</option>
+          </select>
+        </div>
       </div>
 
       <div class="form-group">
         <label class="form-label" for="editTags">Tags / Keahlian (pisahkan dengan koma)</label>
         <input type="text" id="editTags" class="form-input" value="${escapeHtml(currentTags)}" placeholder="React, TypeScript, Next.js" />
+      </div>
+
+      <!-- Snapshot Fields in Edit Form -->
+      <div style="background: var(--bg-subtle); padding: 12px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-size: 12.5px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+          <span>📸</span> Snapshot Informasi Lowongan (Job Description Snapshot)
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editDescription">Ringkasan Pekerjaan (Job Description)</label>
+          <textarea id="editDescription" class="form-input" rows="3" placeholder="Salin atau rangkum deskripsi pekerjaan di sini...">${escapeHtml(item.jobPosting.description || '')}</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editResponsibilities">Tanggung Jawab Utama (Responsibilities)</label>
+          <textarea id="editResponsibilities" class="form-input" rows="3" placeholder="Salin tugas dan tanggung jawab utama...">${escapeHtml(item.jobPosting.responsibilities || '')}</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editRequirements">Kualifikasi & Persyaratan (Requirements)</label>
+          <textarea id="editRequirements" class="form-input" rows="3" placeholder="Salin persyaratan teknis, pengalaman, pendidikan...">${escapeHtml(item.jobPosting.requirements || '')}</textarea>
+        </div>
       </div>
 
       <div style="display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 4px;">
@@ -352,6 +466,7 @@ function renderRingkasanEditForm(
   container.querySelector('#formEditOverview')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const companyName = (container.querySelector('#editCompany') as HTMLInputElement).value.trim();
+    const companyIndustry = (container.querySelector('#editCompanyIndustry') as HTMLInputElement)?.value.trim();
     const title = (container.querySelector('#editTitle') as HTMLInputElement).value.trim();
     const workType = (container.querySelector('#editWorkType') as HTMLSelectElement).value as WorkType;
     const location = (container.querySelector('#editLocation') as HTMLInputElement).value.trim();
@@ -363,6 +478,9 @@ function renderRingkasanEditForm(
     const applyDeadline = (container.querySelector('#editApplyDeadline') as HTMLInputElement).value;
     const sourceUrl = (container.querySelector('#editSourceUrl') as HTMLInputElement).value.trim();
     const tagsStr = (container.querySelector('#editTags') as HTMLInputElement).value;
+    const description = (container.querySelector('#editDescription') as HTMLTextAreaElement)?.value.trim();
+    const responsibilities = (container.querySelector('#editResponsibilities') as HTMLTextAreaElement)?.value.trim();
+    const requirements = (container.querySelector('#editRequirements') as HTMLTextAreaElement)?.value.trim();
 
     const tags = tagsStr
       .split(',')
@@ -372,6 +490,7 @@ function renderRingkasanEditForm(
     try {
       await store.updateApplicationDetails(item.application.id, {
         companyName,
+        companyIndustry: companyIndustry || undefined,
         title,
         workType,
         location: location || undefined,
@@ -381,7 +500,11 @@ function renderRingkasanEditForm(
         benefits: benefits || undefined,
         dateApplied: dateApplied ? new Date(dateApplied).toISOString() : undefined,
         applyDeadline: applyDeadline ? new Date(applyDeadline).toISOString() : undefined,
+        source: ((container.querySelector('#editSource') as HTMLSelectElement)?.value || undefined) as JobSource | undefined,
         sourceUrl: sourceUrl || undefined,
+        description: description || undefined,
+        responsibilities: responsibilities || undefined,
+        requirements: requirements || undefined,
         tags
       });
 

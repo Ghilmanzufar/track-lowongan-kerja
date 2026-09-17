@@ -15,11 +15,14 @@ datasource db {
 // ─────────────────────────────────────────────
 
 model User {
-  id           String           @id @default(cuid())
-  email        String           @unique
-  displayName  String?
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  id            String           @id @default(cuid())
+  email         String           @unique
+  displayName   String?
+  passwordHash  String?
+  emailVerified Boolean          @default(false)
+  lastLoginAt   DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 
   companies       Company[]
   applications    Application[]
@@ -42,6 +45,7 @@ model Company {
   location    String?
   linkedinUrl String?
   notes       String?
+  logoUrl     String?
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -60,7 +64,11 @@ model JobPosting {
   company        Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   title          String
+  source         JobSource?
   sourceUrl      String?
+  description      String?
+  requirements     String?
+  responsibilities String?
   foundDate      DateTime?
   applyDeadline  DateTime?
   location       String?
@@ -104,6 +112,7 @@ model Application {
   documents          DocumentLink[]
   attachments        Attachment[]
   activities         ActivityEvent[]
+  stageHistory       ApplicationStageHistory[]
   interviewPrep      Json?
 }
 
@@ -197,6 +206,26 @@ model ActivityEvent {
 }
 
 // ─────────────────────────────────────────────
+// APPLICATION STAGE HISTORY
+// ─────────────────────────────────────────────
+
+model ApplicationStageHistory {
+  id            String            @id @default(cuid())
+  applicationId String
+  application   Application       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  fromStage     ApplicationStage?
+  toStage       ApplicationStage
+  changedAt     DateTime          @default(now())
+  note          String?
+
+  createdAt     DateTime          @default(now())
+
+  @@index([applicationId])
+  @@index([changedAt])
+}
+
+// ─────────────────────────────────────────────
 // ENUMS  (mirror frontend/src/types/index.ts)
 // ─────────────────────────────────────────────
 
@@ -210,6 +239,17 @@ enum ApplicationStage {
   Accepted
   Rejected
   Withdrawn
+}
+
+enum JobSource {
+  LinkedIn
+  JobStreet
+  Glints
+  Kalibrr
+  CompanyWebsite
+  Indeed
+  Referral
+  Other
 }
 
 enum WorkType {

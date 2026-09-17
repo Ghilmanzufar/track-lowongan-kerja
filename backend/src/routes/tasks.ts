@@ -1,11 +1,15 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { prisma } from '../index.js';
+import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
 
 export const tasksRouter = Router();
 
+tasksRouter.use(requireAuth);
+
 // ─── POST /api/v1/tasks ───────────────────────────────────────────────────────
-tasksRouter.post('/', async (req: Request, res: Response) => {
+tasksRouter.post('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const userId = req.user!.id;
     const { applicationId, type, title, dueDate, priority = 'Med', status = 'Open' } =
       req.body as {
         applicationId: string;
@@ -18,6 +22,13 @@ tasksRouter.post('/', async (req: Request, res: Response) => {
 
     if (!applicationId || !type || !title) {
       return res.status(400).json({ error: 'applicationId, type, and title are required' });
+    }
+
+    const app = await prisma.application.findFirst({
+      where: { id: applicationId, userId }
+    });
+    if (!app) {
+      return res.status(404).json({ error: 'Lamaran tidak ditemukan atau bukan milik Anda.' });
     }
 
     const now = new Date();
@@ -67,11 +78,20 @@ tasksRouter.post('/', async (req: Request, res: Response) => {
 });
 
 // ─── PATCH /api/v1/tasks/:id ──────────────────────────────────────────────────
-tasksRouter.patch('/:id', async (req: Request<{ id: string }>, res: Response) => {
+tasksRouter.patch('/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const id = req.params.id;
-    const existing = await prisma.task.findUnique({ where: { id } });
-    if (!existing) return res.status(404).json({ error: 'Not found' });
+    const userId = req.user!.id;
+    const id = String(req.params.id);
+    const existing = await prisma.task.findFirst({
+      where: {
+        id,
+        application: { userId }
+      }
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Tugas tidak ditemukan atau bukan milik Anda.' });
+    }
 
     const body = req.body as Record<string, unknown>;
     const now = new Date();
@@ -120,11 +140,20 @@ tasksRouter.patch('/:id', async (req: Request<{ id: string }>, res: Response) =>
 });
 
 // ─── DELETE /api/v1/tasks/:id ─────────────────────────────────────────────────
-tasksRouter.delete('/:id', async (req: Request<{ id: string }>, res: Response) => {
+tasksRouter.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const id = req.params.id;
-    const existing = await prisma.task.findUnique({ where: { id } });
-    if (!existing) return res.status(404).json({ error: 'Not found' });
+    const userId = req.user!.id;
+    const id = String(req.params.id);
+    const existing = await prisma.task.findFirst({
+      where: {
+        id,
+        application: { userId }
+      }
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Tugas tidak ditemukan atau bukan milik Anda.' });
+    }
 
     await prisma.task.delete({ where: { id } });
     res.json({ success: true });

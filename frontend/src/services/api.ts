@@ -5,19 +5,54 @@ import type {
   ApplicationItem,
   ApplicationStage,
   WorkType,
+  JobSource,
+  Company,
   Task,
   Contact,
   DocumentLink,
   Attachment
 } from '../types';
+import { authStore } from './authStore';
+import { refreshSession } from './auth';
 
 const BASE = '/api/v1';
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+let isRefreshing = false;
+let refreshPromise: Promise<string | null> | null = null;
+
+async function request<T>(path: string, init?: RequestInit, isRetry = false): Promise<T> {
+  const token = authStore.getAccessToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(init?.headers as Record<string, string> || {})
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...init
+    ...init,
+    headers,
+    credentials: 'include'
   });
+
+  if (res.status === 401 && !isRetry && !path.startsWith('/auth')) {
+    if (!isRefreshing) {
+      isRefreshing = true;
+      refreshPromise = refreshSession().finally(() => {
+        isRefreshing = false;
+        refreshPromise = null;
+      });
+    }
+
+    const newToken = await refreshPromise;
+    if (newToken) {
+      return request<T>(path, init, true);
+    } else {
+      authStore.clearAuth();
+    }
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -47,8 +82,13 @@ export function fetchApplication(id: string): Promise<ApplicationItem> {
 export function createApplication(data: {
   title: string;
   companyName: string;
+  companyIndustry?: string;
   stage?: ApplicationStage;
+  source?: JobSource;
   sourceUrl?: string;
+  description?: string;
+  requirements?: string;
+  responsibilities?: string;
   location?: string;
   workType?: WorkType;
   salaryMin?: number;
@@ -82,12 +122,17 @@ export function updateApplicationDetails(
     dateApplied?: string;
     title?: string;
     companyName?: string;
+    companyIndustry?: string;
     location?: string;
     workType?: WorkType;
     salaryMin?: number;
     salaryMax?: number;
     applyDeadline?: string;
+    source?: JobSource;
     sourceUrl?: string;
+    description?: string;
+    requirements?: string;
+    responsibilities?: string;
     tags?: string[];
     noteAction?: string;
     noteSnippet?: string;
@@ -272,4 +317,44 @@ export function updateUserCareerLink(
 
 export function deleteUserCareerLink(id: string): Promise<{ success: boolean }> {
   return request(`/career-links/user/${id}`, { method: 'DELETE' });
+}
+
+// ─── Companies ────────────────────────────────────────────────────────────────
+
+export function fetchCompanies(): Promise<(Company & { jobPostingsCount?: number; contactsCount?: number; activeApplicationsCount?: number })[]> {
+  return request('/companies');
+}
+
+export function fetchCompany(id: string): Promise<Company & { jobPostings: any[]; contacts: Contact[] }> {
+  return request(`/companies/${id}`);
+}
+
+export function createCompany(data: {
+  name: string;
+  industry?: string;
+  size?: string;
+  website?: string;
+  location?: string;
+  linkedinUrl?: string;
+  notes?: string;
+  logoUrl?: string;
+}): Promise<Company> {
+  return request('/companies', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+}
+
+export function updateCompany(
+  id: string,
+  data: Partial<Company>
+): Promise<Company> {
+  return request(`/companies/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data)
+  });
+}
+
+export function deleteCompany(id: string): Promise<{ success: boolean }> {
+  return request(`/companies/${id}`, { method: 'DELETE' });
 }

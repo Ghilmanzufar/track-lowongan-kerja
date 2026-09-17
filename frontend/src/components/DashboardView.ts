@@ -3,7 +3,7 @@
 // Real metrics, Anti-Slop (No fake stats, direct actions, crisp typography)
 
 import { store } from '../services/store';
-import { ApplicationItem, ApplicationStage, STAGES_CONFIG } from '../types';
+import { ApplicationItem, ApplicationStage, STAGES_CONFIG, isActive, isClosed } from '../types';
 import { formatRelativeTime, escapeHtml, formatSalary, formatDateTimeWIB } from '../utils';
 
 export function renderDashboardView(container: HTMLElement): void {
@@ -14,10 +14,8 @@ export function renderDashboardView(container: HTMLElement): void {
   // Aggregate metrics
   const totalApps = items.length;
   
-  // Active stages: Applied, Screening, Interview, Offer
-  const activeItems = items.filter(i => 
-    ['Applied', 'Screening', 'Interview', 'Offer'].includes(i.application.stage)
-  );
+  // Active stages
+  const activeItems = items.filter(i => isActive(i.application.stage));
 
   const interviewItems = items.filter(i => i.application.stage === 'Interview');
   const offerItems = items.filter(i => i.application.stage === 'Offer');
@@ -69,7 +67,7 @@ export function renderDashboardView(container: HTMLElement): void {
 
   // Calculate Response Rate: (Screening + Interview + Offer + Accepted) / (All with Applied or further)
   const appliedOrFurther = items.filter(i => 
-    ['Applied', 'Screening', 'Interview', 'Offer', 'Accepted', 'Rejected'].includes(i.application.stage)
+    !['Saved', 'ToApply', 'Withdrawn'].includes(i.application.stage)
   );
   const progressed = items.filter(i => 
     ['Screening', 'Interview', 'Offer', 'Accepted'].includes(i.application.stage)

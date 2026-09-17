@@ -3,6 +3,9 @@
 
 import './styles/main.css';
 import { store } from './services/store';
+import { authStore } from './services/authStore';
+import { logout, refreshSession } from './services/auth';
+import { AuthPage } from './components/AuthPage';
 import { renderDashboardView } from './components/DashboardView';
 import { renderBoardView } from './components/BoardView';
 import { renderListView } from './components/ListView';
@@ -14,7 +17,7 @@ import { setupDetailModal } from './components/DetailModal';
 import { setupFilterDrawer } from './components/FilterDrawer';
 import { renderFooter } from './components/Footer';
 import { notificationService } from './services/notification';
-import { AppView } from './types';
+import { AppView, User } from './types';
 
 // Toast helper
 export function showToast(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
@@ -44,23 +47,99 @@ async function initApp(): Promise<void> {
   // 1. Theme Management (Light / Dark)
   setupTheme();
 
-  // 2. Initialize Store from Database Server
-  await store.init();
+  const authContainer = document.getElementById('authContainer')!;
+  const appEl = document.getElementById('app')!;
+  let isAppInitialized = false;
 
-  // Start periodic reminders check if notification permission is granted
-  notificationService.startPeriodicCheck(() => store.getItems());
+  const updateUserUI = (user: User | null) => {
+    if (!user) return;
+    const name = user.displayName || user.email;
+    const initial = (user.displayName || user.email).charAt(0).toUpperCase();
 
-  // 3. Setup Modals & Drawers
-  setupQuickAddModal();
-  setupDetailModal();
-  setupFilterDrawer();
+    const navUserName = document.getElementById('navUserName');
+    const navUserAvatar = document.getElementById('navUserAvatar');
+    const sidebarUserName = document.getElementById('sidebarUserName');
+    const sidebarUserEmail = document.getElementById('sidebarUserEmail');
+    const sidebarUserAvatar = document.getElementById('sidebarUserAvatar');
 
+    if (navUserName) navUserName.textContent = name;
+    if (navUserAvatar) navUserAvatar.textContent = initial;
+    if (sidebarUserName) sidebarUserName.textContent = name;
+    if (sidebarUserEmail) sidebarUserEmail.textContent = user.email;
+    if (sidebarUserAvatar) {
+      sidebarUserAvatar.innerHTML = `<span style="font-weight:700;font-size:12px;color:var(--accent-blue);">${initial}</span>`;
+    }
+  };
+
+  const showAuthScreen = () => {
+    appEl.style.display = 'none';
+    authContainer.style.display = 'block';
+
+    const authPage = new AuthPage(authContainer, async () => {
+      showToast('Berhasil masuk! Memuat data...', 'success');
+      const user = authStore.getUser();
+      await bootstrapWorkspace(user);
+    });
+    authPage.render();
+  };
+
+  const bootstrapWorkspace = async (user: User | null) => {
+    authContainer.style.display = 'none';
+    appEl.style.display = '';
+
+    updateUserUI(user);
+
+    if (!isAppInitialized) {
+      isAppInitialized = true;
+
+      // Setup Modals & Drawers
+      setupQuickAddModal();
+      setupDetailModal();
+      setupFilterDrawer();
+
+      setupWorkspaceEvents();
+    }
+
+    // Initialize Store data
+    try {
+      await store.init();
+      notificationService.startPeriodicCheck(() => store.getItems());
+    } catch (err) {
+      console.error('Failed to load applications:', err);
+      showToast('Gagal memuat data lamaran.', 'error');
+    }
+  };
+
+  // Auth State Listener
+  authStore.subscribe((user) => {
+    if (!user) {
+      store.reset();
+      showAuthScreen();
+    } else {
+      updateUserUI(user);
+    }
+  });
+
+  // Check initial session via refresh token cookie
+  try {
+    const token = await refreshSession();
+    if (token && authStore.isAuthenticated()) {
+      await bootstrapWorkspace(authStore.getUser());
+    } else {
+      showAuthScreen();
+    }
+  } catch {
+    showAuthScreen();
+  }
+}
+
+function setupWorkspaceEvents(): void {
   const viewContainer = document.getElementById('viewContainer')!;
   const navTabs = document.getElementById('navTabs')!;
   const searchInput = document.getElementById('globalSearchInput') as HTMLInputElement;
-  const btnUserAccount = document.getElementById('btnUserAccount');
   const sidebarProfileBtn = document.getElementById('sidebarProfileBtn');
   const mobileFabAdd = document.getElementById('mobileFabAdd');
+  const btnLogout = document.getElementById('btnLogout');
 
   // Sidebar elements & burger toggle
   const appEl = document.getElementById('app');
@@ -114,12 +193,23 @@ async function initApp(): Promise<void> {
     window.dispatchEvent(new CustomEvent('open-quick-add'));
   };
 
-  // ponytail: Handler akun pengguna (persiapan SaaS). Ceiling: menampilkan notifikasi toast sementara. Upgrade path: modal detail akun / manajemen profil SaaS.
-  const handleProfileClick = () => {
-    showToast('Profil Akun Pengguna (SaaS)', 'info');
-  };
-  btnUserAccount?.addEventListener('click', handleProfileClick);
-  sidebarProfileBtn?.addEventListener('click', handleProfileClick);
+  // Logout Trigger
+  btnLogout?.addEventListener('click', async () => {
+    try {
+      await logout();
+      showToast('Berhasil keluar (logout).', 'info');
+    } catch (err) {
+      console.error('Error during logout:', err);
+    }
+  });
+
+  sidebarProfileBtn?.addEventListener('click', () => {
+    const user = authStore.getUser();
+    if (user) {
+      showToast(`Akun: ${user.displayName || user.email} (${user.email})`, 'info');
+    }
+  });
+
   mobileFabAdd?.addEventListener('click', triggerQuickAdd);
 
   // Global Search Input with debouncing
@@ -198,61 +288,16 @@ async function initApp(): Promise<void> {
     const countList = document.getElementById('tabCountList');
     const countAgenda = document.getElementById('tabCountAgenda');
 
-    if (countBoard) countBoard.textContent = String(filteredItems.length);
+    if (countBoard) countBoard.textContent = String(allItems.length);
     if (countList) countList.textContent = String(filteredItems.length);
 
-    const now = new Date().toISOString();
-    let overdueCount = 0;
-    let openTasksCount = 0;
-    for (const item of allItems) {
-      for (const t of item.tasks) {
-        if (t.status === 'Open') {
-          openTasksCount++;
-          if (t.dueDate && t.dueDate < now) overdueCount++;
-        }
-      }
-    }
-
     if (countAgenda) {
-      countAgenda.textContent = overdueCount > 0 ? `! ${overdueCount}` : String(openTasksCount);
-      if (overdueCount > 0) {
-        countAgenda.style.backgroundColor = 'var(--accent-red-bg)';
-        countAgenda.style.color = 'var(--accent-red)';
-        countAgenda.style.fontWeight = '700';
-      } else {
-        countAgenda.style.backgroundColor = '';
-        countAgenda.style.color = '';
-        countAgenda.style.fontWeight = '';
-      }
+      const activeTasks = allItems.flatMap((i) => i.tasks || []).filter((t) => t.status === 'Open');
+      countAgenda.textContent = String(activeTasks.length);
     }
 
-    // Render active filter pills
-    const filterStatusEl = document.getElementById('navFilterStatus');
-    if (filterStatusEl) {
-      const filter = store.getFilter();
-      const hasActiveFilters =
-        (filter.stages && filter.stages.length > 0) ||
-        (filter.workTypes && filter.workTypes.length > 0) ||
-        filter.hasOverdueTasks ||
-        Boolean(filter.searchQuery);
-
-      if (hasActiveFilters) {
-        filterStatusEl.innerHTML = `
-          <span class="active-filter-pill">
-            Filter Aktif
-            <button id="btnClearFiltersInline" title="Hapus semua filter">✕</button>
-          </span>
-        `;
-        document.getElementById('btnClearFiltersInline')?.addEventListener('click', () => {
-          if (searchInput) searchInput.value = '';
-          store.resetFilter();
-        });
-      } else {
-        filterStatusEl.innerHTML = '';
-      }
-    }
-
-    // Render View Content
+    // Render View Component
+    viewContainer.innerHTML = '';
     switch (currentView) {
       case 'dashboard':
         renderDashboardView(viewContainer);
@@ -274,48 +319,43 @@ async function initApp(): Promise<void> {
         break;
     }
 
-    // Render footer
+    // Always render subtle footer at the bottom of views
     renderFooter(viewContainer);
   };
 
-  // Switch tabs on click
-  navTabs.querySelectorAll<HTMLButtonElement>('.tab-btn').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const view = btn.getAttribute('data-view') as AppView;
-      if (view) {
-        store.setView(view);
-        window.location.hash = view;
-        closeSidebar();
-      }
-    });
-  });
-
-  // Handle hash routing
-  const validViews: AppView[] = ['dashboard', 'board', 'list', 'agenda', 'analytics', 'career-links'];
-
-  window.addEventListener('hashchange', () => {
-    const hash = window.location.hash.replace('#', '') as AppView;
+  // Listen to hash changes for routing
+  const handleRoute = () => {
+    const hash = window.location.hash.slice(1) as AppView;
+    const validViews: AppView[] = ['dashboard', 'board', 'list', 'agenda', 'analytics', 'career-links'];
     if (validViews.includes(hash)) {
       store.setView(hash);
+    } else {
+      window.location.hash = 'dashboard';
+    }
+  };
+
+  window.addEventListener('hashchange', handleRoute);
+  handleRoute();
+
+  // Tab click events
+  navTabs.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.tab-btn');
+    if (!btn) return;
+    const view = btn.getAttribute('data-view') as AppView;
+    if (view) {
+      window.location.hash = view;
+      if (isMobile()) {
+        closeSidebar();
+      }
     }
   });
-
-  if (window.location.hash) {
-    const initialHash = window.location.hash.replace('#', '') as AppView;
-    if (validViews.includes(initialHash)) {
-      store.setView(initialHash);
-    }
-  }
 
   // Subscribe to store updates
   store.subscribe(renderCurrentView);
-
-  // Initial render
   renderCurrentView();
 }
 
-// Setup Light / Dark theme toggle
+// 4. Setup Theme Toggle helper
 function setupTheme(): void {
   const savedTheme = localStorage.getItem('jobtrack-theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;

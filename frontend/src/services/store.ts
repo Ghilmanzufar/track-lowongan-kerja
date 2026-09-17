@@ -13,6 +13,7 @@ import {
   ApplicationStage,
   FilterCriteria,
   WorkType,
+  JobSource,
   AppView
 } from '../types';
 import {
@@ -63,6 +64,12 @@ class JobTrackStore {
   public async init(): Promise<void> {
     this.items = await fetchApplications();
     this.initialized = true;
+    this.notify();
+  }
+
+  public reset(): void {
+    this.items = [];
+    this.initialized = false;
     this.notify();
   }
 
@@ -161,8 +168,13 @@ class JobTrackStore {
   public async createApplication(data: {
     title: string;
     companyName: string;
+    companyIndustry?: string;
     stage?: ApplicationStage;
+    source?: JobSource;
     sourceUrl?: string;
+    description?: string;
+    requirements?: string;
+    responsibilities?: string;
     location?: string;
     workType?: WorkType;
     salaryMin?: number;
@@ -213,12 +225,17 @@ class JobTrackStore {
       dateApplied?: string;
       title?: string;
       companyName?: string;
+      companyIndustry?: string;
       location?: string;
       workType?: WorkType;
       salaryMin?: number;
       salaryMax?: number;
       applyDeadline?: string;
+      source?: JobSource;
       sourceUrl?: string;
+      description?: string;
+      requirements?: string;
+      responsibilities?: string;
       tags?: string[];
       noteAction?: string;
       noteSnippet?: string;

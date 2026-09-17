@@ -8,19 +8,106 @@ export function renderRiwayatTab(container: HTMLElement, item: ApplicationItem):
 
   container.innerHTML = `
     <div style="display: flex; flex-direction: column; gap: 14px;">
-      <div style="font-size: 12px; color: var(--text-secondary);">
-        Linimasa perubahan status dan peristiwa penting pada proses lamaran ini.
+      ${renderStageJourney(item)}
+
+      <div>
+        <div style="font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">
+          Log Aktivitas Lengkap (*Audit Trail*)
+        </div>
+        ${
+          activities.length === 0
+            ? `<div style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 12.5px; background-color: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: var(--radius-sm);">
+                Belum ada riwayat aktivitas yang tercatat.
+               </div>`
+            : `<div class="timeline-list">
+                ${activities.map((act) => renderTimelineItem(act)).join('')}
+               </div>`
+        }
+      </div>
+    </div>
+  `;
+}
+
+function renderStageJourney(item: ApplicationItem): string {
+  const history = [...(item.stageHistory || [])].sort(
+    (a, b) => new Date(a.changedAt).getTime() - new Date(b.changedAt).getTime()
+  );
+
+  if (history.length === 0) {
+    return '';
+  }
+
+  const lastEntry = history[history.length - 1];
+  const currentDays = Math.max(0, Math.floor((Date.now() - new Date(lastEntry.changedAt).getTime()) / (1000 * 60 * 60 * 24)));
+  const currentConfig = STAGES_CONFIG[item.application.stage] || { label: item.application.stage, badgeClass: '' };
+
+  return `
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 4px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 14px;">⏱️</span>
+          <h4 style="font-size: 13px; font-weight: 700; margin: 0; color: var(--text-primary);">Perjalanan Tahap (Stage Journey)</h4>
+        </div>
+        <span class="stage-badge ${currentConfig.badgeClass}" style="font-size: 11px;">
+          Sedang di ${escapeHtml(currentConfig.label)}: ${currentDays} hari
+        </span>
       </div>
 
-      ${
-        activities.length === 0
-          ? `<div style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 12.5px; background-color: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: var(--radius-sm);">
-              Belum ada riwayat aktivitas yang tercatat.
-             </div>`
-          : `<div class="timeline-list">
-              ${activities.map((act) => renderTimelineItem(act)).join('')}
-             </div>`
-      }
+      <div style="display: flex; flex-direction: column; gap: 8px; position: relative;">
+        ${history
+          .map((step, idx) => {
+            const isLast = idx === history.length - 1;
+            const nextStep = history[idx + 1];
+            const toConfig = STAGES_CONFIG[step.toStage] || { label: step.toStage, badgeClass: '' };
+            const fromConfig = step.fromStage ? STAGES_CONFIG[step.fromStage] : null;
+
+            let durationStr = '';
+            if (!isLast && nextStep) {
+              const diffMs = new Date(nextStep.changedAt).getTime() - new Date(step.changedAt).getTime();
+              const days = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+              durationStr = `${days} hari di tahap ini`;
+            } else {
+              durationStr = `Sedang berjalan (${currentDays} hari)`;
+            }
+
+            return `
+              <div style="display: flex; align-items: flex-start; gap: 10px; font-size: 12px; padding: 6px 8px; background: var(--bg-primary); border-radius: 4px; border: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--border-color); font-size: 10px; font-weight: 700; flex-shrink: 0; margin-top: 1px;">
+                  ${idx + 1}
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      ${
+                        fromConfig
+                          ? `<span style="color: var(--text-muted);">${escapeHtml(fromConfig.label)}</span>
+                             <span style="color: var(--text-muted); font-size: 10px;">➔</span>`
+                          : ''
+                      }
+                      <span class="stage-badge ${toConfig.badgeClass}" style="font-size: 11px;">
+                        ${escapeHtml(toConfig.label)}
+                      </span>
+                    </div>
+                    <span class="mono" style="font-size: 11px; font-weight: 600; color: ${isLast ? 'var(--primary)' : 'var(--text-secondary)'};">
+                      ${durationStr}
+                    </span>
+                  </div>
+                  ${
+                    step.note
+                      ? `<div style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">
+                          Catatan: <em>${escapeHtml(step.note)}</em>
+                        </div>`
+                      : ''
+                  }
+                  <div class="mono" style="font-size: 10px; color: var(--text-muted); margin-top: 3px;">
+                    ${formatDateTimeWIB(step.changedAt)}
+                  </div>
+                </div>
+              </div>
+            `;
+          })
+          .join('')}
+      </div>
     </div>
   `;
 }

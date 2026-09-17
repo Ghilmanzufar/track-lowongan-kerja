@@ -11,6 +11,9 @@
   <link rel="stylesheet" href="/src/styles/main.css" />
 </head>
 <body>
+  <!-- Authentication View Container (shown when not logged in) -->
+  <div id="authContainer" style="display: none;"></div>
+
   <div id="app" class="dashboard-app-layout">
     <!-- Mobile Backdrop for Sidebar -->
     <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
@@ -167,12 +170,20 @@
             </svg>
           </button>
 
-          <button class="btn btn-secondary btn-icon topbar-account-btn" id="btnUserAccount" title="Akun Pengguna" aria-label="Menu Akun Pengguna">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          </button>
+          <div id="topbarUserProfile" class="nav-user-profile" style="display: flex;">
+            <div class="nav-user-avatar" id="navUserAvatar">U</div>
+            <div class="nav-user-info">
+              <span class="nav-user-name" id="navUserName">Pengguna</span>
+            </div>
+            <button type="button" class="nav-logout-btn" id="btnLogout" title="Keluar dari akun">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              <span>Keluar</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -247,9 +258,25 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="quickAddUrl">Tautan Sumber Lowongan (URL)</label>
-          <input type="url" id="quickAddUrl" class="form-input" placeholder="https://www.linkedin.com/jobs/..." />
+        <div class="form-row">
+          <div class="form-group" style="flex: 1.4;">
+            <label class="form-label" for="quickAddUrl">Tautan Sumber Lowongan (URL)</label>
+            <input type="url" id="quickAddUrl" class="form-input" placeholder="https://www.linkedin.com/jobs/..." />
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label class="form-label" for="quickAddSource">Sumber Lowongan</label>
+            <select id="quickAddSource" class="form-select">
+              <option value="">Otomatis / Deteksi</option>
+              <option value="LinkedIn">💼 LinkedIn</option>
+              <option value="JobStreet">🔍 JobStreet</option>
+              <option value="Glints">🚀 Glints</option>
+              <option value="Kalibrr">🎯 Kalibrr</option>
+              <option value="CompanyWebsite">🌐 Website Perusahaan</option>
+              <option value="Indeed">📋 Indeed</option>
+              <option value="Referral">🤝 Referral</option>
+              <option value="Other">📌 Lainnya</option>
+            </select>
+          </div>
         </div>
 
         <div style="margin: 8px 0;">
@@ -298,7 +325,17 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="quickAddNotes">Catatan Singkat</label>
+            <label class="form-label" for="quickAddIndustry">Industri / Sektor Perusahaan</label>
+            <input type="text" id="quickAddIndustry" class="form-input" placeholder="contoh: Teknologi & IT, Keuangan, FMCG" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="quickAddDescription">Snapshot Ringkasan Deskripsi Lowongan</label>
+            <textarea id="quickAddDescription" class="form-textarea" rows="2" placeholder="Salin deskripsi lowongan di sini sebagai arsip jika link lowongan hilang..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="quickAddNotes">Catatan Tambahan</label>
             <textarea id="quickAddNotes" class="form-textarea" rows="2" placeholder="Catatan kualifikasi, referal, atau kontak..."></textarea>
           </div>
         </div>

@@ -1,0 +1,345 @@
+/* ========================================= */
+/* GLOBAL RESPONSIVE BREAKPOINTS             */
+/* Tablet & Mobile Layout Adaptations        */
+/* ========================================= */
+
+@media (max-width: 1080px) {
+  .dashboard-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pipeline-stages-strip {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .topbar-right .header-search {
+    width: 200px;
+  }
+  .search-shortcut-badge {
+    display: none;
+  }
+  .nav-user-name {
+    max-width: 90px;
+  }
+}
+
+@media (max-width: 900px) {
+  .footer-main-row {
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .footer-nav-links {
+    order: 3;
+    width: 100%;
+    gap: 2px;
+    padding-top: 4px;
+    border-top: 1px dashed var(--border-color);
+  }
+
+  .footer-actions {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Sidebar Mobile Drawer */
+  .dashboard-app-layout.sidebar-collapsed .app-sidebar {
+    margin-left: 0;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(280px, 80vw);
+    min-width: unset;
+    transform: translateX(-100%);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+    z-index: 200;
+  }
+
+  .app-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    display: block;
+  }
+
+  .sidebar-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .sidebar-collapse-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  /* Responsive Topbar / Navbar */
+  .app-topbar {
+    height: 52px;
+    min-height: 52px;
+    padding: 0 12px;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-left {
+    gap: 8px;
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  .topbar-burger-btn {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+  }
+
+  .topbar-burger-btn:active {
+    transform: scale(0.95);
+  }
+
+  .topbar-heading {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .topbar-title {
+    font-size: 14.5px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .topbar-subtitle {
+    display: none; /* Sembunyikan subtitle untuk memberi ruang judul di mobile */
+  }
+
+  .topbar-right {
+    flex: 0 1 auto;
+    gap: 6px;
+    justify-content: flex-end;
+  }
+
+  .topbar-right .header-search {
+    display: none; /* Sembunyikan search input navbar di mobile (setiap view memiliki filter/search sendiri) */
+  }
+
+  .nav-user-profile {
+    padding: 3px 6px;
+    gap: 6px;
+    border-radius: var(--radius-sm);
+  }
+
+  .nav-user-avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 11px;
+  }
+
+  .nav-user-info {
+    display: none; /* Sembunyikan teks nama panjang di mobile agar tidak overflow */
+  }
+
+  .nav-logout-btn {
+    padding: 6px 8px;
+    gap: 0;
+  }
+
+  .nav-logout-btn span {
+    display: none; /* Sembunyikan teks 'Keluar', tampilkan icon saja di mobile */
+  }
+
+  .nav-logout-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .topbar-account-btn {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
+  }
+
+  .topbar-account-btn:active {
+    transform: scale(0.95);
+  }
+
+  .dashboard-view-wrapper {
+    padding: 16px 14px;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+
+  .list-wrapper {
+    padding: 14px 12px;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .dashboard-hero-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .hero-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .dashboard-metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .pipeline-stages-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .mobile-stage-bar {
+    display: flex;
+  }
+
+  .board-columns {
+    width: 100%;
+    scroll-snap-type: x mandatory;
+  }
+
+  .board-column {
+    width: 86vw;
+    scroll-snap-align: center;
+  }
+
+  /* List View: Hide table, show modern stacked cards */
+  .dense-table-container {
+    display: none;
+  }
+
+  .mobile-card-list {
+    display: flex;
+  }
+
+  .filter-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 86vw;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.25);
+  }
+
+  .mobile-fab-add {
+    display: flex;
+  }
+
+  /* Mobile Bottom-sheet Dialog */
+  dialog {
+    width: 100vw;
+    max-width: 100vw;
+    margin-bottom: 0;
+    border-bottom: none;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .app-footer {
+    padding: 10px 14px max(10px, env(safe-area-inset-bottom, 10px)) 14px;
+  }
+
+  .footer-inner-container {
+    gap: 8px;
+  }
+
+  .footer-main-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .footer-brand-title {
+    font-size: 13px;
+  }
+
+  .footer-nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    padding-top: 4px;
+  }
+
+  .footer-nav-link {
+    font-size: 11.5px;
+    padding: 2px 6px;
+  }
+
+  .footer-sub-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding-top: 6px;
+    font-size: 11px;
+  }
+
+  .footer-meta-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 400px) {
+  .app-topbar {
+    padding: 0 8px;
+    gap: 5px;
+  }
+
+  .topbar-left {
+    gap: 6px;
+  }
+
+  .topbar-title {
+    font-size: 13.5px;
+  }
+
+  .nav-user-profile {
+    border: none;
+    background: transparent;
+    padding: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .topbar-right .header-search {
+    width: 110px;
+  }
+  .topbar-right .header-search:focus-within {
+    width: 150px;
+  }
+}

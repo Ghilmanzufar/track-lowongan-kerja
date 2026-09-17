@@ -1,11 +1,15 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { prisma } from '../index.js';
+import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
 
 export const contactsRouter = Router();
 
+contactsRouter.use(requireAuth);
+
 // ─── POST /api/v1/contacts ────────────────────────────────────────────────────
-contactsRouter.post('/', async (req: Request, res: Response) => {
+contactsRouter.post('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const userId = req.user!.id;
     const body = req.body as {
       applicationId?: string;
       companyId?: string;
@@ -19,6 +23,24 @@ contactsRouter.post('/', async (req: Request, res: Response) => {
 
     if (!body.name) {
       return res.status(400).json({ error: 'name is required' });
+    }
+
+    if (body.applicationId) {
+      const app = await prisma.application.findFirst({
+        where: { id: body.applicationId, userId }
+      });
+      if (!app) {
+        return res.status(404).json({ error: 'Lamaran tidak ditemukan atau bukan milik Anda.' });
+      }
+    }
+
+    if (body.companyId) {
+      const comp = await prisma.company.findFirst({
+        where: { id: body.companyId, userId }
+      });
+      if (!comp) {
+        return res.status(404).json({ error: 'Perusahaan tidak ditemukan atau bukan milik Anda.' });
+      }
     }
 
     const now = new Date();
@@ -67,11 +89,25 @@ contactsRouter.post('/', async (req: Request, res: Response) => {
 });
 
 // ─── PATCH /api/v1/contacts/:id ──────────────────────────────────────────────
-contactsRouter.patch('/:id', async (req: Request<{ id: string }>, res: Response) => {
+contactsRouter.patch('/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const id = req.params.id;
-    const existing = await prisma.contact.findUnique({ where: { id } });
-    if (!existing) return res.status(404).json({ error: 'Not found' });
+    const userId = req.user!.id;
+    const id = String(req.params.id);
+
+    const existing = await prisma.contact.findFirst({
+      where: {
+        id,
+        OR: [
+          { applicationId: null, companyId: null },
+          { application: { userId } },
+          { company: { userId } }
+        ]
+      }
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Kontak tidak ditemukan atau bukan milik Anda.' });
+    }
 
     const body = req.body as Record<string, unknown>;
     const updated = await prisma.contact.update({
@@ -106,11 +142,25 @@ contactsRouter.patch('/:id', async (req: Request<{ id: string }>, res: Response)
 });
 
 // ─── DELETE /api/v1/contacts/:id ─────────────────────────────────────────────
-contactsRouter.delete('/:id', async (req: Request<{ id: string }>, res: Response) => {
+contactsRouter.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const id = req.params.id;
-    const existing = await prisma.contact.findUnique({ where: { id } });
-    if (!existing) return res.status(404).json({ error: 'Not found' });
+    const userId = req.user!.id;
+    const id = String(req.params.id);
+
+    const existing = await prisma.contact.findFirst({
+      where: {
+        id,
+        OR: [
+          { applicationId: null, companyId: null },
+          { application: { userId } },
+          { company: { userId } }
+        ]
+      }
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Kontak tidak ditemukan atau bukan milik Anda.' });
+    }
 
     await prisma.contact.delete({ where: { id } });
     res.json({ success: true });
@@ -119,4 +169,3 @@ contactsRouter.delete('/:id', async (req: Request<{ id: string }>, res: Response
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-

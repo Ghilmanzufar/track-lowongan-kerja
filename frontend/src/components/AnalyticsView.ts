@@ -1,5 +1,5 @@
-// Analytics View Component with Visual Recruitment Funnel & Conversion Insights
-// Based on FRD-FSD.md Section 3.7 & architecture.md
+// Analytics View Component with Visual Recruitment Funnel & Multi-Dimension Insights
+// Clean, utilitarian, high-contrast dashboard matching original JobTrack design system
 
 import { store } from '../services/store';
 import { computeAnalytics } from '../services/analytics';
@@ -17,21 +17,23 @@ export function renderAnalyticsView(container: HTMLElement): void {
 
   container.innerHTML = `
     <div class="analytics-wrapper">
+      
+      <!-- Header -->
       <div class="analytics-header">
         <div>
-          <h2 style="font-size: 18px; font-weight: 700; margin: 0;">Dasbor Analitik & Rasio Konversi (Funnel)</h2>
+          <h2 style="font-size: 18px; font-weight: 700; margin: 0;">Dasbor Analitik & Rasio Konversi</h2>
           <p style="font-size: 12.5px; color: var(--text-secondary); margin: 2px 0 0 0;">
-            Pantau efektivitas strategi pencarian kerja, tingkat kelolosan tahapan seleksi, dan estimasi waktu proses.
+            Pantau performa lamaran, efektivitas strategi pencarian kerja, dan rasio konversi funnel Anda.
           </p>
         </div>
       </div>
 
-      <!-- Top Stats KPI Grid -->
+      <!-- Top KPI Stats Grid -->
       <div class="stats-grid">
         <div class="stat-box">
           <div class="stat-label">TOTAL LAMARAN</div>
           <div class="stat-value">${stats.totalApplications}</div>
-          <div class="stat-desc">${stats.activeApplications} lamaran aktif berjalan</div>
+          <div class="stat-desc">${stats.activeApplications} aktif, ${stats.closedApplications} selesai (${stats.applicationsThisMonth} bulan ini)</div>
         </div>
 
         <div class="stat-box">
@@ -48,7 +50,7 @@ export function renderAnalyticsView(container: HTMLElement): void {
 
         <div class="stat-box">
           <div class="stat-label">RATA-RATA DURASI RESPON</div>
-          <div class="stat-value" style="color: #f59e0b;">~${stats.velocity.avgDaysApplyToInterview} <span style="font-size: 13px; font-weight: 400;">hari</span></div>
+          <div class="stat-value" style="color: #f59e0b;">~${stats.timeMetrics.avgDaysToInterview} <span style="font-size: 13px; font-weight: 400;">hari</span></div>
           <div class="stat-desc">Waktu rata-rata hingga panggilan</div>
         </div>
       </div>
@@ -57,7 +59,7 @@ export function renderAnalyticsView(container: HTMLElement): void {
       <div class="funnel-container funnel-visual-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
           <div>
-            <h3 style="font-size: 14.5px; font-weight: 700; margin: 0;">Corong Rekrutmen (*Recruitment Funnel*)</h3>
+            <h3 style="font-size: 14.5px; font-weight: 700; margin: 0;">Corong Rekrutmen (Recruitment Funnel)</h3>
             <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">Visualisasi perjalanan lamaran dari tahap kirim hingga penerimaan kerja.</p>
           </div>
           <span class="tag-badge" style="background: rgba(37, 99, 235, 0.15); color: var(--primary); font-weight: 600;">
@@ -100,26 +102,12 @@ export function renderAnalyticsView(container: HTMLElement): void {
             })
             .join('')}
         </div>
-
-        <!-- Strategy Insights & Feedback -->
-        <div class="funnel-insight-banner">
-          <div style="font-size: 18px;">💡</div>
-          <div style="font-size: 12px; line-height: 1.5; color: var(--text-secondary);">
-            ${
-              stats.interviewRate >= 15
-                ? '<strong>Performa CV Sangat Baik:</strong> Rasio panggilan wawancara Anda di atas rata-rata industri (>15%). Pertahankan kualitas portofolio dan resume Anda.'
-                : stats.totalApplications < 5
-                ? '<strong>Lengkapi Data:</strong> Tambahkan lebih banyak lowongan yang telah Anda lamar untuk mendapatkan analisis statistik konversi yang lebih akurat.'
-                : '<strong>Saran Optimasi:</strong> Tingkatkan rasio panggilan wawancara dengan menyesuaikan kata kunci (*tailored keywords*) pada CV untuk setiap posisi spesifik.'
-            }
-          </div>
-        </div>
       </div>
 
-      <!-- Two-column: Distribution & Top Sources -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+      <!-- Dua Kolom: Distribusi Status & Efektivitas Sumber -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 16px;">
         
-        <!-- Stage Breakdown -->
+        <!-- Distribusi Status Lamaran -->
         <div class="funnel-container">
           <h3 style="font-size: 13.5px; font-weight: 600; margin-bottom: 12px;">Distribusi Status Lamaran</h3>
           <div style="display: flex; flex-direction: column; gap: 6px;">
@@ -141,26 +129,30 @@ export function renderAnalyticsView(container: HTMLElement): void {
           </div>
         </div>
 
-        <!-- Top Sources & Success Rate -->
+        <!-- Efektivitas Sumber Lowongan -->
         <div class="funnel-container">
           <h3 style="font-size: 13.5px; font-weight: 600; margin-bottom: 12px;">Efektivitas Sumber Lowongan</h3>
           ${
-            stats.topSources.length === 0
-              ? `<p style="font-size: 12px; color: var(--text-muted);">Belum ada data URL sumber lowongan.</p>`
+            stats.sourceAnalysis.length === 0
+              ? `<p style="font-size: 12px; color: var(--text-muted);">Belum ada data sumber lowongan.</p>`
               : `<div style="display: flex; flex-direction: column; gap: 8px;">
-                  ${stats.topSources
-                    .map((s) => `
-                      <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; padding: 5px 0; border-bottom: 1px solid var(--border-color);">
-                        <div>
-                          <span style="font-weight: 600;">${escapeHtml(s.source)}</span>
-                          <div style="font-size: 11px; color: var(--text-muted);">${s.count} total dilamar</div>
+                  ${stats.sourceAnalysis
+                    .map(
+                      (s) => `
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; padding: 5px 0; border-bottom: 1px solid var(--border-color);">
+                          <div>
+                            <span style="font-weight: 600;">${escapeHtml(s.source)}</span>
+                            <div style="font-size: 11px; color: var(--text-muted);">${s.count} total dilamar (${s.percentage}%)</div>
+                          </div>
+                          <div style="text-align: right;">
+                            <span class="mono" style="font-weight: 700; color: ${s.successRate > 0 ? 'var(--accent-green)' : 'var(--text-muted)'};">
+                              ${s.successRate}% lolos
+                            </span>
+                            <div style="font-size: 10.5px; color: var(--text-muted);">${s.interviewOrBetterCount} ke wawancara</div>
+                          </div>
                         </div>
-                        <div style="text-align: right;">
-                          <span class="mono" style="font-weight: 700; color: var(--accent-green);">${s.successRate}% lolos</span>
-                          <div style="font-size: 10.5px; color: var(--text-muted);">${s.interviewOrBetterCount} lanjut tahap berikutnya</div>
-                        </div>
-                      </div>
-                    `)
+                      `
+                    )
                     .join('')}
                  </div>`
           }
@@ -168,20 +160,100 @@ export function renderAnalyticsView(container: HTMLElement): void {
 
       </div>
 
-      <!-- Salary Comparison Card -->
-      <div class="funnel-container" style="margin-top: 4px;">
+      <!-- Dua Kolom: Sektor Industri & Kecepatan Proses Rekrutmen -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 16px;">
+        
+        <!-- Distribusi Sektor Industri -->
+        <div class="funnel-container">
+          <h3 style="font-size: 13.5px; font-weight: 600; margin-bottom: 12px;">Distribusi Sektor Industri</h3>
+          ${
+            stats.industryAnalysis.length === 0
+              ? `<p style="font-size: 12px; color: var(--text-muted);">Belum ada data industri perusahaan.</p>`
+              : `<div style="display: flex; flex-direction: column; gap: 8px;">
+                  ${stats.industryAnalysis
+                    .map(
+                      (ind) => `
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; padding: 5px 0; border-bottom: 1px solid var(--border-color);">
+                          <div>
+                            <span style="font-weight: 600;">${escapeHtml(ind.industry)}</span>
+                            <div style="font-size: 11px; color: var(--text-muted);">${ind.count} lamaran (${ind.percentage}%)</div>
+                          </div>
+                          <div style="text-align: right;">
+                            <span class="mono" style="font-weight: 700; color: ${ind.successRate > 0 ? 'var(--accent-green)' : 'var(--text-muted)'};">
+                              ${ind.successRate}% lolos
+                            </span>
+                            <div style="font-size: 10.5px; color: var(--text-muted);">${ind.interviewOrBetterCount} ke wawancara</div>
+                          </div>
+                        </div>
+                      `
+                    )
+                    .join('')}
+                 </div>`
+          }
+        </div>
+
+        <!-- Kecepatan Proses & Durasi Rekrutmen -->
+        <div class="funnel-container">
+          <h3 style="font-size: 13.5px; font-weight: 600; margin-bottom: 12px;">Kecepatan Proses & Durasi</h3>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+            <div class="salary-stat-card">
+              <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Kirim ke Skrining</div>
+              <div style="font-size: 16px; font-weight: 700; color: var(--accent-blue); margin-top: 4px;">
+                ~${stats.timeMetrics.avgDaysToScreening} <span style="font-size: 12px; font-weight: 400;">hari</span>
+              </div>
+              <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">Rata-rata ke seleksi awal</div>
+            </div>
+
+            <div class="salary-stat-card">
+              <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Kirim ke Wawancara</div>
+              <div style="font-size: 16px; font-weight: 700; color: #f59e0b; margin-top: 4px;">
+                ~${stats.timeMetrics.avgDaysToInterview} <span style="font-size: 12px; font-weight: 400;">hari</span>
+              </div>
+              <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">Rata-rata hingga panggilan</div>
+            </div>
+
+            <div class="salary-stat-card">
+              <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Wawancara ke Tawaran</div>
+              <div style="font-size: 16px; font-weight: 700; color: var(--accent-green); margin-top: 4px;">
+                ~${stats.timeMetrics.avgDaysToOffer} <span style="font-size: 12px; font-weight: 400;">hari</span>
+              </div>
+              <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">Rata-rata seleksi akhir</div>
+            </div>
+
+            <div class="salary-stat-card">
+              <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Rata-rata Durasi Proses</div>
+              <div style="font-size: 16px; font-weight: 700; color: var(--primary); margin-top: 4px;">
+                ~${stats.timeMetrics.avgRecruitmentDuration} <span style="font-size: 12px; font-weight: 400;">hari</span>
+              </div>
+              <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">Durasi siklus per lamaran</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Full-Width Salary Comparison Card (Original Layout) -->
+      <div class="funnel-container">
         <h3 style="font-size: 13.5px; font-weight: 600; margin-bottom: 12px;">Analisis Kompensasi & Gaji</h3>
-        <div class="grid-2-cols" style="gap: 12px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
           <div class="salary-stat-card">
             <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;">Rata-rata Ekspektasi Gaji Anda</div>
-            <div class="mono" style="font-size: 16px; font-weight: 700; color: var(--primary); margin-top: 4px;">
-              ${formatRupiah(stats.salaryInsights.avgExpectedSalary)}
+            <div style="font-size: 16px; font-weight: 700; color: var(--primary); margin-top: 4px;">
+              ${
+                stats.salaryInsights.avgExpectedSalary > 0
+                  ? `<span class="mono">${formatRupiah(stats.salaryInsights.avgExpectedSalary)}</span>`
+                  : `<span style="font-size: 13.5px; font-weight: 400; color: var(--text-muted);">Belum ada data</span>`
+              }
             </div>
           </div>
           <div class="salary-stat-card">
             <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;">Rata-rata Rentang Gaji Lowongan</div>
-            <div class="mono" style="font-size: 16px; font-weight: 700; color: var(--accent-green); margin-top: 4px;">
-              ${formatRupiah(stats.salaryInsights.avgOfferedSalary)}
+            <div style="font-size: 16px; font-weight: 700; color: var(--accent-green); margin-top: 4px;">
+              ${
+                stats.salaryInsights.avgOfferedSalary > 0
+                  ? `<span class="mono">${formatRupiah(stats.salaryInsights.avgOfferedSalary)}</span>`
+                  : `<span style="font-size: 13.5px; font-weight: 400; color: var(--text-muted);">Belum ada data</span>`
+              }
             </div>
           </div>
         </div>

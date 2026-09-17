@@ -1,32 +1,22 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { prisma } from '../index.js';
+import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
 
 export const applicationsRouter = Router();
 
-const DEFAULT_USER_ID = 'default-user';
+applicationsRouter.use(requireAuth);
 
-async function ensureDefaultUser() {
-  await prisma.user.upsert({
-    where: { id: DEFAULT_USER_ID },
-    update: {},
-    create: {
-      id: DEFAULT_USER_ID,
-      email: 'default@jobtrack.local',
-      displayName: 'Default User'
-    }
-  });
-}
-
-async function buildApplicationItem(applicationId: string) {
-  const app = await prisma.application.findUnique({
-    where: { id: applicationId },
+async function buildApplicationItem(applicationId: string, userId: string) {
+  const app = await prisma.application.findFirst({
+    where: { id: applicationId, userId },
     include: {
       jobPosting: { include: { company: true } },
       tasks: { orderBy: { createdAt: 'asc' } },
       contacts: { orderBy: { createdAt: 'asc' } },
       documents: { orderBy: { createdAt: 'asc' } },
       attachments: { orderBy: { createdAt: 'desc' } },
-      activities: { orderBy: { at: 'desc' } }
+      activities: { orderBy: { at: 'desc' } },
+      stageHistory: { orderBy: { changedAt: 'asc' } }
     }
   });
   if (!app) return null;
@@ -50,7 +40,11 @@ async function buildApplicationItem(applicationId: string) {
       id: app.jobPosting.id,
       title: app.jobPosting.title,
       companyId: app.jobPosting.companyId,
+      source: app.jobPosting.source ?? undefined,
       sourceUrl: app.jobPosting.sourceUrl ?? undefined,
+      description: app.jobPosting.description ?? undefined,
+      requirements: app.jobPosting.requirements ?? undefined,
+      responsibilities: app.jobPosting.responsibilities ?? undefined,
       foundDate: app.jobPosting.foundDate?.toISOString().substring(0, 10) ?? undefined,
       applyDeadline: app.jobPosting.applyDeadline?.toISOString().substring(0, 10) ?? undefined,
       location: app.jobPosting.location ?? undefined,
@@ -71,6 +65,7 @@ async function buildApplicationItem(applicationId: string) {
       location: app.jobPosting.company.location ?? undefined,
       linkedinUrl: app.jobPosting.company.linkedinUrl ?? undefined,
       notes: app.jobPosting.company.notes ?? undefined,
+      logoUrl: app.jobPosting.company.logoUrl ?? undefined,
       createdAt: app.jobPosting.company.createdAt.toISOString(),
       updatedAt: app.jobPosting.company.updatedAt.toISOString()
     },
@@ -122,6 +117,14 @@ async function buildApplicationItem(applicationId: string) {
       type: a.type,
       at: a.at.toISOString(),
       payload: (a.payload as Record<string, unknown>) ?? undefined
+    })),
+    stageHistory: (app.stageHistory || []).map((sh) => ({
+      id: sh.id,
+      applicationId: sh.applicationId,
+      fromStage: sh.fromStage ?? undefined,
+      toStage: sh.toStage,
+      changedAt: sh.changedAt.toISOString(),
+      note: sh.note ?? undefined
     })),
     interviewPrep: (app.interviewPrep as Record<string, unknown>) ?? undefined
   };
@@ -147,7 +150,11 @@ function mapApplicationList(applications: Awaited<ReturnType<typeof getApplicati
       id: app.jobPosting.id,
       title: app.jobPosting.title,
       companyId: app.jobPosting.companyId,
+      source: app.jobPosting.source ?? undefined,
       sourceUrl: app.jobPosting.sourceUrl ?? undefined,
+      description: app.jobPosting.description ?? undefined,
+      requirements: app.jobPosting.requirements ?? undefined,
+      responsibilities: app.jobPosting.responsibilities ?? undefined,
       foundDate: app.jobPosting.foundDate?.toISOString().substring(0, 10) ?? undefined,
       applyDeadline: app.jobPosting.applyDeadline?.toISOString().substring(0, 10) ?? undefined,
       location: app.jobPosting.location ?? undefined,
@@ -168,6 +175,7 @@ function mapApplicationList(applications: Awaited<ReturnType<typeof getApplicati
       location: app.jobPosting.company.location ?? undefined,
       linkedinUrl: app.jobPosting.company.linkedinUrl ?? undefined,
       notes: app.jobPosting.company.notes ?? undefined,
+      logoUrl: app.jobPosting.company.logoUrl ?? undefined,
       createdAt: app.jobPosting.company.createdAt.toISOString(),
       updatedAt: app.jobPosting.company.updatedAt.toISOString()
     },
@@ -220,6 +228,14 @@ function mapApplicationList(applications: Awaited<ReturnType<typeof getApplicati
       at: a.at.toISOString(),
       payload: (a.payload as Record<string, unknown>) ?? undefined
     })),
+    stageHistory: (app.stageHistory || []).map((sh) => ({
+      id: sh.id,
+      applicationId: sh.applicationId,
+      fromStage: sh.fromStage ?? undefined,
+      toStage: sh.toStage,
+      changedAt: sh.changedAt.toISOString(),
+      note: sh.note ?? undefined
+    })),
     interviewPrep: (app.interviewPrep as Record<string, unknown>) ?? undefined
   }));
 }
@@ -233,22 +249,22 @@ async function getApplicationsFromDb(where: import('@prisma/client').Prisma.Appl
       contacts: { orderBy: { createdAt: 'asc' } },
       documents: { orderBy: { createdAt: 'asc' } },
       attachments: { orderBy: { createdAt: 'desc' } },
-      activities: { orderBy: { at: 'desc' } }
+      activities: { orderBy: { at: 'desc' } },
+      stageHistory: { orderBy: { changedAt: 'asc' } }
     },
     orderBy: { lastActivityAt: 'desc' }
   });
 }
 
 // ─── GET /api/v1/applications ─────────────────────────────────────────────────
-applicationsRouter.get('/', async (req: Request, res: Response) => {
+applicationsRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    await ensureDefaultUser();
-
+    const userId = req.user!.id;
     const stage = req.query['stage'] as string | undefined;
     const search = req.query['search'] as string | undefined;
 
     const applications = await getApplicationsFromDb({
-      userId: DEFAULT_USER_ID,
+      userId,
       ...(stage ? { stage: stage as never } : {}),
       ...(search
         ? {
@@ -269,10 +285,12 @@ applicationsRouter.get('/', async (req: Request, res: Response) => {
 });
 
 // ─── GET /api/v1/applications/:id ─────────────────────────────────────────────
-applicationsRouter.get('/:id', async (req: Request<{ id: string }>, res: Response) => {
+applicationsRouter.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const item = await buildApplicationItem(req.params.id);
-    if (!item) return res.status(404).json({ error: 'Not found' });
+    const userId = req.user!.id;
+    const id = String(req.params.id);
+    const item = await buildApplicationItem(id, userId);
+    if (!item) return res.status(404).json({ error: 'Lamaran tidak ditemukan atau bukan milik Anda.' });
     res.json(item);
   } catch (err) {
     console.error('[GET /applications/:id]', err);
@@ -281,15 +299,20 @@ applicationsRouter.get('/:id', async (req: Request<{ id: string }>, res: Respons
 });
 
 // ─── POST /api/v1/applications ────────────────────────────────────────────────
-applicationsRouter.post('/', async (req: Request, res: Response) => {
+applicationsRouter.post('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    await ensureDefaultUser();
+    const userId = req.user!.id;
 
     const body = req.body as {
       title: string;
       companyName: string;
+      companyIndustry?: string;
       stage?: string;
+      source?: string;
       sourceUrl?: string;
+      description?: string;
+      requirements?: string;
+      responsibilities?: string;
       location?: string;
       workType?: string;
       salaryMin?: number;
@@ -299,8 +322,9 @@ applicationsRouter.post('/', async (req: Request, res: Response) => {
       tags?: string[];
     };
 
-    const { title, companyName, stage = 'Saved', sourceUrl, location, workType,
-            salaryMin, salaryMax, applyDeadline, notes, tags = [] } = body;
+    const { title, companyName, companyIndustry, stage = 'Saved', source, sourceUrl,
+            description, requirements, responsibilities,
+            location, workType, salaryMin, salaryMax, applyDeadline, notes, tags = [] } = body;
 
     if (!title || !companyName) {
       return res.status(400).json({ error: 'title and companyName are required' });
@@ -310,7 +334,7 @@ applicationsRouter.post('/', async (req: Request, res: Response) => {
 
     let company = await prisma.company.findFirst({
       where: {
-        userId: DEFAULT_USER_ID,
+        userId,
         name: { equals: companyName.trim(), mode: 'insensitive' }
       }
     });
@@ -318,18 +342,39 @@ applicationsRouter.post('/', async (req: Request, res: Response) => {
     if (!company) {
       company = await prisma.company.create({
         data: {
-          userId: DEFAULT_USER_ID,
+          userId,
           name: companyName.trim(),
+          industry: companyIndustry ? companyIndustry.trim() : null,
           location: location ?? null
         }
       });
+    } else if (companyIndustry && !company.industry) {
+      company = await prisma.company.update({
+        where: { id: company.id },
+        data: { industry: companyIndustry.trim() }
+      });
+    }
+
+    // Auto-detect source if not specified
+    let finalSource = source;
+    if (!finalSource && sourceUrl) {
+      const lower = sourceUrl.toLowerCase();
+      if (lower.includes('linkedin.com')) finalSource = 'LinkedIn';
+      else if (lower.includes('jobstreet.')) finalSource = 'JobStreet';
+      else if (lower.includes('glints.com')) finalSource = 'Glints';
+      else if (lower.includes('kalibrr.com')) finalSource = 'Kalibrr';
+      else if (lower.includes('indeed.com')) finalSource = 'Indeed';
     }
 
     const jobPosting = await prisma.jobPosting.create({
       data: {
         companyId: company.id,
         title: title.trim(),
+        source: (finalSource as never) ?? null,
         sourceUrl: sourceUrl ?? null,
+        description: description?.trim() || null,
+        requirements: requirements?.trim() || null,
+        responsibilities: responsibilities?.trim() || null,
         foundDate: now,
         applyDeadline: applyDeadline ? new Date(applyDeadline) : null,
         location: location ?? null,
@@ -342,7 +387,7 @@ applicationsRouter.post('/', async (req: Request, res: Response) => {
 
     const application = await prisma.application.create({
       data: {
-        userId: DEFAULT_USER_ID,
+        userId,
         jobPostingId: jobPosting.id,
         stage: stage as never,
         dateApplied: stage === 'Applied' ? now : null,
@@ -360,7 +405,17 @@ applicationsRouter.post('/', async (req: Request, res: Response) => {
       }
     });
 
-    const item = await buildApplicationItem(application.id);
+    await prisma.applicationStageHistory.create({
+      data: {
+        applicationId: application.id,
+        fromStage: null,
+        toStage: stage as never,
+        changedAt: now,
+        note: 'Lamaran dibuat'
+      }
+    });
+
+    const item = await buildApplicationItem(application.id, userId);
     res.status(201).json(item);
   } catch (err) {
     console.error('[POST /applications]', err);
@@ -369,14 +424,17 @@ applicationsRouter.post('/', async (req: Request, res: Response) => {
 });
 
 // ─── PATCH /api/v1/applications/:id/stage ─────────────────────────────────────
-applicationsRouter.patch('/:id/stage', async (req: Request<{ id: string }>, res: Response) => {
+applicationsRouter.patch('/:id/stage', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { stage } = req.body as { stage: string };
+    const userId = req.user!.id;
+    const id = String(req.params.id);
+    const { stage, note } = req.body as { stage: string; note?: string };
     if (!stage) return res.status(400).json({ error: 'stage is required' });
 
-    const id = req.params.id;
-    const existing = await prisma.application.findUnique({ where: { id } });
-    if (!existing) return res.status(404).json({ error: 'Not found' });
+    const existing = await prisma.application.findFirst({
+      where: { id, userId }
+    });
+    if (!existing) return res.status(404).json({ error: 'Lamaran tidak ditemukan atau bukan milik Anda.' });
 
     const now = new Date();
     const prevStage = existing.stage;
@@ -399,7 +457,17 @@ applicationsRouter.patch('/:id/stage', async (req: Request<{ id: string }>, res:
       }
     });
 
-    const item = await buildApplicationItem(id);
+    await prisma.applicationStageHistory.create({
+      data: {
+        applicationId: id,
+        fromStage: prevStage,
+        toStage: stage as never,
+        changedAt: now,
+        note: note || null
+      }
+    });
+
+    const item = await buildApplicationItem(id, userId);
     res.json({ item, shouldOfferFollowUpTask: stage === 'Applied' });
   } catch (err) {
     console.error('[PATCH /applications/:id/stage]', err);
@@ -408,16 +476,17 @@ applicationsRouter.patch('/:id/stage', async (req: Request<{ id: string }>, res:
 });
 
 // ─── PATCH /api/v1/applications/:id ───────────────────────────────────────────
-applicationsRouter.patch('/:id', async (req: Request<{ id: string }>, res: Response) => {
+applicationsRouter.patch('/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const id = req.params.id;
+    const userId = req.user!.id;
+    const id = String(req.params.id);
     const body = req.body as Record<string, unknown>;
 
-    const existing = await prisma.application.findUnique({
-      where: { id },
+    const existing = await prisma.application.findFirst({
+      where: { id, userId },
       include: { jobPosting: true }
     });
-    if (!existing) return res.status(404).json({ error: 'Not found' });
+    if (!existing) return res.status(404).json({ error: 'Lamaran tidak ditemukan atau bukan milik Anda.' });
 
     const now = new Date();
 
@@ -445,15 +514,22 @@ applicationsRouter.patch('/:id', async (req: Request<{ id: string }>, res: Respo
         ...(body['applyDeadline'] !== undefined
           ? { applyDeadline: body['applyDeadline'] ? new Date(body['applyDeadline'] as string) : null }
           : {}),
+        ...(body['source'] !== undefined ? { source: (body['source'] as never) ?? null } : {}),
         ...(body['sourceUrl'] !== undefined ? { sourceUrl: body['sourceUrl'] as string } : {}),
+        ...(body['description'] !== undefined ? { description: (body['description'] as string)?.trim() || null } : {}),
+        ...(body['requirements'] !== undefined ? { requirements: (body['requirements'] as string)?.trim() || null } : {}),
+        ...(body['responsibilities'] !== undefined ? { responsibilities: (body['responsibilities'] as string)?.trim() || null } : {}),
         ...(body['tags'] !== undefined ? { tags: body['tags'] as string[] } : {})
       }
     });
 
-    if (body['companyName'] && (body['companyName'] as string).trim()) {
+    if (body['companyName'] || body['companyIndustry'] !== undefined) {
       await prisma.company.update({
         where: { id: existing.jobPosting.companyId },
-        data: { name: (body['companyName'] as string).trim() }
+        data: {
+          ...(body['companyName'] ? { name: (body['companyName'] as string).trim() } : {}),
+          ...(body['companyIndustry'] !== undefined ? { industry: (body['companyIndustry'] as string)?.trim() || null } : {})
+        }
       });
     }
 
@@ -470,7 +546,7 @@ applicationsRouter.patch('/:id', async (req: Request<{ id: string }>, res: Respo
       }
     });
 
-    const item = await buildApplicationItem(id);
+    const item = await buildApplicationItem(id, userId);
     res.json(item);
   } catch (err) {
     console.error('[PATCH /applications/:id]', err);
@@ -479,11 +555,14 @@ applicationsRouter.patch('/:id', async (req: Request<{ id: string }>, res: Respo
 });
 
 // ─── DELETE /api/v1/applications/:id ──────────────────────────────────────────
-applicationsRouter.delete('/:id', async (req: Request<{ id: string }>, res: Response) => {
+applicationsRouter.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const id = req.params.id;
-    const existing = await prisma.application.findUnique({ where: { id } });
-    if (!existing) return res.status(404).json({ error: 'Not found' });
+    const userId = req.user!.id;
+    const id = String(req.params.id);
+    const existing = await prisma.application.findFirst({
+      where: { id, userId }
+    });
+    if (!existing) return res.status(404).json({ error: 'Lamaran tidak ditemukan atau bukan milik Anda.' });
 
     // Cascade deletes handled by Prisma schema (onDelete: Cascade)
     await prisma.application.delete({ where: { id } });
@@ -495,11 +574,14 @@ applicationsRouter.delete('/:id', async (req: Request<{ id: string }>, res: Resp
 });
 
 // ─── PUT /api/v1/applications/:id/interview-prep ──────────────────────────────
-applicationsRouter.put('/:id/interview-prep', async (req: Request<{ id: string }>, res: Response) => {
+applicationsRouter.put('/:id/interview-prep', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const id = req.params.id;
-    const existing = await prisma.application.findUnique({ where: { id } });
-    if (!existing) return res.status(404).json({ error: 'Not found' });
+    const userId = req.user!.id;
+    const id = String(req.params.id);
+    const existing = await prisma.application.findFirst({
+      where: { id, userId }
+    });
+    if (!existing) return res.status(404).json({ error: 'Lamaran tidak ditemukan atau bukan milik Anda.' });
 
     const interviewPrep = req.body;
     await prisma.application.update({

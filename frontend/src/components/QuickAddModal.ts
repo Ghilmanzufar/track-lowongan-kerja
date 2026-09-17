@@ -1,7 +1,7 @@
 // Quick Add Modal Component using Native HTML5 <dialog>
 // Conforming to anti-slop.md (Section 2.1) & wireframes.md (Section 7)
 
-import { ApplicationStage, WorkType, STAGES_CONFIG } from '../types';
+import { ApplicationStage, WorkType, JobSource, STAGES_CONFIG } from '../types';
 import { store } from '../services/store';
 import { showAlertDialog } from './Dialog';
 
@@ -36,6 +36,19 @@ export function setupQuickAddModal(): void {
       stageSelect.appendChild(opt);
     }
   }
+
+  const urlInput = dialog.querySelector<HTMLInputElement>('#quickAddUrl');
+  const sourceSelect = dialog.querySelector<HTMLSelectElement>('#quickAddSource');
+
+  urlInput?.addEventListener('input', () => {
+    if (!sourceSelect || sourceSelect.value) return;
+    const val = urlInput.value.toLowerCase();
+    if (val.includes('linkedin.com')) sourceSelect.value = 'LinkedIn';
+    else if (val.includes('jobstreet.')) sourceSelect.value = 'JobStreet';
+    else if (val.includes('glints.com')) sourceSelect.value = 'Glints';
+    else if (val.includes('kalibrr.com')) sourceSelect.value = 'Kalibrr';
+    else if (val.includes('indeed.com')) sourceSelect.value = 'Indeed';
+  });
 
   // Toggle advanced options
   advancedToggle?.addEventListener('click', (e) => {
@@ -92,11 +105,17 @@ export function setupQuickAddModal(): void {
           .filter(Boolean)
       : [];
 
+    const industryInput = dialog.querySelector<HTMLInputElement>('#quickAddIndustry');
+    const descInput = dialog.querySelector<HTMLTextAreaElement>('#quickAddDescription');
+
     await store.createApplication({
       title: titleInput.value,
       companyName: companyInput.value,
+      companyIndustry: industryInput?.value.trim() || undefined,
       stage: stageVal,
+      source: (sourceSelect?.value || undefined) as JobSource | undefined,
       sourceUrl: urlInput?.value || undefined,
+      description: descInput?.value.trim() || undefined,
       location: locationInput?.value || undefined,
       workType: (workTypeSelect?.value || undefined) as WorkType | undefined,
       salaryMin: salaryMinInput?.value ? Number(salaryMinInput.value) : undefined,

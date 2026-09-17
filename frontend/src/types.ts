@@ -11,6 +11,43 @@ export type ApplicationStage =
   | 'Rejected'
   | 'Withdrawn';
 
+export const ACTIVE_STAGES: ApplicationStage[] = [
+  'Saved',
+  'ToApply',
+  'Applied',
+  'Screening',
+  'Interview',
+  'Offer'
+];
+
+export const TERMINAL_STAGES: ApplicationStage[] = [
+  'Accepted',
+  'Rejected',
+  'Withdrawn'
+];
+
+export function isActive(stage: ApplicationStage): boolean {
+  return ACTIVE_STAGES.includes(stage);
+}
+
+export function isClosed(stage: ApplicationStage): boolean {
+  return TERMINAL_STAGES.includes(stage);
+}
+
+export function isSuccessful(stage: ApplicationStage): boolean {
+  return stage === 'Accepted';
+}
+
+export type JobSource =
+  | 'LinkedIn'
+  | 'JobStreet'
+  | 'Glints'
+  | 'Kalibrr'
+  | 'CompanyWebsite'
+  | 'Indeed'
+  | 'Referral'
+  | 'Other';
+
 export type WorkType = 'onsite' | 'hybrid' | 'remote';
 
 export type TaskType = 'Apply' | 'FollowUp' | 'Interview' | 'Assignment' | 'ThankYou';
@@ -37,6 +74,7 @@ export interface Company {
   location?: string;
   linkedinUrl?: string;
   notes?: string;
+  logoUrl?: string;
   createdAt: string; // ISO UTC
   updatedAt: string; // ISO UTC
 }
@@ -45,7 +83,11 @@ export interface JobPosting {
   id: string;
   title: string;
   companyId: string;
+  source?: JobSource;
   sourceUrl?: string;
+  description?: string;
+  requirements?: string;
+  responsibilities?: string;
   foundDate?: string; // YYYY-MM-DD
   applyDeadline?: string; // YYYY-MM-DD
   location?: string;
@@ -127,6 +169,15 @@ export interface ActivityEvent {
   payload?: Record<string, any>;
 }
 
+export interface ApplicationStageHistory {
+  id: string;
+  applicationId: string;
+  fromStage?: ApplicationStage;
+  toStage: ApplicationStage;
+  changedAt: string; // ISO string
+  note?: string;
+}
+
 export interface InterviewPrepItem {
   companyResearch: {
     about: string;
@@ -155,6 +206,7 @@ export interface ApplicationItem {
   documents: DocumentLink[];
   attachments?: Attachment[];
   activities: ActivityEvent[];
+  stageHistory?: ApplicationStageHistory[];
   interviewPrep?: InterviewPrepItem;
 }
 
@@ -241,6 +293,20 @@ export const STAGES_CONFIG: Record<ApplicationStage, StageConfig> = {
     bg: '#f3f4f6',
     badgeClass: 'stage-withdrawn'
   }
+};
+
+export const JOB_SOURCES_CONFIG: Record<
+  JobSource,
+  { label: string; icon: string; color: string }
+> = {
+  LinkedIn: { label: 'LinkedIn', icon: '💼', color: '#0077b5' },
+  JobStreet: { label: 'JobStreet', icon: '🔍', color: '#1c3f94' },
+  Glints: { label: 'Glints', icon: '🚀', color: '#e84545' },
+  Kalibrr: { label: 'Kalibrr', icon: '🎯', color: '#2ecc71' },
+  CompanyWebsite: { label: 'Website Perusahaan', icon: '🌐', color: '#3b82f6' },
+  Indeed: { label: 'Indeed', icon: '📋', color: '#2164f3' },
+  Referral: { label: 'Rekomendasi (Referral)', icon: '🤝', color: '#8b5cf6' },
+  Other: { label: 'Lainnya', icon: '📌', color: '#64748b' }
 };
 
 export type AppView = 'dashboard' | 'board' | 'list' | 'agenda' | 'analytics' | 'career-links';
@@ -409,3 +475,18 @@ export const INDUSTRY_SECTORS: IndustrySectorDef[] = [
     description: 'Taman hiburan, produksi media kreatif, olahraga, rekreasi'
   }
 ];
+
+export interface User {
+  id: string;
+  email: string;
+  displayName?: string;
+  emailVerified: boolean;
+  lastLoginAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface AuthResponse {
+  user: User;
+  accessToken: string;
+}

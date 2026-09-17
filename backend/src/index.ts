@@ -1,7 +1,9 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import { healthRouter } from './routes/health.js';
+import { authRouter } from './routes/auth.js';
 import { applicationsRouter } from './routes/applications.js';
 import { tasksRouter } from './routes/tasks.js';
 import { contactsRouter } from './routes/contacts.js';
@@ -17,11 +19,28 @@ const PORT = process.env.PORT ?? 3000;
 // ponytail: Prisma singleton — satu instance untuk satu proses Node.js.
 export const prisma = new PrismaClient();
 
-app.use(cors());
+const allowedOrigins = [
+  process.env.CLIENT_URL || 'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173'
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
+  credentials: true
+}));
+
+app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use('/health', healthRouter);
+app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/applications', applicationsRouter);
 app.use('/api/v1/tasks', tasksRouter);
 app.use('/api/v1/contacts', contactsRouter);
