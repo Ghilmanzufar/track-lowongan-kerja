@@ -12,10 +12,16 @@ import { renderListView } from './components/ListView';
 import { renderAgendaView } from './components/AgendaView';
 import { renderAnalyticsView } from './components/AnalyticsView';
 import { renderCareerLinksView } from './components/CareerLinksView';
+import { renderDocumentVaultView } from './components/DocumentVaultView';
+import { renderTrashView } from './components/TrashView';
 import { setupQuickAddModal } from './components/QuickAddModal';
 import { setupDetailModal } from './components/DetailModal';
 import { setupFilterDrawer } from './components/FilterDrawer';
+import { setupCommandPalette } from './components/CommandPalette';
+import { initGlobalSearch } from './components/GlobalSearchDropdown';
 import { renderFooter } from './components/Footer';
+import { renderApplicationDetailView } from './components/ApplicationDetailView';
+import { TabKey } from './components/DetailModal';
 import { notificationService } from './services/notification';
 import { AppView, User } from './types';
 
@@ -96,6 +102,7 @@ async function initApp(): Promise<void> {
       setupQuickAddModal();
       setupDetailModal();
       setupFilterDrawer();
+      setupCommandPalette();
 
       setupWorkspaceEvents();
     }
@@ -212,7 +219,16 @@ function setupWorkspaceEvents(): void {
 
   mobileFabAdd?.addEventListener('click', triggerQuickAdd);
 
-  // Global Search Input with debouncing
+  // Command Palette trigger from ⌘K button in topbar
+  const cmdPaletteBtn = document.getElementById('btnOpenCmdPalette');
+  cmdPaletteBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.dispatchEvent(new CustomEvent('open-command-palette'));
+  });
+
+  // Global Search Input with debouncing & comprehensive 7-entity dropdown
+  initGlobalSearch(searchInput);
+
   let debounceTimeout: any = null;
   searchInput?.addEventListener('input', () => {
     clearTimeout(debounceTimeout);
@@ -221,12 +237,9 @@ function setupWorkspaceEvents(): void {
     }, 150);
   });
 
-  // Shortcut key '/' or Cmd/Ctrl + K to focus search input
+  // Shortcut key '/' to focus search input (Ctrl+K is handled by CommandPalette)
   window.addEventListener('keydown', (e) => {
-    if (
-      (e.key === '/' && document.activeElement !== searchInput) ||
-      ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k')
-    ) {
+    if (e.key === '/' && document.activeElement !== searchInput) {
       const activeTag = document.activeElement?.tagName.toLowerCase();
       if (activeTag !== 'input' && activeTag !== 'textarea') {
         e.preventDefault();
@@ -261,6 +274,18 @@ function setupWorkspaceEvents(): void {
     'career-links': {
       title: 'Direktori Karir',
       subtitle: 'Kumpulan link karir perusahaan swasta, BUMN, kementerian, dan multinasional'
+    },
+    documents: {
+      title: 'Vault Dokumen & Resume',
+      subtitle: 'Kelola master CV, cover letter, dan portofolio dengan versioning terstruktur'
+    },
+    trash: {
+      title: 'Tempat Sampah / Recently Deleted',
+      subtitle: 'Pulihkan item yang terhapus kapan saja atau hapus secara permanen'
+    },
+    application: {
+      title: 'Workspace Lamaran',
+      subtitle: 'Detail komprehensif, persiapan wawancara, catatan, dan dokumen lamaran'
     }
   };
 
@@ -296,6 +321,16 @@ function setupWorkspaceEvents(): void {
       countAgenda.textContent = String(activeTasks.length);
     }
 
+    const countDocs = document.getElementById('tabCountDocuments');
+    if (countDocs) {
+      countDocs.textContent = String(store.getUserDocuments().length);
+    }
+
+    const countTrash = document.getElementById('tabCountTrash');
+    if (countTrash) {
+      countTrash.textContent = String(store.getTrashSummary().total);
+    }
+
     // Render View Component
     viewContainer.innerHTML = '';
     switch (currentView) {
@@ -317,6 +352,27 @@ function setupWorkspaceEvents(): void {
       case 'career-links':
         renderCareerLinksView(viewContainer);
         break;
+      case 'documents':
+        renderDocumentVaultView(viewContainer);
+        break;
+      case 'trash':
+        renderTrashView(viewContainer);
+        break;
+      case 'application': {
+        const rawHash = window.location.hash.slice(1);
+        if (rawHash.startsWith('application/')) {
+          const pathPart = rawHash.slice('application/'.length);
+          const [appId, queryStr] = pathPart.split('?');
+          let tabKey: TabKey | undefined;
+          if (queryStr) {
+            const params = new URLSearchParams(queryStr);
+            const tabParam = params.get('tab');
+            if (tabParam) tabKey = tabParam as TabKey;
+          }
+          renderApplicationDetailView(viewContainer, appId, tabKey);
+        }
+        break;
+      }
     }
 
     // Always render subtle footer at the bottom of views
@@ -325,8 +381,13 @@ function setupWorkspaceEvents(): void {
 
   // Listen to hash changes for routing
   const handleRoute = () => {
-    const hash = window.location.hash.slice(1) as AppView;
-    const validViews: AppView[] = ['dashboard', 'board', 'list', 'agenda', 'analytics', 'career-links'];
+    const rawHash = window.location.hash.slice(1);
+    if (rawHash.startsWith('application/')) {
+      store.setView('application');
+      return;
+    }
+    const hash = rawHash as AppView;
+    const validViews: AppView[] = ['dashboard', 'board', 'list', 'agenda', 'analytics', 'career-links', 'documents', 'trash'];
     if (validViews.includes(hash)) {
       store.setView(hash);
     } else {

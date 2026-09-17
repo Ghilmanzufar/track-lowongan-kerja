@@ -1,14 +1,15 @@
 // CareerLinksView — Direktori Karir
-// Global read-only links + Personal user-managed links + KBLI Industry Sectors
+// Global read-only links + Personal user-managed links + KBLI Industry Sectors + Verification Engine
 
-import type { CareerLink, CareerLinkCategory, UserCareerLink } from '../types';
+import type { CareerLink, CareerLinkCategory, UserCareerLink, CareerVerificationStatus } from '../types';
 import { INDUSTRY_SECTORS } from '../types';
 import {
   fetchCareerLinks,
   fetchUserCareerLinks,
   createUserCareerLink,
   updateUserCareerLink,
-  deleteUserCareerLink
+  deleteUserCareerLink,
+  verifyCareerLink
 } from '../services/api';
 
 type FilterTab = 'all' | CareerLinkCategory;
@@ -40,12 +41,90 @@ let globalLinks: CareerLink[] = [];
 let userLinks: UserCareerLink[] = [];
 let activeFilter: FilterTab = 'all';
 let activeSector: string = 'all';
+let activeVerificationFilter: CareerVerificationStatus = 'all';
 let isSectorDropdownOpen = false;
 let sectorSearchQuery = '';
 let searchQuery = '';
 let isLoading = true;
 let editingUserLink: UserCareerLink | null = null;
 let showAddForm = false;
+const verifyingLinkIds = new Set<string>();
+
+// ─── Verification Helpers ─────────────────────────────────────────────
+export function getLinkVerificationStatus(
+  link: CareerLink | UserCareerLink
+): 'verified_recently' | 'needs_verification' | 'broken' {
+  if (!link.isVerified) {
+    return 'broken';
+  }
+  if (!link.lastVerifiedAt) {
+    return 'needs_verification';
+  }
+  const verifiedTime = new Date(link.lastVerifiedAt).getTime();
+  if (isNaN(verifiedTime)) {
+    return 'needs_verification';
+  }
+  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+  if (Date.now() - verifiedTime <= thirtyDaysMs) {
+    return 'verified_recently';
+  }
+  return 'needs_verification';
+}
+
+function formatVerifiedDate(dateStr?: string | null): string {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+}
+
+function renderVerificationBadge(link: CareerLink | UserCareerLink, isUser = false): string {
+  const status = getLinkVerificationStatus(link);
+  const dateFormatted = formatVerifiedDate(link.lastVerifiedAt);
+  const isVerifying = verifyingLinkIds.has(link.id);
+
+  let badgeClass = '';
+  let label = '';
+
+  if (status === 'verified_recently') {
+    badgeClass = 'cl-vstatus-verified';
+    label = dateFormatted ? `Terverifikasi (${dateFormatted})` : 'Terverifikasi';
+  } else if (status === 'needs_verification') {
+    badgeClass = 'cl-vstatus-needs';
+    label = dateFormatted ? `Perlu Cek (${dateFormatted})` : 'Perlu Verifikasi';
+  } else {
+    badgeClass = 'cl-vstatus-broken';
+    label = 'Link Rusak / Tidak Aktif';
+  }
+
+  const tooltipLines = [
+    `Status: ${status === 'verified_recently' ? 'Terverifikasi Aktif (≤30 hari)' : status === 'needs_verification' ? 'Perlu Verifikasi (>30 hari)' : 'Link Rusak / Gagal Diakses'}`,
+    link.lastVerifiedAt ? `Dicek: ${new Date(link.lastVerifiedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}` : 'Belum pernah diverifikasi',
+    link.verifiedSource ? `Sumber: ${link.verifiedSource}` : ''
+  ].filter(Boolean).join(' • ');
+
+  return `
+    <div class="cl-vstatus-row">
+      <span class="cl-vstatus-badge ${badgeClass}" title="${tooltipLines}">
+        <span class="cl-vstatus-dot"></span>
+        <span class="cl-vstatus-label">${label}</span>
+      </span>
+      <button
+        type="button"
+        class="cl-vstatus-verify-btn ${isVerifying ? 'spinning' : ''}"
+        data-verify-id="${link.id}"
+        data-is-user="${isUser ? 'true' : 'false'}"
+        title="Verifikasi ulang ketersediaan link sekarang (Live HTTP Probe)"
+        ${isVerifying ? 'disabled' : ''}
+      >
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l6.73-5.19"/>
+        </svg>
+        <span>${isVerifying ? 'Mengecek...' : 'Verifikasi'}</span>
+      </button>
+    </div>
+  `;
+}
 
 // ─── Data Fetching ────────────────────────────────────────────────────
 async function loadData(container: HTMLElement) {
@@ -65,14 +144,21 @@ async function loadData(container: HTMLElement) {
 }
 
 // ─── Filter helpers ──────────────────────────────────────────────────
-function applyFilters<T extends { name: string; category: CareerLinkCategory; sector?: string }>(items: T[]): T[] {
+function applyFilters<T extends { name: string; category: CareerLinkCategory; sector?: string; isVerified: boolean; lastVerifiedAt?: string | null }>(items: T[]): T[] {
   return items.filter(item => {
     const matchCat = activeFilter === 'all' || item.category === activeFilter;
     const matchSector = activeSector === 'all' || item.sector === activeSector;
     const matchSearch = !searchQuery ||
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (item.sector && item.sector.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchCat && matchSector && matchSearch;
+
+    let matchVerification = true;
+    if (activeVerificationFilter !== 'all') {
+      const vStatus = getLinkVerificationStatus(item as any);
+      matchVerification = vStatus === activeVerificationFilter;
+    }
+
+    return matchCat && matchSector && matchSearch && matchVerification;
   });
 }
 
@@ -86,13 +172,7 @@ function renderGlobalCard(link: CareerLink): string {
   const sectorDef = link.sector ? SECTOR_MAP.get(link.sector) : null;
 
   return `
-    <a
-      href="${link.url}"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="cl-card cl-card-global"
-      title="${link.name} — ${domain}"
-    >
+    <div class="cl-card cl-card-global" data-global-link-id="${link.id}">
       <div class="cl-card-top">
         <div class="cl-card-logo">
           <img
@@ -105,17 +185,31 @@ function renderGlobalCard(link: CareerLink): string {
             ${link.name.charAt(0).toUpperCase()}
           </span>
         </div>
-        <span class="cl-card-action">
+        <a
+          href="${link.url}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="cl-card-action"
+          title="Kunjungi website karir ${link.name}"
+        >
           <span>Buka</span>
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
             <polyline points="15 3 21 3 21 9"/>
             <line x1="10" y1="14" x2="21" y2="3"/>
           </svg>
-        </span>
+        </a>
       </div>
       <div class="cl-card-info">
-        <span class="cl-card-name" title="${link.name}">${link.name}</span>
+        <a
+          href="${link.url}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="cl-card-name cl-card-link-title"
+          title="${link.name}"
+        >
+          ${link.name}
+        </a>
         <span class="cl-card-domain">${domain}</span>
         ${sectorDef ? `
           <div class="cl-card-sector-badge" title="${sectorDef.name}">
@@ -123,8 +217,9 @@ function renderGlobalCard(link: CareerLink): string {
             <span class="cl-sector-name">${sectorDef.shortName}</span>
           </div>
         ` : ''}
+        ${renderVerificationBadge(link, false)}
       </div>
-    </a>
+    </div>
   `;
 }
 
@@ -173,7 +268,15 @@ function renderUserCard(link: UserCareerLink): string {
         </div>
       </div>
       <div class="cl-card-info">
-        <span class="cl-card-name" title="${link.name}">${link.name}</span>
+        <a
+          href="${link.url}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="cl-card-name cl-card-link-title"
+          title="${link.name}"
+        >
+          ${link.name}
+        </a>
         <span class="cl-card-domain">${domain}</span>
         ${sectorDef ? `
           <div class="cl-card-sector-badge" title="${sectorDef.name}">
@@ -182,6 +285,7 @@ function renderUserCard(link: UserCareerLink): string {
           </div>
         ` : ''}
         ${link.notes ? `<span class="cl-card-notes">${link.notes}</span>` : ''}
+        ${renderVerificationBadge(link, true)}
       </div>
     </div>
   `;
@@ -386,7 +490,7 @@ function renderView(container: HTMLElement) {
         <!-- Filter tabs for Company Type -->
         <div class="cl-filter-tabs" id="clFilterTabs">
           <button class="cl-filter-tab ${activeFilter === 'all' ? 'active' : ''}" data-filter="all">
-            Semua
+            Semua Kategori
             <span class="cl-tab-count">${globalLinks.length + userLinks.length}</span>
           </button>
           ${CATEGORY_ORDER.map(cat => {
@@ -401,14 +505,46 @@ function renderView(container: HTMLElement) {
           }).join('')}
         </div>
 
-        ${activeSectorDef ? `
-          <div class="cl-active-sector-indicator">
-            <span class="cl-indicator-label">Filter Sektor:</span>
-            <span class="cl-indicator-pill">
-              <span>${activeSectorDef.icon}</span>
-              <strong>${activeSectorDef.name}</strong>
-              <button class="cl-indicator-close" id="clIndicatorClose" title="Hapus filter sektor">✕</button>
-            </span>
+        <!-- Verification Status Filter Tabs -->
+        <div class="cl-vstatus-tabs" id="clVstatusTabs">
+          <button class="cl-vstatus-tab ${activeVerificationFilter === 'all' ? 'active' : ''}" data-vfilter="all">
+            Semua Status
+            <span class="cl-tab-count">${globalLinks.length + userLinks.length}</span>
+          </button>
+          <button class="cl-vstatus-tab ${activeVerificationFilter === 'verified_recently' ? 'active' : ''}" data-vfilter="verified_recently" title="Terverifikasi aktif dalam 30 hari terakhir">
+            <span class="cl-vstatus-dot-mini verified"></span>
+            <span>Terverifikasi Baru</span>
+            <span class="cl-tab-count">${[...globalLinks, ...userLinks].filter(l => getLinkVerificationStatus(l) === 'verified_recently').length}</span>
+          </button>
+          <button class="cl-vstatus-tab ${activeVerificationFilter === 'needs_verification' ? 'active' : ''}" data-vfilter="needs_verification" title="Belum dicek ulang dalam 30 hari">
+            <span class="cl-vstatus-dot-mini needs"></span>
+            <span>Perlu Verifikasi</span>
+            <span class="cl-tab-count">${[...globalLinks, ...userLinks].filter(l => getLinkVerificationStatus(l) === 'needs_verification').length}</span>
+          </button>
+          <button class="cl-vstatus-tab ${activeVerificationFilter === 'broken' ? 'active' : ''}" data-vfilter="broken" title="Link rusak atau gagal diakses">
+            <span class="cl-vstatus-dot-mini broken"></span>
+            <span>Link Rusak</span>
+            <span class="cl-tab-count">${[...globalLinks, ...userLinks].filter(l => getLinkVerificationStatus(l) === 'broken').length}</span>
+          </button>
+        </div>
+
+        ${activeSectorDef || activeVerificationFilter !== 'all' ? `
+          <div class="cl-active-filters-bar">
+            <span class="cl-indicator-label">Filter Aktif:</span>
+            ${activeSectorDef ? `
+              <span class="cl-indicator-pill">
+                <span>${activeSectorDef.icon}</span>
+                <strong>${activeSectorDef.name}</strong>
+                <button class="cl-indicator-close" id="clIndicatorClose" title="Hapus filter sektor">✕</button>
+              </span>
+            ` : ''}
+            ${activeVerificationFilter !== 'all' ? `
+              <span class="cl-indicator-pill cl-indicator-pill-vstatus">
+                <span class="cl-vstatus-dot-mini ${activeVerificationFilter === 'verified_recently' ? 'verified' : activeVerificationFilter === 'needs_verification' ? 'needs' : 'broken'}"></span>
+                <strong>${activeVerificationFilter === 'verified_recently' ? 'Terverifikasi Baru (≤30 hari)' : activeVerificationFilter === 'needs_verification' ? 'Perlu Verifikasi (>30 hari)' : 'Link Rusak'}</strong>
+                <button class="cl-indicator-close" id="clVstatusIndicatorClose" title="Hapus filter status verifikasi">✕</button>
+              </span>
+            ` : ''}
           </div>
         ` : ''}
       </div>
@@ -430,14 +566,14 @@ function renderView(container: HTMLElement) {
           </section>
         `).join('')}
 
-        ${filteredGlobal.length === 0 && (searchQuery || activeFilter !== 'all' || activeSector !== 'all') ? `
+        ${filteredGlobal.length === 0 && (searchQuery || activeFilter !== 'all' || activeSector !== 'all' || activeVerificationFilter !== 'all') ? `
           <div class="cl-empty">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.3">
               <circle cx="11" cy="11" r="8"/>
               <line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
             <p>Tidak ada hasil yang sesuai dengan filter atau kata kunci</p>
-            ${activeSector !== 'all' || activeFilter !== 'all' || searchQuery ? `
+            ${activeSector !== 'all' || activeFilter !== 'all' || activeVerificationFilter !== 'all' || searchQuery ? `
               <button class="btn btn-secondary btn-sm" id="clResetAllFilters" style="margin-top: 10px;">
                 Reset Semua Filter
               </button>
@@ -565,6 +701,7 @@ function attachEvents(container: HTMLElement) {
   container.querySelector('#clResetAllFilters')?.addEventListener('click', () => {
     activeSector = 'all';
     activeFilter = 'all';
+    activeVerificationFilter = 'all';
     searchQuery = '';
     isSectorDropdownOpen = false;
     sectorSearchQuery = '';
@@ -576,6 +713,20 @@ function attachEvents(container: HTMLElement) {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-filter]');
     if (!btn) return;
     activeFilter = btn.dataset.filter as FilterTab;
+    renderView(container);
+  });
+
+  // Verification filter tabs
+  container.querySelector('#clVstatusTabs')?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-vfilter]');
+    if (!btn) return;
+    activeVerificationFilter = btn.dataset.vfilter as CareerVerificationStatus;
+    renderView(container);
+  });
+
+  // Clear verification filter indicator
+  container.querySelector('#clVstatusIndicatorClose')?.addEventListener('click', () => {
+    activeVerificationFilter = 'all';
     renderView(container);
   });
 
@@ -680,6 +831,51 @@ function attachEvents(container: HTMLElement) {
       renderView(container);
     });
   });
+
+  // Verify link on-demand (Live HTTP Probe)
+  container.querySelectorAll<HTMLButtonElement>('[data-verify-id]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const id = btn.dataset.verifyId!;
+      const isUser = btn.dataset.isUser === 'true';
+
+      if (verifyingLinkIds.has(id)) return;
+      verifyingLinkIds.add(id);
+      renderView(container);
+
+      try {
+        const updated = await verifyCareerLink(id, isUser);
+        if (isUser) {
+          const idx = userLinks.findIndex(l => l.id === id);
+          if (idx !== -1) userLinks[idx] = updated as UserCareerLink;
+        } else {
+          const idx = globalLinks.findIndex(l => l.id === id);
+          if (idx !== -1) globalLinks[idx] = updated as CareerLink;
+        }
+
+        const vStatus = getLinkVerificationStatus(updated as any);
+        if (vStatus === 'verified_recently') {
+          (window as any).showToast?.(
+            `Link "${updated.name}" terverifikasi aktif (${(updated as any).verifiedSource || '200 OK'})`,
+            'success'
+          );
+        } else if (vStatus === 'broken') {
+          (window as any).showToast?.(
+            `Link "${updated.name}" tidak dapat diakses (${(updated as any).verifiedSource || 'Error / 404'})`,
+            'warning'
+          );
+        } else {
+          (window as any).showToast?.(`Status verifikasi diperbarui.`, 'info');
+        }
+      } catch (err: any) {
+        (window as any).showToast?.(err.message ?? 'Gagal memverifikasi link.', 'error');
+      } finally {
+        verifyingLinkIds.delete(id);
+        renderView(container);
+      }
+    });
+  });
 }
 
 // ─── Public Export ────────────────────────────────────────────────────────
@@ -687,6 +883,8 @@ export function renderCareerLinksView(container: HTMLElement): void {
   // Reset state on each navigation to this view
   activeFilter = 'all';
   activeSector = 'all';
+  activeVerificationFilter = 'all';
+  verifyingLinkIds.clear();
   isSectorDropdownOpen = false;
   sectorSearchQuery = '';
   searchQuery = '';

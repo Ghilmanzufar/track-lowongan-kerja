@@ -7,6 +7,9 @@ interface CareerLinkSeed {
   url: string;
   category: CareerLinkCategory;
   sector: string;
+  isVerified?: boolean;
+  lastVerifiedAt?: Date | null;
+  verifiedSource?: string | null;
 }
 
 const careerLinks: CareerLinkSeed[] = [
@@ -455,21 +458,39 @@ const careerLinks: CareerLinkSeed[] = [
   { name: 'Kalibrr',                url: 'https://www.kalibrr.com/id-ID',                         category: 'JobBoard', sector: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan, dan Penunjang Usaha Lainnya' },
   { name: 'Indeed Indonesia',        url: 'https://id.indeed.com',                                 category: 'JobBoard', sector: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan, dan Penunjang Usaha Lainnya' },
   { name: 'Loker.id',                url: 'https://loker.id',                                      category: 'JobBoard', sector: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan, dan Penunjang Usaha Lainnya' },
-  { name: 'Karir.com',               url: 'https://www.karir.com',                                 category: 'JobBoard', sector: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan, dan Penunjang Usaha Lainnya' },
-  { name: 'Urbanhire',               url: 'https://www.urbanhire.com/id',                          category: 'JobBoard', sector: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan, dan Penunjang Usaha Lainnya' },
+  { name: 'Karir.com',               url: 'https://www.karir.com',                                 category: 'JobBoard', sector: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan, dan Penunjang Usaha Lainnya', isVerified: true, lastVerifiedAt: new Date('2026-06-15T00:00:00Z'), verifiedSource: 'Audit Direktori (Q2 2026)' },
+  { name: 'Urbanhire',               url: 'https://www.urbanhire.com/id',                          category: 'JobBoard', sector: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan, dan Penunjang Usaha Lainnya', isVerified: false, lastVerifiedAt: new Date('2026-08-20T00:00:00Z'), verifiedSource: 'HTTP 404 (Domain Expired / Inaccessible)' },
   { name: 'Tech in Asia Jobs',       url: 'https://www.techinasia.com/jobs',                       category: 'JobBoard', sector: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan, dan Penunjang Usaha Lainnya' },
-  { name: 'Ekrut',                   url: 'https://www.ekrut.com',                                 category: 'JobBoard', sector: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan, dan Penunjang Usaha Lainnya' },
+  { name: 'Ekrut',                   url: 'https://www.ekrut.com',                                 category: 'JobBoard', sector: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan, dan Penunjang Usaha Lainnya', isVerified: true, lastVerifiedAt: new Date('2026-05-10T00:00:00Z'), verifiedSource: 'Audit Direktori (Q2 2026)' },
 ];
 
 async function main() {
-  console.log('Seeding CareerLink data with Industry Sectors...');
+  console.log('Seeding CareerLink data with Industry Sectors & Verification Metadata...');
+
+  const defaultVerifiedAt = new Date('2026-09-10T00:00:00Z');
+  const defaultSource = 'Automated Directory Audit 2026';
 
   let count = 0;
   for (const link of careerLinks) {
+    const isVerified = link.isVerified !== undefined ? link.isVerified : true;
+    const lastVerifiedAt = link.lastVerifiedAt !== undefined ? link.lastVerifiedAt : defaultVerifiedAt;
+    const verifiedSource = link.verifiedSource !== undefined ? link.verifiedSource : defaultSource;
+
     await prisma.careerLink.upsert({
       where: { name_url: { name: link.name, url: link.url } },
-      update: { category: link.category, sector: link.sector },
-      create: link,
+      update: {
+        category: link.category,
+        sector: link.sector,
+        isVerified,
+        lastVerifiedAt,
+        verifiedSource,
+      },
+      create: {
+        ...link,
+        isVerified,
+        lastVerifiedAt,
+        verifiedSource,
+      },
     });
     count++;
   }

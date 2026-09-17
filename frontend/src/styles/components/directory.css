@@ -722,6 +722,189 @@ select option,
   padding: 32px 24px;
 }
 
+/* ─── Verification Engine Styles ────────────────────────────────────────── */
+
+.cl-card-link-title {
+  text-decoration: none;
+  color: inherit;
+  transition: color var(--transition-fast);
+}
+
+.cl-card:hover .cl-card-link-title {
+  color: var(--accent-blue);
+}
+
+.cl-vstatus-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 5px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.07);
+}
+
+.cl-vstatus-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2.5px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: help;
+  user-select: none;
+  max-width: calc(100% - 32px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cl-vstatus-dot {
+  width: 5.5px;
+  height: 5.5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cl-vstatus-verified {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.cl-vstatus-verified .cl-vstatus-dot {
+  background: #10b981;
+  box-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
+}
+
+.cl-vstatus-needs {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.cl-vstatus-needs .cl-vstatus-dot {
+  background: #f59e0b;
+}
+
+.cl-vstatus-broken {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.cl-vstatus-broken .cl-vstatus-dot {
+  background: #ef4444;
+}
+
+.cl-vstatus-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Micro verify trigger button */
+.cl-vstatus-verify-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3.5px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 9.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  outline: none;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.cl-vstatus-verify-btn:hover:not(:disabled) {
+  background: rgba(37, 99, 235, 0.1);
+  border-color: rgba(37, 99, 235, 0.3);
+  color: var(--accent-blue);
+}
+
+.cl-vstatus-verify-btn.spinning svg {
+  animation: spin 0.7s linear infinite;
+  color: var(--accent-blue);
+}
+
+.cl-vstatus-verify-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* ── Verification status filter tabs in topbar ── */
+.cl-vstatus-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 0;
+}
+.cl-vstatus-tabs::-webkit-scrollbar { display: none; }
+
+.cl-vstatus-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.cl-vstatus-tab:hover {
+  background: var(--bg-muted);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.cl-vstatus-tab.active {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--accent-blue);
+  border-color: rgba(37, 99, 235, 0.35);
+  font-weight: 600;
+}
+
+.cl-vstatus-dot-mini {
+  width: 6.5px;
+  height: 6.5px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.cl-vstatus-dot-mini.verified { background: #10b981; }
+.cl-vstatus-dot-mini.needs { background: #f59e0b; }
+.cl-vstatus-dot-mini.broken { background: #ef4444; }
+
+/* ── Active Filters Bar ── */
+.cl-active-filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 4px 0 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cl-indicator-pill-vstatus {
+  border-color: rgba(37, 99, 235, 0.3);
+  background: rgba(37, 99, 235, 0.08);
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .cl-topbar { padding: 10px 16px 0; }
@@ -734,3 +917,4 @@ select option,
   .cl-card-user-actions,
   .cl-card-action { opacity: 1; }
 }
+

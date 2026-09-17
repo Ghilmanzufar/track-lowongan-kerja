@@ -10,7 +10,7 @@ tasksRouter.use(requireAuth);
 tasksRouter.post('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const { applicationId, type, title, dueDate, priority = 'Med', status = 'Open' } =
+    const { applicationId, type, title, dueDate, priority = 'Med', status = 'Open', interviewId } =
       req.body as {
         applicationId: string;
         type: string;
@@ -18,6 +18,7 @@ tasksRouter.post('/', async (req: AuthenticatedRequest, res: Response) => {
         dueDate?: string;
         priority?: string;
         status?: string;
+        interviewId?: string;
       };
 
     if (!applicationId || !type || !title) {
@@ -40,7 +41,8 @@ tasksRouter.post('/', async (req: AuthenticatedRequest, res: Response) => {
         title: title.trim(),
         dueDate: dueDate ? new Date(dueDate) : null,
         priority: priority as never,
-        status: status as never
+        status: status as never,
+        interviewId: interviewId ?? null
       }
     });
 
@@ -68,6 +70,7 @@ tasksRouter.post('/', async (req: AuthenticatedRequest, res: Response) => {
       priority: task.priority,
       status: task.status,
       snoozeUntil: task.snoozeUntil?.toISOString() ?? undefined,
+      interviewId: task.interviewId ?? undefined,
       createdAt: task.createdAt.toISOString(),
       updatedAt: task.updatedAt.toISOString()
     });
@@ -104,6 +107,7 @@ tasksRouter.patch('/:id', async (req: AuthenticatedRequest, res: Response) => {
         ...(body['dueDate'] !== undefined ? { dueDate: body['dueDate'] ? new Date(body['dueDate'] as string) : null } : {}),
         ...(body['priority'] !== undefined ? { priority: body['priority'] as never } : {}),
         ...(body['status'] !== undefined ? { status: body['status'] as never } : {}),
+        ...(body['interviewId'] !== undefined ? { interviewId: (body['interviewId'] as string) || null } : {}),
         ...(body['snoozeUntil'] !== undefined
           ? { snoozeUntil: body['snoozeUntil'] ? new Date(body['snoozeUntil'] as string) : null }
           : {})
@@ -130,6 +134,7 @@ tasksRouter.patch('/:id', async (req: AuthenticatedRequest, res: Response) => {
       priority: updated.priority,
       status: updated.status,
       snoozeUntil: updated.snoozeUntil?.toISOString() ?? undefined,
+      interviewId: updated.interviewId ?? undefined,
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString()
     });
@@ -147,7 +152,8 @@ tasksRouter.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
     const existing = await prisma.task.findFirst({
       where: {
         id,
-        application: { userId }
+        application: { userId },
+        deletedAt: null
       }
     });
 
@@ -155,8 +161,11 @@ tasksRouter.delete('/:id', async (req: AuthenticatedRequest, res: Response) => {
       return res.status(404).json({ error: 'Tugas tidak ditemukan atau bukan milik Anda.' });
     }
 
-    await prisma.task.delete({ where: { id } });
-    res.json({ success: true });
+    await prisma.task.update({
+      where: { id },
+      data: { deletedAt: new Date() }
+    });
+    res.json({ success: true, message: 'Tugas berhasil dipindahkan ke tempat sampah.' });
   } catch (err) {
     console.error('[DELETE /tasks/:id]', err);
     res.status(500).json({ error: 'Internal server error' });

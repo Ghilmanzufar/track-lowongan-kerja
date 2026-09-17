@@ -273,3 +273,144 @@
   padding: 0;
   text-decoration: underline;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SEGMENTED TABS: SEMUA, EVENTS, TASKS, REMINDERS
+   ───────────────────────────────────────────────────────────────────────────── */
+.agenda-tab-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+}
+
+.agenda-tab-btn {
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 6px 14px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.agenda-tab-btn:hover {
+  background-color: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.agenda-tab-btn.active {
+  background-color: var(--primary, #2563eb);
+  color: #ffffff;
+}
+
+.agenda-tab-btn.active .tab-count-badge {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.tab-count-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 9999px;
+  background-color: var(--bg-subtle);
+  color: var(--text-secondary);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   EVENT CARDS (CalendarEvent items)
+   ───────────────────────────────────────────────────────────────────────────── */
+.agenda-event-card {
+  background-color: var(--bg-surface);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  border-left: 3px solid var(--primary, #2563eb);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  transition: box-shadow var(--transition-fast);
+}
+
+.agenda-event-card:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.agenda-event-card.past {
+  opacity: 0.7;
+  border-left-color: var(--text-muted);
+}
+
+.agenda-event-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.agenda-event-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.agenda-event-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.agenda-time-pill {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  background-color: rgba(37, 99, 235, 0.1);
+  color: var(--primary, #2563eb);
+  padding: 2px 7px;
+  border-radius: var(--radius-xs);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.agenda-event-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   REMINDER ITEMS
+   ───────────────────────────────────────────────────────────────────────────── */
+.agenda-reminder-item {
+  background-color: var(--bg-surface);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-left: 3px solid #f59e0b;
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+

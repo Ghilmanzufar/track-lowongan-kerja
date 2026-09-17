@@ -1,6 +1,18 @@
-import { ApplicationItem, DocumentLink, Attachment } from '../../types';
+import {
+  ApplicationItem,
+  DocumentLink,
+  Attachment,
+  ApplicationDocumentItem,
+  DocumentCategory
+} from '../../types';
 import { store } from '../../services/store';
-import { formatDateWIB, escapeHtml } from '../../utils';
+import {
+  formatDateWIB,
+  escapeHtml,
+  MAX_FILE_SIZE_MB,
+  MAX_FILE_SIZE_BYTES,
+  formatBytes
+} from '../../utils';
 import { showConfirmDialog, showAlertDialog } from '../Dialog';
 import { toast } from './shared';
 
@@ -11,27 +23,104 @@ export function resetDokumenState(): void {
 }
 
 export async function renderDokumenTab(container: HTMLElement, item: ApplicationItem): Promise<void> {
-  // Attachments are loaded directly from database via application item
+  const appliedDocs: ApplicationDocumentItem[] = item.appliedDocuments || [];
   const attachments: Attachment[] = item.attachments || [];
 
-  const formatBytes = (bytes: number): string => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  const categoryIcons: Record<DocumentCategory, string> = {
+    Resume: '📄',
+    CoverLetter: '✉️',
+    Portfolio: '💼',
+    Other: '📁'
   };
 
   container.innerHTML = `
     <div style="display: flex; flex-direction: column; gap: 20px;">
       
-      <!-- Section 1: Upload Tailored CV / Portfolio Files (Stored in Database) -->
+      <!-- Section 0: Master Documents Applied Using (Tracked Versions) -->
+      <div style="background-color: var(--bg-surface); padding: 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <div style="font-size: 13.5px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+              <span>📑</span> Dokumen yang Digunakan Saat Melamar (Applied Using)
+            </div>
+            <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
+              Catat dan telusuri versi master CV, Cover Letter, atau Portofolio yang Anda kirimkan ke perusahaan ini.
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" id="btnLinkDocFromVault" style="font-size: 11.5px; padding: 4px 10px;">
+            + Hubungkan Dokumen
+          </button>
+        </div>
+
+        <!-- Applied Documents List -->
+        <div id="appliedDocsContainer" style="display: flex; flex-direction: column; gap: 8px;">
+          ${
+            appliedDocs.length === 0
+              ? `<div style="text-align: center; padding: 18px; color: var(--text-muted); font-size: 12px; background-color: var(--bg-subtle); border-radius: var(--radius-sm); border: 1px dashed var(--border-color);">
+                  Belum ada master resume/dokumen yang ditautkan ke lamaran ini.<br/>
+                  <span style="font-size: 11px; color: var(--text-secondary);">Klik <strong>"+ Hubungkan Dokumen"</strong> untuk memilih versi CV / Cover Letter yang Anda pakai.</span>
+                 </div>`
+              : appliedDocs
+                  .map((ad) => {
+                    const icon = categoryIcons[ad.roleType] || '📄';
+                    const isLink = ad.version.storageType === 'Link';
+                    const targetUrl = isLink ? ad.version.url : (ad.version as any).fileDataUrl;
+                    let storageLabel = isLink ? 'Tautan Eksternal ↗' : 'Berkas Terunggah 📥';
+                    if (isLink && ad.version.url) {
+                      const u = ad.version.url.toLowerCase();
+                      if (u.includes('drive.google.com')) storageLabel = 'Google Drive ↗';
+                      else if (u.includes('canva.com')) storageLabel = 'Canva ↗';
+                      else if (u.includes('notion.')) storageLabel = 'Notion ↗';
+                    }
+
+                    return `
+                      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background-color: var(--bg-subtle);">
+                        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                          <div style="font-size: 20px;">${icon}</div>
+                          <div style="min-width: 0;">
+                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                              <strong style="font-size: 13px; color: var(--text-primary);">${escapeHtml(ad.document.title)}</strong>
+                              <span class="mono" style="font-size: 11px; font-weight: 700; background: rgba(59, 130, 246, 0.12); color: var(--accent-blue); padding: 2px 6px; border-radius: var(--radius-xs);">
+                                ${escapeHtml(ad.version.versionName)}
+                              </span>
+                              ${ad.version.isDefault ? `<span style="font-size: 10px; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 1px 5px; border-radius: var(--radius-xs); font-weight: 600;">Default</span>` : ''}
+                            </div>
+                            <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
+                              ${ad.notes ? `<em>"${escapeHtml(ad.notes)}"</em> • ` : ''}
+                              <span>${storageLabel}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                          ${
+                            targetUrl
+                              ? `<a href="${targetUrl}" ${isLink ? 'target="_blank" rel="noopener noreferrer"' : `download="${escapeHtml(ad.version.fileName || 'document.pdf')}"`} class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 0 9px;">
+                                   ${isLink ? 'Buka ↗' : 'Unduh 📥'}
+                                 </a>`
+                              : ''
+                          }
+                          <button type="button" class="btn btn-danger btn-sm" data-unlink-doc="${ad.version.id}" style="font-size: 11px; padding: 0 7px;" title="Lepas dokumen dari lamaran ini">
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    `;
+                  })
+                  .join('')
+          }
+        </div>
+      </div>
+
+      <!-- Section 1: Upload Tailored Attachments (Specific to this job) -->
       <div style="background-color: var(--bg-surface); padding: 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <div>
             <div style="font-size: 13px; font-weight: 700; color: var(--text-primary);">
-              📁 Berkas Terlampir (CV & Portofolio Spesifik)
+              📁 Berkas Khusus Lamaran Ini (Take-Home Test / Slip / Offering Letter)
             </div>
             <div style="font-size: 11.5px; color: var(--text-muted);">
-              Simpan versi resume/CV yang telah disesuaikan (*tailored*) untuk lamaran ini langsung ke database server.
+              Berkas tersimpan khusus untuk lamaran kerja di perusahaan ini.
             </div>
           </div>
           <span class="tag-badge" style="font-size: 11px; background: rgba(16, 185, 129, 0.15); color: var(--accent-green); font-weight: 600;">Database Server</span>
@@ -41,14 +130,14 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
         <form id="formUploadAttachment" style="background-color: var(--bg-subtle); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 12px; border: 1px dashed var(--border-color);">
           <div class="form-row" style="gap: 8px; margin-bottom: 8px;">
             <div style="flex: 1;">
-              <input type="text" id="inputAttLabel" class="form-input" placeholder="Label / Versi (cth: CV ATS Frontend v2)" required style="font-size: 12px;" />
+              <input type="text" id="inputAttLabel" class="form-input" placeholder="Label berkas (cth: Soal Tes Teknis, Surat Penawaran)" required style="font-size: 12px;" />
             </div>
             <div style="flex: 1.5;">
               <input type="file" id="inputFileAtt" class="form-input" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" required style="font-size: 12px;" />
             </div>
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 11px; color: var(--text-muted);">Maks. 5 MB (PDF, DOCX, PNG)</span>
+            <span id="attSizeHint" style="font-size: 11px; color: var(--text-muted);">Maks. ${MAX_FILE_SIZE_MB} MB (PDF, DOCX, PNG)</span>
             <button type="submit" class="btn btn-primary btn-sm" id="btnSubmitAttachment">
               📤 Unggah Berkas
             </button>
@@ -60,14 +149,14 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
           ${
             attachments.length === 0
               ? `<div style="text-align: center; padding: 16px; color: var(--text-muted); font-size: 12px; background-color: var(--bg-subtle); border-radius: var(--radius-sm);">
-                  Belum ada file resume/portofolio yang diunggah untuk lamaran ini.
+                  Belum ada berkas lampiran khusus yang diunggah untuk lamaran ini.
                  </div>`
               : attachments
                   .map(
                     (att) => `
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background-color: var(--bg-subtle);">
                   <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                    <div style="font-size: 20px;">📄</div>
+                    <div style="font-size: 20px;">📎</div>
                     <div style="min-width: 0;">
                       <strong style="font-size: 13px; color: var(--text-primary); display: block;">${escapeHtml(att.label)}</strong>
                       <span class="mono" style="font-size: 11px; color: var(--text-muted);">
@@ -94,7 +183,7 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
       <!-- Section 2: External Document Links (Drive / GitHub / Notion) -->
       <div style="background-color: var(--bg-surface); padding: 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
         <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 10px;">
-          🔗 Tautan Dokumen Eksternal (Google Drive / Notion / Portfolio Web)
+          🔗 Tautan Dokumen Eksternal Tambahan
         </div>
 
         <!-- Add Document Form -->
@@ -111,7 +200,8 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
             <input type="text" id="inputDocLabel" class="form-input" placeholder="Label dokumen (misal: Portofolio Proyek UI)" required style="flex: 1; font-size: 12px;" />
             <input type="text" id="inputDocUrl" class="form-input" placeholder="URL Tautan (https://...)" required style="flex: 1.5; font-size: 12px;" />
           </div>
-          <div style="display: flex; justify-content: flex-end;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11px; color: var(--text-muted);">Tautan web/cloud publik atau dapat diakses</span>
             <button type="submit" class="btn btn-primary btn-sm">Simpan Tautan</button>
           </div>
         </form>
@@ -121,7 +211,7 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
           ${
             item.documents.length === 0
               ? `<div style="text-align: center; padding: 16px; color: var(--text-muted); font-size: 12px; background-color: var(--bg-subtle); border-radius: var(--radius-sm);">
-                  Belum ada tautan eksternal yang ditambahkan.
+                  Belum ada tautan eksternal tambahan.
                  </div>`
               : item.documents.map((d) => renderSingleDocumentRow(d)).join('')
           }
@@ -130,6 +220,58 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
 
     </div>
   `;
+
+  // --- Applied Documents Handlers ---
+  container.querySelector('#btnLinkDocFromVault')?.addEventListener('click', () => {
+    showLinkVaultDocDialog(container, item);
+  });
+
+  // Unlink Applied Document
+  container.querySelectorAll<HTMLButtonElement>('[data-unlink-doc]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const verId = btn.getAttribute('data-unlink-doc');
+      if (!verId) return;
+      if (await showConfirmDialog('Lepas tautan dokumen ini dari lamaran ini?')) {
+        try {
+          await store.unlinkDocumentFromApplication(item.application.id, verId);
+          toast('Tautan dokumen dilepas', 'info');
+          const updatedItem = store.getSelectedItem() || item;
+          renderDokumenTab(container, updatedItem);
+        } catch {
+          toast('Gagal melepas dokumen', 'error');
+        }
+      }
+    });
+  });
+
+  // --- Real-time File Size Check ---
+  const fileInputEl = container.querySelector<HTMLInputElement>('#inputFileAtt');
+  const sizeHintEl = container.querySelector<HTMLElement>('#attSizeHint');
+  const submitBtnEl = container.querySelector<HTMLButtonElement>('#btnSubmitAttachment');
+
+  fileInputEl?.addEventListener('change', () => {
+    if (!fileInputEl.files || fileInputEl.files.length === 0) {
+      if (sizeHintEl) {
+        sizeHintEl.textContent = `Maks. ${MAX_FILE_SIZE_MB} MB (PDF, DOCX, PNG)`;
+        sizeHintEl.style.color = 'var(--text-muted)';
+      }
+      if (submitBtnEl) submitBtnEl.disabled = false;
+      return;
+    }
+
+    const file = fileInputEl.files[0];
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      if (sizeHintEl) {
+        sizeHintEl.innerHTML = `<span style="color: #ef4444; font-weight: 600;">⚠️ File terlalu besar: ${formatBytes(file.size)} (Maks. ${MAX_FILE_SIZE_MB} MB)</span>`;
+      }
+      if (submitBtnEl) submitBtnEl.disabled = true;
+    } else {
+      if (sizeHintEl) {
+        sizeHintEl.innerHTML = `<span style="color: #10b981; font-weight: 500;">✓ ${formatBytes(file.size)} / maks ${MAX_FILE_SIZE_MB} MB</span>`;
+      }
+      if (submitBtnEl) submitBtnEl.disabled = false;
+    }
+  });
 
   // --- Attachment Event Handlers ---
   const formUpload = container.querySelector<HTMLFormElement>('#formUploadAttachment');
@@ -141,9 +283,12 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
     if (!fileInput.files || fileInput.files.length === 0) return;
     const file = fileInput.files[0];
 
-    // Max 5MB check
-    if (file.size > 5 * 1024 * 1024) {
-      await showAlertDialog('Ukuran File Terlalu Besar', 'Batas maksimal ukuran file adalah 5 MB.');
+    // Max 10MB check
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      await showAlertDialog(
+        'Ukuran File Terlalu Besar',
+        `Ukuran file (${formatBytes(file.size)}) melebihi batas maksimal ${MAX_FILE_SIZE_MB} MB.`
+      );
       return;
     }
 
@@ -163,13 +308,14 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
         toast('Berkas berhasil disimpan ke database', 'success');
         const updatedItem = store.getSelectedItem() || item;
         renderDokumenTab(container, updatedItem);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error saving attachment:', err);
-        toast('Gagal menyimpan berkas ke database', 'error');
+        toast(err.message || 'Gagal menyimpan berkas ke database', 'error');
       }
     };
     reader.readAsDataURL(file);
   });
+
 
   // Delete Attachment
   container.querySelectorAll<HTMLButtonElement>('[data-delete-attachment]').forEach((btn) => {
@@ -319,4 +465,87 @@ function renderSingleDocumentRow(d: DocumentLink): string {
       </div>
     </div>
   `;
+}
+
+function showLinkVaultDocDialog(container: HTMLElement, item: ApplicationItem): void {
+  const allDocs = store.getUserDocuments();
+  const linkedVersionIds = new Set((item.appliedDocuments || []).map((ad) => ad.documentVersionId));
+
+  const dialog = document.createElement('dialog');
+  dialog.className = 'app-dialog';
+  dialog.innerHTML = `
+    <div class="modal-header">
+      <h3 class="modal-title">Hubungkan Dokumen dari Vault ke Lamaran</h3>
+      <button class="modal-close" data-close-dialog>✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+        Pilih versi master resume/portofolio yang Anda gunakan saat melamar di <strong>${escapeHtml(item.company.name)}</strong>:
+      </p>
+
+      <div class="applied-picker-list">
+        ${
+          allDocs.length === 0
+            ? `<div style="text-align: center; padding: 16px; font-size: 12px; color: var(--text-muted);">
+                Belum ada dokumen di Vault Dokumen. Buat dokumen di menu Vault Dokumen terlebih dahulu.
+               </div>`
+            : allDocs
+                .flatMap((doc) =>
+                  (doc.versions || []).map((ver) => {
+                    const isAlreadyLinked = linkedVersionIds.has(ver.id);
+                    return `
+                      <div class="applied-picker-item ${isAlreadyLinked ? 'selected' : ''}" data-pick-version="${ver.id}">
+                        <div>
+                          <div style="display: flex; align-items: center; gap: 6px;">
+                            <strong style="font-size: 13px; color: var(--text-primary);">${escapeHtml(doc.title)}</strong>
+                            <span class="version-badge" style="font-size: 11px; padding: 1px 6px;">${escapeHtml(ver.versionName)}</span>
+                            ${ver.isDefault ? `<span style="font-size: 10px; color: #10b981; font-weight: 600;">⭐ Default</span>` : ''}
+                          </div>
+                          ${ver.notes ? `<div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">"${escapeHtml(ver.notes)}"</div>` : ''}
+                        </div>
+                        <div>
+                          ${
+                            isAlreadyLinked
+                              ? `<span class="tag-badge" style="font-size: 11px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600;">✓ Terhubung</span>`
+                              : `<button type="button" class="btn btn-secondary btn-xs" data-do-link="${ver.id}">+ Hubungkan</button>`
+                          }
+                        </div>
+                      </div>
+                    `;
+                  })
+                )
+                .join('')
+        }
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary btn-sm" data-close-dialog>Telesai / Tutup</button>
+    </div>
+  `;
+
+  document.body.appendChild(dialog);
+  dialog.showModal();
+
+  const close = () => {
+    dialog.close();
+    dialog.remove();
+  };
+
+  dialog.querySelectorAll('[data-close-dialog]').forEach((btn) => btn.addEventListener('click', close));
+
+  dialog.querySelectorAll<HTMLButtonElement>('[data-do-link]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const verId = btn.getAttribute('data-do-link');
+      if (!verId) return;
+      try {
+        await store.linkDocumentToApplication(item.application.id, verId);
+        toast('Dokumen berhasil dihubungkan!', 'success');
+        close();
+        const updatedItem = store.getSelectedItem() || item;
+        renderDokumenTab(container, updatedItem);
+      } catch {
+        toast('Gagal menghubungkan dokumen', 'error');
+      }
+    });
+  });
 }

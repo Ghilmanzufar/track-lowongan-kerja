@@ -1,6 +1,9 @@
 import { Router, Response } from 'express';
 import { prisma } from '../index.js';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
+import { formatInterviewItem } from './interviews.js';
+import { formatCalendarEvent } from './events.js';
+import { detectDuplicateApplication } from '../utils/duplicateDetector.js';
 
 export const applicationsRouter = Router();
 
@@ -8,15 +11,40 @@ applicationsRouter.use(requireAuth);
 
 async function buildApplicationItem(applicationId: string, userId: string) {
   const app = await prisma.application.findFirst({
-    where: { id: applicationId, userId },
+    where: { id: applicationId, userId, deletedAt: null },
     include: {
       jobPosting: { include: { company: true } },
-      tasks: { orderBy: { createdAt: 'asc' } },
+      tasks: { where: { deletedAt: null }, orderBy: { createdAt: 'asc' } },
       contacts: { orderBy: { createdAt: 'asc' } },
       documents: { orderBy: { createdAt: 'asc' } },
       attachments: { orderBy: { createdAt: 'desc' } },
       activities: { orderBy: { at: 'desc' } },
-      stageHistory: { orderBy: { changedAt: 'asc' } }
+      stageHistory: { orderBy: { changedAt: 'asc' } },
+      interviews: {
+        include: { tasks: { where: { deletedAt: null } } },
+        orderBy: [{ scheduledAt: 'asc' }, { createdAt: 'asc' }]
+      },
+      calendarEvents: {
+        where: { deletedAt: null },
+        include: { reminders: true },
+        orderBy: { startTime: 'asc' }
+      },
+      appliedDocuments: {
+        include: {
+          documentVersion: {
+            include: {
+              document: {
+                select: {
+                  id: true,
+                  title: true,
+                  category: true
+                }
+              }
+            }
+          }
+        },
+        orderBy: { createdAt: 'asc' }
+      }
     }
   });
   if (!app) return null;
@@ -32,6 +60,11 @@ async function buildApplicationItem(applicationId: string, userId: string) {
       referral: app.referral,
       referralContactId: app.referralContactId ?? undefined,
       notes: app.notes ?? undefined,
+      lastContactedAt: app.lastContactedAt?.toISOString().substring(0, 10) ?? undefined,
+      nextFollowUpAt: app.nextFollowUpAt?.toISOString().substring(0, 10) ?? undefined,
+      contactMethod: app.contactMethod ?? undefined,
+      responseStatus: app.responseStatus ?? undefined,
+      followUpNotes: app.followUpNotes ?? undefined,
       lastActivityAt: app.lastActivityAt.toISOString(),
       createdAt: app.createdAt.toISOString(),
       updatedAt: app.updatedAt.toISOString()
@@ -78,6 +111,7 @@ async function buildApplicationItem(applicationId: string, userId: string) {
       priority: t.priority,
       status: t.status,
       snoozeUntil: t.snoozeUntil?.toISOString() ?? undefined,
+      interviewId: t.interviewId ?? undefined,
       createdAt: t.createdAt.toISOString(),
       updatedAt: t.updatedAt.toISOString()
     })),
@@ -111,6 +145,30 @@ async function buildApplicationItem(applicationId: string, userId: string) {
       label: att.label,
       createdAt: att.createdAt.toISOString()
     })),
+    appliedDocuments: (app.appliedDocuments || []).map((ad) => ({
+      id: ad.id,
+      applicationId: ad.applicationId,
+      documentVersionId: ad.documentVersionId,
+      roleType: ad.roleType,
+      notes: ad.notes ?? undefined,
+      createdAt: ad.createdAt.toISOString(),
+      document: {
+        id: ad.documentVersion.document.id,
+        title: ad.documentVersion.document.title,
+        category: ad.documentVersion.document.category
+      },
+      version: {
+        id: ad.documentVersion.id,
+        versionName: ad.documentVersion.versionName,
+        storageType: ad.documentVersion.storageType,
+        url: ad.documentVersion.url ?? undefined,
+        fileName: ad.documentVersion.fileName ?? undefined,
+        fileSize: ad.documentVersion.fileSize ?? undefined,
+        mimeType: ad.documentVersion.mimeType ?? undefined,
+        notes: ad.documentVersion.notes ?? undefined,
+        isDefault: ad.documentVersion.isDefault
+      }
+    })),
     activities: app.activities.map((a) => ({
       id: a.id,
       applicationId: a.applicationId,
@@ -126,7 +184,9 @@ async function buildApplicationItem(applicationId: string, userId: string) {
       changedAt: sh.changedAt.toISOString(),
       note: sh.note ?? undefined
     })),
-    interviewPrep: (app.interviewPrep as Record<string, unknown>) ?? undefined
+    interviewPrep: (app.interviewPrep as Record<string, unknown>) ?? undefined,
+    interviews: (app.interviews || []).map(formatInterviewItem),
+    calendarEvents: (app.calendarEvents || []).map(formatCalendarEvent)
   };
 }
 
@@ -142,6 +202,11 @@ function mapApplicationList(applications: Awaited<ReturnType<typeof getApplicati
       referral: app.referral,
       referralContactId: app.referralContactId ?? undefined,
       notes: app.notes ?? undefined,
+      lastContactedAt: app.lastContactedAt?.toISOString().substring(0, 10) ?? undefined,
+      nextFollowUpAt: app.nextFollowUpAt?.toISOString().substring(0, 10) ?? undefined,
+      contactMethod: app.contactMethod ?? undefined,
+      responseStatus: app.responseStatus ?? undefined,
+      followUpNotes: app.followUpNotes ?? undefined,
       lastActivityAt: app.lastActivityAt.toISOString(),
       createdAt: app.createdAt.toISOString(),
       updatedAt: app.updatedAt.toISOString()
@@ -188,6 +253,7 @@ function mapApplicationList(applications: Awaited<ReturnType<typeof getApplicati
       priority: t.priority,
       status: t.status,
       snoozeUntil: t.snoozeUntil?.toISOString() ?? undefined,
+      interviewId: t.interviewId ?? undefined,
       createdAt: t.createdAt.toISOString(),
       updatedAt: t.updatedAt.toISOString()
     })),
@@ -221,6 +287,30 @@ function mapApplicationList(applications: Awaited<ReturnType<typeof getApplicati
       label: att.label,
       createdAt: att.createdAt.toISOString()
     })),
+    appliedDocuments: (app.appliedDocuments || []).map((ad) => ({
+      id: ad.id,
+      applicationId: ad.applicationId,
+      documentVersionId: ad.documentVersionId,
+      roleType: ad.roleType,
+      notes: ad.notes ?? undefined,
+      createdAt: ad.createdAt.toISOString(),
+      document: {
+        id: ad.documentVersion.document.id,
+        title: ad.documentVersion.document.title,
+        category: ad.documentVersion.document.category
+      },
+      version: {
+        id: ad.documentVersion.id,
+        versionName: ad.documentVersion.versionName,
+        storageType: ad.documentVersion.storageType,
+        url: ad.documentVersion.url ?? undefined,
+        fileName: ad.documentVersion.fileName ?? undefined,
+        fileSize: ad.documentVersion.fileSize ?? undefined,
+        mimeType: ad.documentVersion.mimeType ?? undefined,
+        notes: ad.documentVersion.notes ?? undefined,
+        isDefault: ad.documentVersion.isDefault
+      }
+    })),
     activities: app.activities.map((a) => ({
       id: a.id,
       applicationId: a.applicationId,
@@ -236,21 +326,48 @@ function mapApplicationList(applications: Awaited<ReturnType<typeof getApplicati
       changedAt: sh.changedAt.toISOString(),
       note: sh.note ?? undefined
     })),
-    interviewPrep: (app.interviewPrep as Record<string, unknown>) ?? undefined
+    interviewPrep: (app.interviewPrep as Record<string, unknown>) ?? undefined,
+    interviews: (app.interviews || []).map(formatInterviewItem),
+    calendarEvents: (app.calendarEvents || []).map(formatCalendarEvent)
   }));
 }
 
 async function getApplicationsFromDb(where: import('@prisma/client').Prisma.ApplicationWhereInput) {
   return prisma.application.findMany({
-    where,
+    where: { ...where, deletedAt: null },
     include: {
       jobPosting: { include: { company: true } },
-      tasks: { orderBy: { createdAt: 'asc' } },
+      tasks: { where: { deletedAt: null }, orderBy: { createdAt: 'asc' } },
       contacts: { orderBy: { createdAt: 'asc' } },
       documents: { orderBy: { createdAt: 'asc' } },
       attachments: { orderBy: { createdAt: 'desc' } },
       activities: { orderBy: { at: 'desc' } },
-      stageHistory: { orderBy: { changedAt: 'asc' } }
+      stageHistory: { orderBy: { changedAt: 'asc' } },
+      interviews: {
+        include: { tasks: { where: { deletedAt: null } } },
+        orderBy: [{ scheduledAt: 'asc' }, { createdAt: 'asc' }]
+      },
+      calendarEvents: {
+        where: { deletedAt: null },
+        include: { reminders: true },
+        orderBy: { startTime: 'asc' }
+      },
+      appliedDocuments: {
+        include: {
+          documentVersion: {
+            include: {
+              document: {
+                select: {
+                  id: true,
+                  title: true,
+                  category: true
+                }
+              }
+            }
+          }
+        },
+        orderBy: { createdAt: 'asc' }
+      }
     },
     orderBy: { lastActivityAt: 'desc' }
   });
@@ -298,6 +415,48 @@ applicationsRouter.get('/:id', async (req: AuthenticatedRequest, res: Response) 
   }
 });
 
+// ─── POST /api/v1/applications/check-duplicate ─────────────────────────────────
+applicationsRouter.post('/check-duplicate', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { companyName = '', title = '', sourceUrl, excludeApplicationId } = req.body as {
+      companyName?: string;
+      title?: string;
+      sourceUrl?: string;
+      excludeApplicationId?: string;
+    };
+
+    if (!companyName.trim() && !title.trim() && !sourceUrl?.trim()) {
+      return res.json({ isDuplicate: false, score: 0 });
+    }
+
+    const activeApps = await prisma.application.findMany({
+      where: { userId, deletedAt: null },
+      include: { jobPosting: { include: { company: true } } }
+    });
+
+    const candidates = activeApps.map((a) => ({
+      id: a.id,
+      title: a.jobPosting.title,
+      sourceUrl: a.jobPosting.sourceUrl,
+      stage: a.stage,
+      dateApplied: a.dateApplied,
+      lastActivityAt: a.lastActivityAt,
+      companyName: a.jobPosting.company.name
+    }));
+
+    const result = detectDuplicateApplication(
+      { companyName, title, sourceUrl, excludeApplicationId },
+      candidates
+    );
+
+    res.json(result);
+  } catch (err) {
+    console.error('[POST /applications/check-duplicate]', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ─── POST /api/v1/applications ────────────────────────────────────────────────
 applicationsRouter.post('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -320,14 +479,44 @@ applicationsRouter.post('/', async (req: AuthenticatedRequest, res: Response) =>
       applyDeadline?: string;
       notes?: string;
       tags?: string[];
+      appliedDocumentVersionIds?: string[];
+      allowDuplicate?: boolean;
     };
 
     const { title, companyName, companyIndustry, stage = 'Saved', source, sourceUrl,
             description, requirements, responsibilities,
-            location, workType, salaryMin, salaryMax, applyDeadline, notes, tags = [] } = body;
+            location, workType, salaryMin, salaryMax, applyDeadline, notes, tags = [],
+            appliedDocumentVersionIds = [], allowDuplicate = false } = body;
 
     if (!title || !companyName) {
       return res.status(400).json({ error: 'title and companyName are required' });
+    }
+
+    // Duplicate prevention check (unless user explicitly allows)
+    if (!allowDuplicate) {
+      const activeApps = await prisma.application.findMany({
+        where: { userId, deletedAt: null },
+        include: { jobPosting: { include: { company: true } } }
+      });
+
+      const candidates = activeApps.map((a) => ({
+        id: a.id,
+        title: a.jobPosting.title,
+        sourceUrl: a.jobPosting.sourceUrl,
+        stage: a.stage,
+        dateApplied: a.dateApplied,
+        lastActivityAt: a.lastActivityAt,
+        companyName: a.jobPosting.company.name
+      }));
+
+      const dupCheck = detectDuplicateApplication({ companyName, title, sourceUrl }, candidates);
+      if (dupCheck.isDuplicate && (dupCheck.confidence === 'exact' || dupCheck.score >= 0.9)) {
+        return res.status(409).json({
+          error: 'DUPLICATE_APPLICATION',
+          message: dupCheck.message || 'Similar application already exists.',
+          duplicate: dupCheck
+        });
+      }
     }
 
     const now = new Date();
@@ -335,6 +524,7 @@ applicationsRouter.post('/', async (req: AuthenticatedRequest, res: Response) =>
     let company = await prisma.company.findFirst({
       where: {
         userId,
+        deletedAt: null,
         name: { equals: companyName.trim(), mode: 'insensitive' }
       }
     });
@@ -414,6 +604,25 @@ applicationsRouter.post('/', async (req: AuthenticatedRequest, res: Response) =>
         note: 'Lamaran dibuat'
       }
     });
+
+    if (Array.isArray(appliedDocumentVersionIds) && appliedDocumentVersionIds.length > 0) {
+      for (const verId of appliedDocumentVersionIds) {
+        if (!verId) continue;
+        const version = await prisma.documentVersion.findUnique({
+          where: { id: verId },
+          include: { document: true }
+        });
+        if (version && version.document.userId === userId) {
+          await prisma.applicationDocument.create({
+            data: {
+              applicationId: application.id,
+              documentVersionId: verId,
+              roleType: version.document.category
+            }
+          });
+        }
+      }
+    }
 
     const item = await buildApplicationItem(application.id, userId);
     res.status(201).json(item);
@@ -499,6 +708,15 @@ applicationsRouter.patch('/:id', async (req: AuthenticatedRequest, res: Response
         ...(body['dateApplied'] !== undefined
           ? { dateApplied: body['dateApplied'] ? new Date(body['dateApplied'] as string) : null }
           : {}),
+        ...(body['lastContactedAt'] !== undefined
+          ? { lastContactedAt: body['lastContactedAt'] ? new Date(body['lastContactedAt'] as string) : null }
+          : {}),
+        ...(body['nextFollowUpAt'] !== undefined
+          ? { nextFollowUpAt: body['nextFollowUpAt'] ? new Date(body['nextFollowUpAt'] as string) : null }
+          : {}),
+        ...(body['contactMethod'] !== undefined ? { contactMethod: (body['contactMethod'] as string) || null } : {}),
+        ...(body['responseStatus'] !== undefined ? { responseStatus: (body['responseStatus'] as string) || null } : {}),
+        ...(body['followUpNotes'] !== undefined ? { followUpNotes: (body['followUpNotes'] as string) || null } : {}),
         lastActivityAt: now
       }
     });
@@ -560,13 +778,16 @@ applicationsRouter.delete('/:id', async (req: AuthenticatedRequest, res: Respons
     const userId = req.user!.id;
     const id = String(req.params.id);
     const existing = await prisma.application.findFirst({
-      where: { id, userId }
+      where: { id, userId, deletedAt: null }
     });
     if (!existing) return res.status(404).json({ error: 'Lamaran tidak ditemukan atau bukan milik Anda.' });
 
-    // Cascade deletes handled by Prisma schema (onDelete: Cascade)
-    await prisma.application.delete({ where: { id } });
-    res.json({ success: true });
+    // Soft delete
+    await prisma.application.update({
+      where: { id },
+      data: { deletedAt: new Date() }
+    });
+    res.json({ success: true, message: 'Lamaran berhasil dipindahkan ke tempat sampah.' });
   } catch (err) {
     console.error('[DELETE /applications/:id]', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -598,3 +819,229 @@ applicationsRouter.put('/:id/interview-prep', async (req: AuthenticatedRequest, 
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// ─── POST /api/v1/applications/:id/documents ──────────────────────────────────
+// Link a document version to an application ("Applied Using")
+applicationsRouter.post('/:id/documents', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const applicationId = String(req.params.id);
+    const { documentVersionId, notes } = req.body;
+
+    if (!documentVersionId) {
+      res.status(400).json({ error: 'documentVersionId wajib diisi' });
+      return;
+    }
+
+    const application = await prisma.application.findFirst({
+      where: { id: applicationId, userId }
+    });
+    if (!application) {
+      res.status(404).json({ error: 'Lamaran tidak ditemukan' });
+      return;
+    }
+
+    const version = await prisma.documentVersion.findUnique({
+      where: { id: documentVersionId },
+      include: { document: true }
+    });
+    if (!version || version.document.userId !== userId) {
+      res.status(404).json({ error: 'Versi dokumen tidak ditemukan atau bukan milik Anda' });
+      return;
+    }
+
+    await prisma.applicationDocument.upsert({
+      where: {
+        applicationId_documentVersionId: {
+          applicationId,
+          documentVersionId
+        }
+      },
+      create: {
+        applicationId,
+        documentVersionId,
+        roleType: version.document.category,
+        notes: notes ?? null
+      },
+      update: {
+        notes: notes ?? null
+      }
+    });
+
+    const updatedItem = await buildApplicationItem(applicationId, userId);
+    res.status(201).json(updatedItem);
+  } catch (err) {
+    console.error('[POST /applications/:id/documents]', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ─── DELETE /api/v1/applications/:id/documents/:versionId ─────────────────────
+// Unlink a document version from an application
+applicationsRouter.delete('/:id/documents/:versionId', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const applicationId = String(req.params.id);
+    const versionId = String(req.params.versionId);
+
+    const application = await prisma.application.findFirst({
+      where: { id: applicationId, userId }
+    });
+    if (!application) {
+      res.status(404).json({ error: 'Lamaran tidak ditemukan' });
+      return;
+    }
+
+    await prisma.applicationDocument.deleteMany({
+      where: {
+        applicationId,
+        documentVersionId: versionId
+      }
+    });
+
+    const updatedItem = await buildApplicationItem(applicationId, userId);
+    res.json(updatedItem);
+  } catch (err) {
+    console.error('[DELETE /applications/:id/documents/:versionId]', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ─── PATCH /api/v1/applications/:id/follow-up ──────────────────────────────────
+// Update follow-up status, next follow-up date, contact method, and sync with agenda tasks
+applicationsRouter.patch('/:id/follow-up', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const applicationId = String(req.params.id);
+    const {
+      lastContactedAt,
+      nextFollowUpAt,
+      contactMethod,
+      responseStatus,
+      followUpNotes,
+      syncTask = true
+    } = req.body as {
+      lastContactedAt?: string | null;
+      nextFollowUpAt?: string | null;
+      contactMethod?: string | null;
+      responseStatus?: string | null;
+      followUpNotes?: string | null;
+      syncTask?: boolean;
+    };
+
+    const existing = await prisma.application.findFirst({
+      where: { id: applicationId, userId, deletedAt: null },
+      include: {
+        jobPosting: {
+          include: { company: true }
+        }
+      }
+    });
+
+    if (!existing) {
+      res.status(404).json({ error: 'Lamaran tidak ditemukan atau bukan milik Anda.' });
+      return;
+    }
+
+    const now = new Date();
+    const updateData: Record<string, unknown> = {
+      lastActivityAt: now
+    };
+
+    if (lastContactedAt !== undefined) {
+      updateData.lastContactedAt = lastContactedAt ? new Date(lastContactedAt) : null;
+    }
+    if (nextFollowUpAt !== undefined) {
+      updateData.nextFollowUpAt = nextFollowUpAt ? new Date(nextFollowUpAt) : null;
+    }
+    if (contactMethod !== undefined) {
+      updateData.contactMethod = contactMethod || null;
+    }
+    if (responseStatus !== undefined) {
+      updateData.responseStatus = responseStatus || 'WaitingResponse';
+    }
+    if (followUpNotes !== undefined) {
+      updateData.followUpNotes = followUpNotes || null;
+    }
+
+    await prisma.application.update({
+      where: { id: applicationId },
+      data: updateData
+    });
+
+    // Activity event log
+    await prisma.activityEvent.create({
+      data: {
+        applicationId,
+        type: 'NoteEdited',
+        at: now,
+        payload: {
+          action: 'FollowUpUpdated',
+          lastContactedAt: lastContactedAt ?? undefined,
+          nextFollowUpAt: nextFollowUpAt ?? undefined,
+          contactMethod: contactMethod ?? undefined,
+          responseStatus: responseStatus ?? undefined
+        }
+      }
+    });
+
+    // Auto sync with Task table if syncTask is enabled
+    if (syncTask) {
+      if (responseStatus === 'Replied' || responseStatus === 'InterviewScheduled') {
+        // Mark existing open FollowUp tasks as Done
+        await prisma.task.updateMany({
+          where: {
+            applicationId,
+            type: 'FollowUp',
+            status: 'Open',
+            deletedAt: null
+          },
+          data: {
+            status: 'Done'
+          }
+        });
+      } else if (nextFollowUpAt) {
+        const targetDueDate = new Date(nextFollowUpAt);
+        const taskTitle = `Follow-up: ${existing.jobPosting.company.name} - ${existing.jobPosting.title}`;
+
+        const existingTask = await prisma.task.findFirst({
+          where: {
+            applicationId,
+            type: 'FollowUp',
+            status: 'Open',
+            deletedAt: null
+          }
+        });
+
+        if (existingTask) {
+          await prisma.task.update({
+            where: { id: existingTask.id },
+            data: {
+              dueDate: targetDueDate,
+              title: taskTitle
+            }
+          });
+        } else {
+          await prisma.task.create({
+            data: {
+              applicationId,
+              type: 'FollowUp',
+              title: taskTitle,
+              dueDate: targetDueDate,
+              priority: 'High',
+              status: 'Open'
+            }
+          });
+        }
+      }
+    }
+
+    const updatedItem = await buildApplicationItem(applicationId, userId);
+    res.json(updatedItem);
+  } catch (err) {
+    console.error('[PATCH /applications/:id/follow-up]', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+

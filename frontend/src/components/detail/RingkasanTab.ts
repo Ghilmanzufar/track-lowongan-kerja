@@ -4,7 +4,9 @@ import {
   JobSource,
   JOB_SOURCES_CONFIG,
   STAGES_CONFIG,
-  WorkType
+  WorkType,
+  CONTACT_METHOD_CONFIG,
+  FOLLOW_UP_STATUS_CONFIG
 } from '../../types';
 import { store } from '../../services/store';
 import {
@@ -16,11 +18,16 @@ import {
 } from '../../utils';
 import { showConfirmDialog } from '../Dialog';
 import { toast, WORK_TYPE_LABELS } from './shared';
+import { showFollowUpEditDialog, showFollowUpTemplatesDialog } from './FollowUpModal';
 
 let isEditingOverview = false;
 
 export function resetRingkasanState(): void {
   isEditingOverview = false;
+}
+
+export function isRingkasanEditing(): boolean {
+  return isEditingOverview;
 }
 
 export function renderRingkasanTab(
@@ -62,6 +69,41 @@ function renderRingkasanView(
 
   const currentStageIndex = pipelineStages.indexOf(item.application.stage);
 
+  // Follow-up Tracker Data Calculation
+  const followUpStatusKey = item.application.responseStatus || 'WaitingResponse';
+  const followUpStatus = FOLLOW_UP_STATUS_CONFIG[followUpStatusKey] || FOLLOW_UP_STATUS_CONFIG['WaitingResponse'];
+  const contactMethodKey = item.application.contactMethod || 'Email';
+  const contactMethod = CONTACT_METHOD_CONFIG[contactMethodKey] || { label: contactMethodKey, icon: '✉️' };
+
+  const lastContactedDisplay = item.application.lastContactedAt
+    ? formatDateWIB(item.application.lastContactedAt)
+    : '<span style="color: var(--text-muted); font-style: italic;">Belum dihubungi</span>';
+
+  let nextFollowUpDisplay = '<span style="color: var(--text-muted); font-style: italic;">Belum dijadwalkan</span>';
+  let dueTagHtml = '';
+
+  if (item.application.nextFollowUpAt) {
+    nextFollowUpDisplay = formatDateWIB(item.application.nextFollowUpAt);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const targetDate = new Date(item.application.nextFollowUpAt);
+    targetDate.setHours(0, 0, 0, 0);
+    const diffMs = targetDate.getTime() - today.getTime();
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+    if (followUpStatusKey === 'Replied' || followUpStatusKey === 'InterviewScheduled') {
+      dueTagHtml = '<span class="fu-due-pill due-done">✓ Selesai</span>';
+    } else if (diffDays === 0) {
+      dueTagHtml = '<span class="fu-due-pill due-today">⚠️ Hari ini!</span>';
+    } else if (diffDays < 0) {
+      dueTagHtml = `<span class="fu-due-pill due-overdue">🔴 Terlambat ${Math.abs(diffDays)} hari</span>`;
+    } else if (diffDays === 1) {
+      dueTagHtml = '<span class="fu-due-pill due-future">📅 Besok</span>';
+    } else {
+      dueTagHtml = `<span class="fu-due-pill due-future">📅 ${diffDays} hari lagi</span>`;
+    }
+  }
+
   container.innerHTML = `
     <div style="display: flex; flex-direction: column; gap: 16px;">
       
@@ -95,6 +137,74 @@ function renderRingkasanView(
               `;
             })
             .join('')}
+        </div>
+      </div>
+
+      <!-- Follow-up Tracker Shortcut Card -->
+      <div class="fu-tracker-card">
+        <div class="fu-header">
+          <div class="fu-title-wrap">
+            <div class="fu-icon-badge">📬</div>
+            <div>
+              <h4 class="fu-title">Follow-up Tracker</h4>
+              <p class="fu-subtitle">Pantau komunikasi, respon recruiter, & jadwal pengingat follow-up</p>
+            </div>
+          </div>
+          <div class="fu-status-badge ${followUpStatus.badgeClass}">
+            <span>${followUpStatus.icon}</span>
+            <span>${followUpStatus.label}</span>
+          </div>
+        </div>
+
+        <div class="fu-metrics-grid">
+          <div class="fu-metric-item">
+            <span class="fu-metric-label">Terakhir Dihubungi</span>
+            <div class="fu-metric-value">
+              <span>${lastContactedDisplay}</span>
+            </div>
+          </div>
+
+          <div class="fu-metric-item">
+            <span class="fu-metric-label">Jadwal Follow-up</span>
+            <div class="fu-metric-value">
+              <span>${nextFollowUpDisplay}</span>
+              ${dueTagHtml}
+            </div>
+          </div>
+
+          <div class="fu-metric-item">
+            <span class="fu-metric-label">Metode Kontak</span>
+            <div class="fu-metric-value">
+              <span>${contactMethod.icon} ${contactMethod.label}</span>
+            </div>
+          </div>
+
+          <div class="fu-metric-item">
+            <span class="fu-metric-label">Status Respon</span>
+            <div class="fu-metric-value">
+              <span style="color: ${followUpStatus.color}; font-weight: 700;">${followUpStatus.icon} ${followUpStatus.label}</span>
+            </div>
+          </div>
+        </div>
+
+        ${
+          item.application.followUpNotes
+            ? `<div class="fu-notes-snippet">
+                <strong>Catatan Komunikasi:</strong> ${escapeHtml(item.application.followUpNotes)}
+               </div>`
+            : ''
+        }
+
+        <div class="fu-actions">
+          <button type="button" class="btn-fu-quick" id="btnFuContactedToday" title="Catat bahwa Anda telah menghubungi recruiter hari ini dan jadwalkan follow-up berikutnya (+7 hari)">
+            <span>✓</span> Sudah Dihubungi Hari Ini
+          </button>
+          <button type="button" class="btn-fu-manage" id="btnFuManage" title="Ubah tanggal, status respon, metode atau catatan">
+            <span>⚡</span> Atur Follow-up
+          </button>
+          <button type="button" class="btn-fu-template" id="btnFuTemplates" title="Buka dan salin template pesan email / LinkedIn / WhatsApp siap pakai">
+            <span>📋</span> Salin Template Pesan
+          </button>
         </div>
       </div>
 
@@ -146,6 +256,30 @@ function renderRingkasanView(
             ${item.jobPosting.source && JOB_SOURCES_CONFIG[item.jobPosting.source] ? `${JOB_SOURCES_CONFIG[item.jobPosting.source].icon} ${JOB_SOURCES_CONFIG[item.jobPosting.source].label}` : 'Manual / Direct'}
           </span>
         </div>
+        ${
+          item.appliedDocuments && item.appliedDocuments.length > 0
+            ? `
+            <div style="grid-column: span 2; background-color: var(--bg-subtle); padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 5px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">
+                📑 Dokumen yang Digunakan (Applied Using)
+              </span>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                ${item.appliedDocuments
+                  .map(
+                    (ad) => `
+                  <span class="tag-badge" style="font-size: 11.5px; padding: 4px 10px; background: var(--bg-surface); border: 1px solid var(--border-color); display: inline-flex; align-items: center; gap: 6px;">
+                    <span style="font-weight: 600; color: var(--text-primary);">${escapeHtml(ad.document.title)}</span>
+                    <span class="mono" style="color: var(--accent-blue); font-weight: 700;">${escapeHtml(ad.version.versionName)}</span>
+                    ${ad.version.url ? `<a href="${ad.version.url}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-blue); text-decoration: none;" title="Buka tautan">↗</a>` : ''}
+                  </span>
+                `
+                  )
+                  .join('')}
+              </div>
+            </div>
+          `
+            : ''
+        }
         <div style="grid-column: span 2; border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 2px;">
           <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 2px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Aktivitas Terakhir</span>
           <span class="mono" style="font-size: 12px; color: var(--text-secondary);">${formatDateTimeWIB(item.application.lastActivityAt)} (${formatRelativeTime(item.application.lastActivityAt)})</span>
@@ -259,6 +393,36 @@ function renderRingkasanView(
       </div>
     </div>
   `;
+
+  // Follow-up Tracker Action Listeners
+  container.querySelector('#btnFuContactedToday')?.addEventListener('click', async () => {
+    const todayStr = new Date().toISOString().substring(0, 10);
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + 7);
+    const nextDateStr = nextDate.toISOString().substring(0, 10);
+
+    try {
+      await store.updateFollowUp(item.application.id, {
+        lastContactedAt: todayStr,
+        nextFollowUpAt: nextDateStr,
+        contactMethod: item.application.contactMethod || 'Email',
+        responseStatus: 'WaitingResponse',
+        syncTask: true
+      });
+      toast(`Follow-up tercatat: Dihubungi hari ini, pengingat berikutnya ${formatDateWIB(nextDateStr)}`, 'success');
+      await onRerender();
+    } catch {
+      toast('Gagal memperbarui follow-up', 'error');
+    }
+  });
+
+  container.querySelector('#btnFuManage')?.addEventListener('click', () => {
+    showFollowUpEditDialog(item, onRerender);
+  });
+
+  container.querySelector('#btnFuTemplates')?.addEventListener('click', () => {
+    showFollowUpTemplatesDialog(item);
+  });
 
   // URL Status Check Listener
   container.querySelector('#btnCheckSourceUrl')?.addEventListener('click', async () => {
@@ -432,6 +596,51 @@ function renderRingkasanEditForm(
         <input type="text" id="editTags" class="form-input" value="${escapeHtml(currentTags)}" placeholder="React, TypeScript, Next.js" />
       </div>
 
+      <!-- Follow-up Section in Edit Form -->
+      <div style="background: var(--bg-subtle); padding: 12px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-size: 12.5px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+          <span>📬</span> Status & Jadwal Follow-up
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="editLastContactedAt">Terakhir Dihubungi</label>
+            <input type="date" id="editLastContactedAt" class="form-input" value="${item.application.lastContactedAt ? item.application.lastContactedAt.substring(0, 10) : ''}" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editNextFollowUpAt">Jadwal Follow-up Berikutnya</label>
+            <input type="date" id="editNextFollowUpAt" class="form-input" value="${item.application.nextFollowUpAt ? item.application.nextFollowUpAt.substring(0, 10) : ''}" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="editContactMethod">Metode Kontak</label>
+            <select id="editContactMethod" class="form-select">
+              ${Object.entries(CONTACT_METHOD_CONFIG)
+                .map(
+                  ([key, val]) =>
+                    `<option value="${key}" ${item.application.contactMethod === key ? 'selected' : ''}>${val.icon} ${val.label}</option>`
+                )
+                .join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editResponseStatus">Status Respon</label>
+            <select id="editResponseStatus" class="form-select">
+              ${Object.entries(FOLLOW_UP_STATUS_CONFIG)
+                .map(
+                  ([key, val]) =>
+                    `<option value="${key}" ${(item.application.responseStatus || 'WaitingResponse') === key ? 'selected' : ''}>${val.icon} ${val.label}</option>`
+                )
+                .join('')}
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editFollowUpNotes">Catatan Follow-up</label>
+          <input type="text" id="editFollowUpNotes" class="form-input" value="${escapeHtml(item.application.followUpNotes || '')}" placeholder="Contoh: Menunggu kabar dari recruiter via email..." />
+        </div>
+      </div>
+
       <!-- Snapshot Fields in Edit Form -->
       <div style="background: var(--bg-subtle); padding: 12px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 10px;">
         <div style="font-size: 12.5px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
@@ -478,6 +687,11 @@ function renderRingkasanEditForm(
     const applyDeadline = (container.querySelector('#editApplyDeadline') as HTMLInputElement).value;
     const sourceUrl = (container.querySelector('#editSourceUrl') as HTMLInputElement).value.trim();
     const tagsStr = (container.querySelector('#editTags') as HTMLInputElement).value;
+    const lastContactedAt = (container.querySelector('#editLastContactedAt') as HTMLInputElement)?.value || null;
+    const nextFollowUpAt = (container.querySelector('#editNextFollowUpAt') as HTMLInputElement)?.value || null;
+    const contactMethod = (container.querySelector('#editContactMethod') as HTMLSelectElement)?.value || null;
+    const responseStatus = (container.querySelector('#editResponseStatus') as HTMLSelectElement)?.value || null;
+    const followUpNotes = (container.querySelector('#editFollowUpNotes') as HTMLInputElement)?.value.trim() || null;
     const description = (container.querySelector('#editDescription') as HTMLTextAreaElement)?.value.trim();
     const responsibilities = (container.querySelector('#editResponsibilities') as HTMLTextAreaElement)?.value.trim();
     const requirements = (container.querySelector('#editRequirements') as HTMLTextAreaElement)?.value.trim();
@@ -500,6 +714,11 @@ function renderRingkasanEditForm(
         benefits: benefits || undefined,
         dateApplied: dateApplied ? new Date(dateApplied).toISOString() : undefined,
         applyDeadline: applyDeadline ? new Date(applyDeadline).toISOString() : undefined,
+        lastContactedAt,
+        nextFollowUpAt,
+        contactMethod,
+        responseStatus,
+        followUpNotes,
         source: ((container.querySelector('#editSource') as HTMLSelectElement)?.value || undefined) as JobSource | undefined,
         sourceUrl: sourceUrl || undefined,
         description: description || undefined,

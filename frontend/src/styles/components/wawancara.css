@@ -1,0 +1,329 @@
+/* =============================================================================
+   EXPANDED INTERVIEW MODULE STYLES (JobTrack)
+   Multi-round interview workflow with Agenda & Calendar synchronization
+   ============================================================================= */
+
+.wawancara-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+/* --- Round Selector Bar --- */
+.interview-rounds-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.interview-round-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-xs);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.interview-round-tab:hover {
+  background-color: var(--bg-hover, var(--bg-subtle));
+  color: var(--text-primary);
+}
+
+.interview-round-tab.active {
+  background-color: var(--primary, #2563eb);
+  border-color: var(--primary, #2563eb);
+  color: #ffffff;
+}
+
+.interview-round-tab.active .badge-interview-type {
+  background-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.interview-round-tab .status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--text-muted);
+}
+
+.interview-round-tab .status-dot.Scheduled {
+  background-color: var(--accent-blue, #3b82f6);
+}
+
+.interview-round-tab .status-dot.Completed {
+  background-color: var(--accent-green, #10b981);
+}
+
+.interview-round-tab .status-dot.Passed {
+  background-color: #059669;
+}
+
+.interview-round-tab .status-dot.Failed {
+  background-color: var(--accent-red, #ef4444);
+}
+
+/* --- Type Badges --- */
+.badge-interview-type {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+  text-transform: uppercase;
+}
+
+.badge-interview-type.HR {
+  background-color: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.badge-interview-type.Technical {
+  background-color: rgba(139, 92, 246, 0.12);
+  color: #7c3aed;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.badge-interview-type.User {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-interview-type.Final {
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-interview-type.Other {
+  background-color: var(--bg-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+/* --- Round Banner Header --- */
+.interview-banner {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.interview-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.interview-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* --- Agenda & Calendar Hub Card --- */
+.agenda-sync-hub {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.04) 0%, rgba(139, 92, 246, 0.04) 100%);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.agenda-sync-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.agenda-sync-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.agenda-sync-flow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xs);
+  padding: 4px 8px;
+  width: fit-content;
+}
+
+.agenda-sync-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* --- Inner Nav Sub-tabs --- */
+.wawancara-subtabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 2px;
+  overflow-x: auto;
+}
+
+.wawancara-subtab-btn {
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.wawancara-subtab-btn:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-subtle);
+}
+
+.wawancara-subtab-btn.active {
+  color: var(--primary, #2563eb);
+  background-color: rgba(37, 99, 235, 0.08);
+  font-weight: 700;
+}
+
+/* --- Content Section Cards --- */
+.interview-section-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+
+.interview-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.interview-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* --- Two-column grids --- */
+.interview-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .interview-two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- Question Item Box --- */
+.question-item-card {
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xs);
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+.question-item-title {
+  font-weight: 600;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+/* --- STAR Worksheet --- */
+.star-story-card {
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.star-story-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* --- Evaluation Stars Rating --- */
+.star-rating-selector {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.star-rating-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: transform 0.1s ease;
+  padding: 2px;
+}
+
+.star-rating-btn:hover {
+  transform: scale(1.2);
+}
+
+.star-rating-btn.active {
+  color: #f59e0b;
+}
+
+/* --- Thank you note box --- */
+.thankyou-preview {
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xs);
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: var(--text-primary);
+}

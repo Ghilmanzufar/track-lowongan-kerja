@@ -21,6 +21,12 @@
 @import './components/agenda.css';
 @import './components/analytics.css';
 @import './components/directory.css';
+@import './components/documents.css';
+@import './components/wawancara.css';
+@import './components/duplicate.css';
+@import './components/trash.css';
+@import './components/followup.css';
+@import './components/command-palette.css';
 
 /* 5. Modals, Dialogs & Details */
 @import './components/modals.css';

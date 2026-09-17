@@ -1,0 +1,117 @@
+/* JobTrack — Duplicate Detection Alert Banner */
+
+.duplicate-alert-banner {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-left: 4px solid var(--accent-amber, #f59e0b);
+  border-radius: var(--radius-md, 8px);
+  padding: 12px 14px;
+  margin: 12px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  animation: slideDownFade 0.2s ease-out;
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.duplicate-alert-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.duplicate-alert-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.duplicate-alert-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #fbbf24;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.duplicate-confidence-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+}
+
+.duplicate-confidence-tag.exact {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.duplicate-confidence-tag.high {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.duplicate-confidence-tag.medium {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.duplicate-alert-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary, #cbd5e1);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.duplicate-alert-desc strong {
+  color: var(--text-primary, #f8fafc);
+}
+
+.duplicate-alert-actions {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-view-duplicate {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fcd34d;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.btn-view-duplicate:hover {
+  background: rgba(245, 158, 11, 0.25);
+  color: #ffffff;
+  border-color: #fbbf24;
+  transform: translateY(-1px);
+}

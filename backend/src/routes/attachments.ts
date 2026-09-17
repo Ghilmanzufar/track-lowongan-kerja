@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { prisma } from '../index.js';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
+import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '../constants.js';
 
 export const attachmentsRouter = Router();
 
@@ -22,6 +23,13 @@ attachmentsRouter.post('/', async (req: AuthenticatedRequest, res: Response) => 
     if (!body.applicationId || !body.fileName || !body.dataUrl || !body.label) {
       return res.status(400).json({
         error: 'applicationId, fileName, dataUrl, and label are required'
+      });
+    }
+
+    const fileSize = Number(body.fileSize) || 0;
+    if (fileSize > MAX_FILE_SIZE_BYTES || (body.dataUrl && body.dataUrl.length > MAX_FILE_SIZE_BYTES * 1.45)) {
+      return res.status(400).json({
+        error: `Ukuran berkas (${(fileSize / (1024 * 1024)).toFixed(1)} MB) melebihi batas maksimal ${MAX_FILE_SIZE_MB} MB.`
       });
     }
 

@@ -33,7 +33,7 @@ companiesRouter.get('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user!.id;
     const companies = await prisma.company.findMany({
-      where: { userId },
+      where: { userId, deletedAt: null },
       include: {
         _count: {
           select: {
@@ -79,7 +79,7 @@ companiesRouter.get('/:id', async (req: AuthenticatedRequest, res: Response) => 
     const id = String(req.params.id);
 
     const company = await prisma.company.findFirst({
-      where: { id, userId },
+      where: { id, userId, deletedAt: null },
       include: {
         jobPostings: {
           include: {
@@ -209,18 +209,19 @@ companiesRouter.delete('/:id', async (req: AuthenticatedRequest, res: Response) 
     const id = String(req.params.id);
 
     const existing = await prisma.company.findFirst({
-      where: { id, userId }
+      where: { id, userId, deletedAt: null }
     });
 
     if (!existing) {
       return res.status(404).json({ error: 'Company not found' });
     }
 
-    await prisma.company.delete({
-      where: { id }
+    await prisma.company.update({
+      where: { id },
+      data: { deletedAt: new Date() }
     });
 
-    res.json({ success: true });
+    res.json({ success: true, message: 'Perusahaan dipindahkan ke tempat sampah.' });
   } catch (err) {
     console.error('[DELETE /companies/:id]', err);
     res.status(500).json({ error: 'Internal server error' });

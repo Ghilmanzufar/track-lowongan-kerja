@@ -27,6 +27,9 @@ model User {
   companies       Company[]
   applications    Application[]
   userCareerLinks UserCareerLink[]
+  documents       UserDocument[]
+  calendarEvents  CalendarEvent[]
+  reminders       Reminder[]
 }
 
 // ─────────────────────────────────────────────
@@ -49,9 +52,12 @@ model Company {
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 
   jobPostings JobPosting[]
   contacts    Contact[]
+
+  @@index([deletedAt])
 }
 
 // ─────────────────────────────────────────────
@@ -80,8 +86,11 @@ model JobPosting {
 
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
 
   applications   Application[]
+
+  @@index([deletedAt])
 }
 
 // ─────────────────────────────────────────────
@@ -106,14 +115,26 @@ model Application {
 
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
+  deletedAt          DateTime?
+
+  lastContactedAt    DateTime?
+  nextFollowUpAt     DateTime?
+  contactMethod      String?
+  responseStatus     String?            @default("WaitingResponse")
+  followUpNotes      String?
 
   tasks              Task[]
   contacts           Contact[]
   documents          DocumentLink[]
   attachments        Attachment[]
+  appliedDocuments   ApplicationDocument[]
   activities         ActivityEvent[]
   stageHistory       ApplicationStageHistory[]
   interviewPrep      Json?
+  interviews         Interview[]
+  calendarEvents     CalendarEvent[]
+
+  @@index([deletedAt])
 }
 
 // ─────────────────────────────────────────────
@@ -132,8 +153,16 @@ model Task {
   status         TaskStatus    @default(Open)
   snoozeUntil    DateTime?
 
+  interviewId    String?
+  interview      Interview?    @relation(fields: [interviewId], references: [id], onDelete: SetNull)
+
+  reminders      Reminder[]
+
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+
+  @@index([deletedAt])
 }
 
 // ─────────────────────────────────────────────
@@ -292,16 +321,18 @@ enum ActivityEventType {
 // ─────────────────────────────────────────────
 
 model CareerLink {
-  id         String              @id @default(cuid())
-  name       String
-  url        String
-  category   CareerLinkCategory  @default(Swasta)
-  sector     String?
-  logoUrl    String?
-  isVerified Boolean             @default(true)
+  id             String              @id @default(cuid())
+  name           String
+  url            String
+  category       CareerLinkCategory  @default(Swasta)
+  sector         String?
+  logoUrl        String?
+  isVerified     Boolean             @default(true)
+  lastVerifiedAt DateTime?
+  verifiedSource String?
 
-  createdAt  DateTime            @default(now())
-  updatedAt  DateTime            @updatedAt
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 
   @@unique([name, url], name: "name_url")
 }
@@ -311,18 +342,21 @@ model CareerLink {
 // ─────────────────────────────────────────────
 
 model UserCareerLink {
-  id        String             @id @default(cuid())
-  userId    String
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String             @id @default(cuid())
+  userId         String
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  name      String
-  url       String
-  category  CareerLinkCategory @default(Swasta)
-  sector    String?
-  notes     String?
+  name           String
+  url            String
+  category       CareerLinkCategory @default(Swasta)
+  sector         String?
+  notes          String?
+  isVerified     Boolean            @default(true)
+  lastVerifiedAt DateTime?
+  verifiedSource String?
 
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 }
 
 enum CareerLinkCategory {
@@ -332,3 +366,220 @@ enum CareerLinkCategory {
   Multinasional
   JobBoard
 }
+
+// ─────────────────────────────────────────────
+// USER DOCUMENT (Master Resume / Document Vault)
+// ─────────────────────────────────────────────
+
+model UserDocument {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String           // e.g. "CV Frontend Engineer", "CV ATS", "Cover Letter Tech"
+  category    DocumentCategory // Resume, CoverLetter, Portfolio, Other
+  description String?
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  deletedAt   DateTime?
+
+  versions    DocumentVersion[]
+
+  @@index([userId])
+  @@index([deletedAt])
+}
+
+model DocumentVersion {
+  id             String                @id @default(cuid())
+  documentId     String
+  document       UserDocument          @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  versionName    String                // e.g. "v1", "v2 - React Emphasis", "v4 ATS Friendly"
+  storageType    DocumentStorageType   // Link or File
+  url            String?               // Link to Google Drive / Canva / Notion / Portfolio website
+  fileDataUrl    String?               @db.Text // Base64 if uploaded directly
+  fileName       String?
+  fileSize       Int?
+  mimeType       String?
+  notes          String?               // Changes / highlights in this version
+  isDefault      Boolean               @default(false)
+
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  appliedIn      ApplicationDocument[]
+
+  @@index([documentId])
+}
+
+// ─────────────────────────────────────────────
+// APPLICATION DOCUMENT (Pivot: "Applied Using")
+// ─────────────────────────────────────────────
+
+model ApplicationDocument {
+  id                String           @id @default(cuid())
+  applicationId     String
+  application       Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  documentVersionId String
+  documentVersion   DocumentVersion  @relation(fields: [documentVersionId], references: [id], onDelete: Cascade)
+
+  roleType          DocumentCategory // Snapshot category: Resume, CoverLetter, Portfolio, Other
+  notes             String?
+
+  createdAt         DateTime         @default(now())
+
+  @@unique([applicationId, documentVersionId])
+  @@index([applicationId])
+  @@index([documentVersionId])
+}
+
+enum DocumentCategory {
+  Resume
+  CoverLetter
+  Portfolio
+  Other
+}
+
+enum DocumentStorageType {
+  Link
+  File
+}
+
+// ─────────────────────────────────────────────
+// INTERVIEW
+// ─────────────────────────────────────────────
+
+model Interview {
+  id                  String           @id @default(cuid())
+  applicationId       String
+  application         Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  roundTitle          String           // e.g. "HR Screening", "Technical Interview", "User Interview"
+  type                InterviewType    @default(Technical)
+  status              InterviewStatus  @default(Scheduled)
+
+  scheduledAt         DateTime?
+  durationMinutes     Int?             @default(60)
+  location            String?          // e.g. "Google Meet", "Zoom", "Kantor Pusat"
+  meetingLink         String?
+
+  interviewerName     String?
+  interviewerRole     String?
+  interviewerEmail    String?
+  interviewerPhone    String?
+  interviewerLinkedin String?
+  interviewerNotes    String?
+
+  preparation         Json?
+  questions           Json?
+  starAnswers         Json?
+  notes               String?
+  evaluation          Json?
+  followUp            Json?
+
+  tasks               Task[]
+  calendarEvents      CalendarEvent[]
+
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  @@index([applicationId])
+  @@index([scheduledAt])
+}
+
+enum InterviewType {
+  HR
+  Technical
+  User
+  Final
+  Other
+}
+
+enum InterviewStatus {
+  Scheduled
+  Completed
+  Passed
+  Failed
+  Cancelled
+}
+
+// ─────────────────────────────────────────────
+// CALENDAR EVENT (Time-bounded Events)
+// ─────────────────────────────────────────────
+
+model CalendarEvent {
+  id             String             @id @default(cuid())
+  userId         String
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId  String?
+  application    Application?       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  interviewId    String?
+  interview      Interview?         @relation(fields: [interviewId], references: [id], onDelete: SetNull)
+
+  title          String
+  eventType      CalendarEventType  @default(Interview)
+  status         EventStatus        @default(Scheduled)
+
+  startTime      DateTime
+  endTime        DateTime
+  allDay         Boolean            @default(false)
+
+  meetingUrl     String?
+  location       String?
+  interviewer    String?
+  notes          String?
+
+  reminders      Reminder[]
+
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  deletedAt      DateTime?
+
+  @@index([userId])
+  @@index([applicationId])
+  @@index([startTime])
+  @@index([deletedAt])
+}
+
+enum CalendarEventType {
+  Interview
+  TechnicalTest
+  Meeting
+  Call
+  InfoSession
+  Other
+}
+
+enum EventStatus {
+  Scheduled
+  Completed
+  Cancelled
+  Rescheduled
+}
+
+// ─────────────────────────────────────────────
+// REMINDER (Timed notification alerts)
+// ─────────────────────────────────────────────
+
+model Reminder {
+  id             String          @id @default(cuid())
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventId        String?
+  event          CalendarEvent?  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  taskId         String?
+  task           Task?           @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  remindAt       DateTime
+  title          String
+  channel        String          @default("in_app")
+  isSent         Boolean         @default(false)
+
+  createdAt      DateTime        @default(now())
+
+  @@index([userId])
+  @@index([remindAt])
+}
+

@@ -101,6 +101,20 @@
           <span>Analitik &amp; Funnel</span>
         </button>
 
+        <div class="nav-section-label" style="margin-top: 14px;">DOKUMEN</div>
+
+        <button class="nav-item-btn tab-btn" data-view="documents">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <span>Vault Dokumen</span>
+          <span class="tab-count nav-badge" id="tabCountDocuments">0</span>
+        </button>
+
         <div class="nav-section-label" style="margin-top: 14px;">SUMBER KARIR</div>
 
         <button class="nav-item-btn tab-btn" data-view="career-links">
@@ -109,6 +123,17 @@
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
           </svg>
           <span>Direktori Karir</span>
+        </button>
+
+        <div class="nav-section-label" style="margin-top: 14px;">ARSIP &amp; SISTEM</div>
+
+        <button class="nav-item-btn tab-btn" data-view="trash">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span>Sampah (Trash)</span>
+          <span class="tab-count nav-badge" id="tabCountTrash">0</span>
         </button>
       </nav>
 
@@ -156,8 +181,8 @@
                 <line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
             </span>
-            <input type="search" id="globalSearchInput" placeholder="Cari lowongan..." />
-            <span class="search-shortcut-badge">/</span>
+            <input type="search" id="globalSearchInput" placeholder="Cari perusahaan, lamaran, kontak, tugas, dokumen, link karir..." autocomplete="off" />
+            <button type="button" class="search-shortcut-badge" id="btnOpenCmdPalette" title="Command Palette (Ctrl+K)">⌘K</button>
           </div>
 
           <button class="btn btn-secondary btn-icon" id="btnThemeToggle" title="Ganti Mode Gelap / Terang" aria-label="Ganti Mode Gelap / Terang">
@@ -279,6 +304,9 @@
           </div>
         </div>
 
+        <!-- Duplicate Warning Banner Container -->
+        <div id="quickAddDuplicateBanner" style="display: none;"></div>
+
         <div style="margin: 8px 0;">
           <button type="button" class="btn btn-secondary btn-sm" id="quickAddToggleAdvanced">
             + Tampilkan Opsi Tambahan
@@ -286,6 +314,32 @@
         </div>
 
         <div id="quickAddAdvancedFields" style="display: none; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 8px;">
+          <!-- Applied Using Document Selectors -->
+          <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 12px;">
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+              <span>📑</span> Dokumen yang Digunakan Saat Melamar (Applied Using)
+            </div>
+            <div class="form-row" style="gap: 8px; margin-bottom: 6px;">
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label" for="quickAddSelectResume" style="font-size: 11px;">Versi Resume / CV</label>
+                <select id="quickAddSelectResume" class="form-select" style="font-size: 12px;">
+                  <option value="">-- Tanpa Resume --</option>
+                </select>
+              </div>
+              <div class="form-group" style="flex: 1;">
+                <label class="form-label" for="quickAddSelectCoverLetter" style="font-size: 11px;">Versi Cover Letter</label>
+                <select id="quickAddSelectCoverLetter" class="form-select" style="font-size: 12px;">
+                  <option value="">-- Tanpa Cover Letter --</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="quickAddSelectPortfolio" style="font-size: 11px;">Versi Portofolio</label>
+              <select id="quickAddSelectPortfolio" class="form-select" style="font-size: 12px;">
+                <option value="">-- Tanpa Portofolio --</option>
+              </select>
+            </div>
+          </div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" for="quickAddLocation">Lokasi</label>
@@ -351,13 +405,13 @@
   <dialog id="detailDialog" style="max-width: 720px;">
     <div class="modal-header">
       <div id="detailHeaderTitle" style="display: flex; flex-direction: column; gap: 2px;"></div>
-      <div style="display: flex; align-items: center; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
         <select id="detailHeaderStage" class="form-select" style="font-size: 12px; font-weight: 600;"></select>
-        <button class="modal-close" id="detailCloseBtn">✕</button>
+        <button class="modal-close" id="detailCloseBtn" title="Tutup (Esc)">✕</button>
       </div>
     </div>
-    <div class="detail-tabs" id="detailTabs"></div>
     <div class="modal-body" id="detailBody"></div>
+    <div id="detailFooterNav" class="detail-footer-nav"></div>
   </dialog>
 
   <!-- Toast Notifications Container -->

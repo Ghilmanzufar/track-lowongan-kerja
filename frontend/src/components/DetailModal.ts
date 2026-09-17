@@ -1,5 +1,7 @@
 // Application Detail Modal Orchestrator
-// Coordinates 7 specialized tabs: Ringkasan, Tugas, Dokumen, Kontak, Catatan, Interview Prep, and Riwayat.
+// Displays the concise "Ringkasan" (Summary) overview of an application in a modal dialog.
+// Full workspace tabs (Tugas, Dokumen, Kontak, Catatan, Wawancara, Riwayat) are accessed
+// as full pages via the footer shortcut pills or URL routing.
 
 import {
   ApplicationItem,
@@ -10,54 +12,46 @@ import { store } from '../services/store';
 import { escapeHtml } from '../utils';
 import { showConfirmDialog } from './Dialog';
 import { toast, parseNotesData } from './detail/shared';
-import { renderRingkasanTab, resetRingkasanState } from './detail/RingkasanTab';
-import { renderTugasTab, resetTugasState } from './detail/TugasTab';
-import { renderDokumenTab, resetDokumenState } from './detail/DokumenTab';
-import { renderKontakTab, resetKontakState } from './detail/KontakTab';
-import { renderCatatanTab, resetCatatanState } from './detail/CatatanTab';
-import { renderInterviewPrepTab } from './detail/InterviewPrepTab';
-import { renderRiwayatTab } from './detail/RiwayatTab';
+import { renderRingkasanTab, resetRingkasanState, isRingkasanEditing } from './detail/RingkasanTab';
 
 export type { NoteRevision, NoteItem, NoteAuditEntry, NotesData } from './detail/shared';
 export { parseNotesData } from './detail/shared';
 
-type TabKey = 'ringkasan' | 'tugas' | 'dokumen' | 'kontak' | 'catatan' | 'interview_prep' | 'riwayat';
+export type TabKey = 'ringkasan' | 'tugas' | 'dokumen' | 'kontak' | 'catatan' | 'interview_prep' | 'riwayat';
 
-let activeTab: TabKey = 'ringkasan';
+// Backwards-compatible export for any legacy callers
+export function setActiveDetailTab(_tab: TabKey): void {
+  // Modal now only renders Ringkasan; other tabs navigate directly to full page
+}
 
-function resetAllTabStates(): void {
+let currentDialog: HTMLDialogElement | null = null;
+
+export function closeDetailModal(): void {
   resetRingkasanState();
-  resetTugasState();
-  resetDokumenState();
-  resetKontakState();
-  resetCatatanState();
+  if (currentDialog && currentDialog.open) {
+    currentDialog.close();
+  }
+  store.setSelectedApplicationId(null);
 }
 
 export function setupDetailModal(): void {
   const dialog = document.getElementById('detailDialog') as HTMLDialogElement;
   if (!dialog) return;
 
+  currentDialog = dialog;
   const closeBtn = dialog.querySelector<HTMLButtonElement>('#detailCloseBtn');
 
-  const closeDialog = () => {
-    resetAllTabStates();
-    if (dialog.open) {
-      dialog.close();
-    }
-    store.setSelectedApplicationId(null);
-  };
-
-  closeBtn?.addEventListener('click', closeDialog);
+  closeBtn?.addEventListener('click', closeDetailModal);
 
   // Close when clicking the backdrop
   dialog.addEventListener('click', (e) => {
-    if (e.target === dialog) closeDialog();
+    if (e.target === dialog) closeDetailModal();
   });
 
   // Handle native ESC key cancel or programmatic close
   dialog.addEventListener('cancel', (e) => {
     e.preventDefault();
-    closeDialog();
+    closeDetailModal();
   });
 
   // Re-render modal content whenever store updates
@@ -72,7 +66,7 @@ export function setupDetailModal(): void {
       if (dialog.open) {
         dialog.close();
       }
-      resetAllTabStates();
+      resetRingkasanState();
     }
   });
 }
@@ -138,65 +132,74 @@ async function renderDetailContent(dialog: HTMLDialogElement, item: ApplicationI
     }
   };
 
-  const currentNotesData = parseNotesData(item.application.notes, item.application.createdAt);
-
-  // Render Tabs navigation
-  const tabsContainer = dialog.querySelector<HTMLElement>('#detailTabs')!;
-  const tabs: { key: TabKey; label: string; count?: number }[] = [
-    { key: 'ringkasan', label: 'Ringkasan' },
-    { key: 'tugas', label: 'Tugas', count: item.tasks.filter((t) => t.status === 'Open').length },
-    { key: 'dokumen', label: 'Dokumen', count: item.documents.length },
-    { key: 'kontak', label: 'Kontak', count: item.contacts.length },
-    { key: 'catatan', label: 'Catatan', count: currentNotesData.items.length },
-    { key: 'interview_prep', label: '🎯 Persiapan Interview' },
-    { key: 'riwayat', label: 'Riwayat', count: item.activities.length }
-  ];
-
-  tabsContainer.innerHTML = tabs
-    .map(
-      (t) => `
-      <button class="detail-tab-btn ${activeTab === t.key ? 'active' : ''}" data-tab="${t.key}" type="button">
-        ${t.label} ${t.count !== undefined && t.count > 0 ? `<span class="tab-count">${t.count}</span>` : ''}
-      </button>
-    `
-    )
-    .join('');
-
-  tabsContainer.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      activeTab = btn.getAttribute('data-tab') as TabKey;
-      await renderDetailContent(dialog, item);
-    });
-  });
-
-  // Render Active Tab Content
+  // Render Ringkasan Content into body
   const bodyEl = dialog.querySelector<HTMLElement>('#detailBody')!;
-
   const rerender = async () => {
     await renderDetailContent(dialog, store.getSelectedItem() || item);
   };
 
-  switch (activeTab) {
-    case 'ringkasan':
-      renderRingkasanTab(bodyEl, item, dialog, rerender);
-      break;
-    case 'tugas':
-      renderTugasTab(bodyEl, item);
-      break;
-    case 'dokumen':
-      await renderDokumenTab(bodyEl, item);
-      break;
-    case 'kontak':
-      renderKontakTab(bodyEl, item);
-      break;
-    case 'catatan':
-      renderCatatanTab(bodyEl, item);
-      break;
-    case 'interview_prep':
-      renderInterviewPrepTab(bodyEl, item, dialog);
-      break;
-    case 'riwayat':
-      renderRiwayatTab(bodyEl, item);
-      break;
+  renderRingkasanTab(bodyEl, item, dialog, rerender);
+
+  // Render Footer Navigation with shortcuts to full-page tabs
+  const footerNav = dialog.querySelector<HTMLElement>('#detailFooterNav');
+  if (footerNav) {
+    if (isRingkasanEditing()) {
+      footerNav.style.display = 'none';
+    } else {
+      footerNav.style.display = 'flex';
+      const currentNotesData = parseNotesData(item.application.notes, item.application.createdAt);
+      const openTasksCount = (item.tasks || []).filter((t) => t.status === 'Open').length;
+      const docsCount = (item.documents || []).length;
+      const contactsCount = (item.contacts || []).length;
+      const notesCount = currentNotesData.items.length;
+      const interviewsCount = (item.interviews || []).length;
+      const historyCount = (item.activities || []).length;
+
+      const footerTabs: { key: TabKey; label: string; icon: string; count?: number }[] = [
+        { key: 'tugas', label: 'Tugas', icon: '📋', count: openTasksCount },
+        { key: 'dokumen', label: 'Dokumen', icon: '📁', count: docsCount },
+        { key: 'kontak', label: 'Kontak', icon: '👤', count: contactsCount },
+        { key: 'catatan', label: 'Catatan', icon: '📝', count: notesCount },
+        { key: 'interview_prep', label: 'Wawancara', icon: '🎯', count: interviewsCount },
+        { key: 'riwayat', label: 'Riwayat', icon: '🕒', count: historyCount }
+      ];
+
+      footerNav.innerHTML = `
+        <div class="detail-footer-nav-header">
+          <div class="detail-footer-nav-title">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            <span>Halaman Detail Lengkap</span>
+          </div>
+          <span class="detail-footer-nav-hint">Buka tab di halaman penuh</span>
+        </div>
+        <div class="detail-footer-pills">
+          ${footerTabs
+            .map(
+              (t) => `
+            <button class="detail-footer-pill" data-footer-tab="${t.key}" type="button" title="Buka tab ${t.label} di halaman penuh">
+              <span class="pill-icon">${t.icon}</span>
+              <span class="pill-label">${t.label}</span>
+              ${t.count !== undefined && t.count > 0 ? `<span class="pill-count">${t.count}</span>` : ''}
+            </button>
+          `
+            )
+            .join('')}
+        </div>
+      `;
+
+      footerNav.querySelectorAll<HTMLButtonElement>('[data-footer-tab]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const targetTab = btn.getAttribute('data-footer-tab') as TabKey;
+          const appId = item.application.id;
+          closeDetailModal();
+          window.location.hash = `application/${appId}?tab=${targetTab}`;
+        });
+      });
+    }
   }
 }
+

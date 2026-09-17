@@ -110,10 +110,56 @@ export interface Application {
   referral?: boolean;
   referralContactId?: string;
   notes?: string;
+  lastContactedAt?: string; // YYYY-MM-DD
+  nextFollowUpAt?: string; // YYYY-MM-DD
+  contactMethod?: string;
+  responseStatus?: string;
+  followUpNotes?: string;
   lastActivityAt: string;
   createdAt: string;
   updatedAt: string;
 }
+
+export type FollowUpStatus = 'WaitingResponse' | 'Replied' | 'NoResponse' | 'InterviewScheduled';
+
+export const FOLLOW_UP_STATUS_CONFIG: Record<
+  string,
+  { label: string; icon: string; color: string; badgeClass: string }
+> = {
+  WaitingResponse: {
+    label: 'Menunggu Respon',
+    icon: '⏳',
+    color: '#f59e0b',
+    badgeClass: 'fu-status-waiting'
+  },
+  Replied: {
+    label: 'Sudah Dibalas',
+    icon: '💬',
+    color: '#10b981',
+    badgeClass: 'fu-status-replied'
+  },
+  NoResponse: {
+    label: 'Belum Ada Respon',
+    icon: '📭',
+    color: '#64748b',
+    badgeClass: 'fu-status-no-response'
+  },
+  InterviewScheduled: {
+    label: 'Dijadwalkan Interview',
+    icon: '🎯',
+    color: '#8b5cf6',
+    badgeClass: 'fu-status-interview'
+  }
+};
+
+export const CONTACT_METHOD_CONFIG: Record<string, { label: string; icon: string }> = {
+  Email: { label: 'Email', icon: '✉️' },
+  LinkedIn: { label: 'LinkedIn DM', icon: '💼' },
+  WhatsApp: { label: 'WhatsApp', icon: '💬' },
+  Phone: { label: 'Telepon', icon: '📞' },
+  Portal: { label: 'Job Portal / Website', icon: '🌐' },
+  Other: { label: 'Lainnya', icon: '📌' }
+};
 
 export interface Task {
   id: string;
@@ -124,6 +170,7 @@ export interface Task {
   priority: TaskPriority;
   status: TaskStatus;
   snoozeUntil?: string;
+  interviewId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -178,6 +225,77 @@ export interface ApplicationStageHistory {
   note?: string;
 }
 
+export type InterviewType = 'HR' | 'Technical' | 'User' | 'Final' | 'Other';
+export type InterviewStatus = 'Scheduled' | 'Completed' | 'Passed' | 'Failed' | 'Cancelled';
+
+export interface StarStoryItem {
+  id: string;
+  title: string;
+  situation: string;
+  task: string;
+  action: string;
+  result: string;
+}
+
+export interface PredictedQuestionItem {
+  id: string;
+  question: string;
+  answerNotes?: string;
+  category?: 'General' | 'Technical' | 'Behavioral' | 'Leadership';
+}
+
+export interface InterviewPreparation {
+  completedChecklist: string[];
+  companyNotes?: string;
+  techStackNotes?: string;
+}
+
+export interface InterviewEvaluation {
+  rating?: number; // 1-5
+  strengths?: string;
+  improvements?: string;
+  difficulty?: 'Easy' | 'Medium' | 'Hard';
+  feedback?: string;
+}
+
+export interface InterviewFollowUp {
+  status: 'None' | 'Drafted' | 'Sent';
+  template?: string;
+  sentAt?: string;
+  followUpDate?: string;
+  notes?: string;
+}
+
+export interface InterviewItem {
+  id: string;
+  applicationId: string;
+  roundTitle: string;
+  type: InterviewType;
+  status: InterviewStatus;
+  scheduledAt?: string;
+  durationMinutes?: number;
+  location?: string;
+  meetingLink?: string;
+  interviewerName?: string;
+  interviewerRole?: string;
+  interviewerEmail?: string;
+  interviewerPhone?: string;
+  interviewerLinkedin?: string;
+  interviewerNotes?: string;
+  preparation?: InterviewPreparation;
+  questions?: {
+    predicted?: PredictedQuestionItem[];
+    toAsk?: string[];
+  };
+  starAnswers?: StarStoryItem[];
+  notes?: string;
+  evaluation?: InterviewEvaluation;
+  followUp?: InterviewFollowUp;
+  tasks?: Task[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface InterviewPrepItem {
   companyResearch: {
     about: string;
@@ -196,6 +314,48 @@ export interface InterviewPrepItem {
   }>;
 }
 
+export type CalendarEventType = 'Interview' | 'TechnicalTest' | 'Meeting' | 'Call' | 'InfoSession' | 'Other';
+export type EventStatus = 'Scheduled' | 'Completed' | 'Cancelled' | 'Rescheduled';
+
+export interface ReminderItem {
+  id: string;
+  userId?: string;
+  eventId?: string;
+  taskId?: string;
+  title: string;
+  remindAt: string; // ISO string
+  channel: string;
+  isSent: boolean;
+  event?: { id: string; title: string; startTime: string };
+  task?: { id: string; title: string; dueDate?: string };
+  createdAt: string;
+}
+
+export interface CalendarEvent {
+  id: string;
+  userId?: string;
+  applicationId?: string;
+  interviewId?: string;
+  title: string;
+  eventType: CalendarEventType;
+  status: EventStatus;
+  startTime: string; // ISO string
+  endTime: string;   // ISO string
+  allDay: boolean;
+  meetingUrl?: string;
+  location?: string;
+  interviewer?: string;
+  notes?: string;
+  application?: {
+    id: string;
+    companyName: string;
+    jobTitle: string;
+  };
+  reminders?: ReminderItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Composite interface for views and joined queries
 export interface ApplicationItem {
   application: Application;
@@ -205,9 +365,12 @@ export interface ApplicationItem {
   contacts: Contact[];
   documents: DocumentLink[];
   attachments?: Attachment[];
+  appliedDocuments?: ApplicationDocumentItem[];
   activities: ActivityEvent[];
   stageHistory?: ApplicationStageHistory[];
   interviewPrep?: InterviewPrepItem;
+  interviews?: InterviewItem[];
+  calendarEvents?: CalendarEvent[];
 }
 
 export interface FilterCriteria {
@@ -309,11 +472,76 @@ export const JOB_SOURCES_CONFIG: Record<
   Other: { label: 'Lainnya', icon: '📌', color: '#64748b' }
 };
 
-export type AppView = 'dashboard' | 'board' | 'list' | 'agenda' | 'analytics' | 'career-links';
+export type AppView = 'dashboard' | 'board' | 'list' | 'agenda' | 'analytics' | 'career-links' | 'documents' | 'trash' | 'application';
+
+// ─── Master Document & Resume Vault ──────────────────────────────────
+
+export type DocumentCategory = 'Resume' | 'CoverLetter' | 'Portfolio' | 'Other';
+export type DocumentStorageType = 'Link' | 'File';
+
+export interface DocumentVersion {
+  id: string;
+  documentId: string;
+  versionName: string; // e.g. "v1", "v2 - React Emphasis", "v4 ATS"
+  storageType: DocumentStorageType;
+  url?: string;
+  fileDataUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  mimeType?: string;
+  notes?: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+  appliedCount?: number;
+  applications?: Array<{
+    applicationId: string;
+    companyName: string;
+    jobTitle: string;
+    stage: ApplicationStage;
+  }>;
+}
+
+export interface UserDocument {
+  id: string;
+  title: string;
+  category: DocumentCategory;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+  versions: DocumentVersion[];
+}
+
+export interface ApplicationDocumentItem {
+  id: string;
+  applicationId: string;
+  documentVersionId: string;
+  roleType: DocumentCategory;
+  notes?: string;
+  createdAt: string;
+  document: {
+    id: string;
+    title: string;
+    category: DocumentCategory;
+  };
+  version: {
+    id: string;
+    versionName: string;
+    storageType: DocumentStorageType;
+    url?: string;
+    fileName?: string;
+    fileSize?: number;
+    mimeType?: string;
+    notes?: string;
+    isDefault: boolean;
+  };
+}
 
 // ─── Career Links ─────────────────────────────────────────────────────
 
 export type CareerLinkCategory = 'Swasta' | 'BUMN' | 'Kementerian' | 'Multinasional' | 'JobBoard';
+
+export type CareerVerificationStatus = 'all' | 'verified_recently' | 'needs_verification' | 'broken';
 
 export interface CareerLink {
   id: string;
@@ -323,6 +551,8 @@ export interface CareerLink {
   sector?: string;
   logoUrl?: string;
   isVerified: boolean;
+  lastVerifiedAt?: string | null;
+  verifiedSource?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -335,6 +565,9 @@ export interface UserCareerLink {
   category: CareerLinkCategory;
   sector?: string;
   notes?: string;
+  isVerified: boolean;
+  lastVerifiedAt?: string | null;
+  verifiedSource?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -490,3 +723,178 @@ export interface AuthResponse {
   user: User;
   accessToken: string;
 }
+
+// ─── Trash / Recently Deleted ───────────────────────────────────────
+
+export type TrashEntityType = 'application' | 'document' | 'task' | 'event';
+
+export interface TrashItem {
+  id: string;
+  entityType: TrashEntityType;
+  title: string;
+  subtitle?: string;
+  deletedAt: string;
+  metadata?: Record<string, any>;
+}
+
+export interface TrashSummary {
+  total: number;
+  applications: number;
+  documents: number;
+  tasks: number;
+  events: number;
+}
+
+// ─── Duplicate Detection ───────────────────────────────────────────
+
+export type DuplicateConfidence = 'exact' | 'high' | 'medium';
+export type DuplicateMatchType = 'source_url' | 'company_and_title' | 'similar_company_and_title';
+
+export interface DuplicateCheckResult {
+  isDuplicate: boolean;
+  confidence?: DuplicateConfidence;
+  matchType?: DuplicateMatchType;
+  score: number;
+  existingApplication?: {
+    id: string;
+    companyName: string;
+    title: string;
+    stage: ApplicationStage;
+    dateApplied?: string;
+    sourceUrl?: string;
+    lastActivityAt: string;
+  };
+  message?: string;
+}
+
+// ─── Global Search ──────────────────────────────────────────────────
+
+export interface SearchCompanyItem {
+  id: string;
+  name: string;
+  industry?: string;
+  location?: string;
+  website?: string;
+  logoUrl?: string;
+  _count?: {
+    jobPostings: number;
+    contacts: number;
+  };
+}
+
+export interface SearchJobItem {
+  id: string;
+  title: string;
+  location?: string;
+  workType?: string;
+  sourceUrl?: string;
+  company: {
+    id: string;
+    name: string;
+    logoUrl?: string;
+  };
+  applications?: {
+    id: string;
+    stage: ApplicationStage;
+  }[];
+}
+
+export interface SearchApplicationItem {
+  id: string;
+  stage: ApplicationStage;
+  dateApplied?: string;
+  notes?: string;
+  jobPosting: {
+    id: string;
+    title: string;
+    location?: string;
+    company: {
+      id: string;
+      name: string;
+      logoUrl?: string;
+    };
+  };
+}
+
+export interface SearchContactItem {
+  id: string;
+  name: string;
+  role?: string;
+  email?: string;
+  phone?: string;
+  company?: {
+    id: string;
+    name: string;
+  };
+  application?: {
+    id: string;
+    jobPosting: {
+      title: string;
+      company: {
+        name: string;
+      };
+    };
+  };
+}
+
+export interface SearchTaskItem {
+  id: string;
+  title: string;
+  type: string;
+  priority: string;
+  status: string;
+  dueDate?: string;
+  application: {
+    id: string;
+    jobPosting: {
+      title: string;
+      company: {
+        name: string;
+      };
+    };
+  };
+}
+
+export interface SearchDocumentItem {
+  id: string;
+  title: string;
+  category: string;
+  description?: string;
+  updatedAt: string;
+  versions?: {
+    id: string;
+    versionName: string;
+    storageType: string;
+    url?: string;
+    fileName?: string;
+  }[];
+}
+
+export interface SearchCareerLinkItem {
+  id: string;
+  name: string;
+  url: string;
+  category: CareerLinkCategory;
+  sector?: string;
+  isVerified: boolean;
+  lastVerifiedAt?: string;
+  verifiedSource?: string;
+  isUser: boolean;
+  notes?: string;
+}
+
+export interface GlobalSearchResults {
+  query: string;
+  total: number;
+  categories: {
+    companies: SearchCompanyItem[];
+    jobs: SearchJobItem[];
+    applications: SearchApplicationItem[];
+    contacts: SearchContactItem[];
+    tasks: SearchTaskItem[];
+    documents: SearchDocumentItem[];
+    careerLinks: SearchCareerLinkItem[];
+  };
+}
+
+

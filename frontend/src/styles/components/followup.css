@@ -1,0 +1,313 @@
+/* ==========================================================================
+   Follow-up Tracker Card & Controls
+   Personal Job Application Tracker
+   ========================================================================== */
+
+.fu-tracker-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  border-left: 4px solid var(--primary);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fu-tracker-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.fu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.fu-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fu-icon-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+
+.fu-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.1px;
+  margin: 0;
+}
+
+.fu-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.fu-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.fu-status-waiting {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.fu-status-replied {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.fu-status-no-response {
+  background: rgba(100, 116, 139, 0.12);
+  color: #475569;
+  border: 1px solid rgba(100, 116, 139, 0.25);
+}
+
+.fu-status-interview {
+  background: rgba(139, 92, 246, 0.12);
+  color: #6d28d9;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+/* 4-Item Information Grid */
+.fu-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .fu-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.fu-metric-item {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fu-metric-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.fu-metric-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.fu-metric-subtext {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.fu-due-pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.due-today {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.due-overdue {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.due-future {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.due-done {
+  background: #d1fae5;
+  color: #047857;
+}
+
+/* Notes callout */
+.fu-notes-snippet {
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--bg-subtle);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-xs);
+  padding: 8px 12px;
+  line-height: 1.4;
+}
+
+/* Actions */
+.fu-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border-color);
+  padding-top: 10px;
+  margin-top: 2px;
+}
+
+.btn-fu-quick {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  font-weight: 600;
+  font-size: 11.5px;
+  padding: 5px 11px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.btn-fu-quick:hover {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+}
+
+.btn-fu-manage {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  font-weight: 600;
+  font-size: 11.5px;
+  padding: 5px 11px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.btn-fu-manage:hover {
+  background: var(--bg-subtle);
+  border-color: var(--border-hover);
+}
+
+.btn-fu-template {
+  background: rgba(37, 99, 235, 0.05);
+  color: var(--primary);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  font-weight: 600;
+  font-size: 11.5px;
+  padding: 5px 11px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.btn-fu-template:hover {
+  background: rgba(37, 99, 235, 0.1);
+}
+
+/* Follow-up Edit Modal Form */
+.fu-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8px 0;
+}
+
+.fu-form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .fu-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fu-sync-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  margin-top: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Template Modal */
+.fu-template-card {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.fu-template-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.fu-template-content {
+  padding: 12px 14px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  font-family: inherit;
+}

@@ -1,12 +1,13 @@
-// Interactive Calendar Widget Component for JobTrack
-// Renders an interactive monthly calendar with event dots and date selection
-
-import { ApplicationItem, Task } from '../types';
+import { ApplicationItem, Task, CalendarEvent } from '../types';
 
 export interface CalendarEventItem {
   date: string; // YYYY-MM-DD
-  task: Task;
-  applicationItem: ApplicationItem;
+  kind: 'event' | 'task';
+  title: string;
+  timeStr?: string;
+  task?: Task;
+  calendarEvent?: CalendarEvent;
+  applicationItem?: ApplicationItem;
 }
 
 export class CalendarWidget {
@@ -69,9 +70,31 @@ export class CalendarWidget {
     return `${year}-${month}-${day}`;
   }
 
-  private extractEventsMap(items: ApplicationItem[]): Map<string, CalendarEventItem[]> {
+  private extractEventsMap(items: ApplicationItem[], rawEvents?: CalendarEvent[]): Map<string, CalendarEventItem[]> {
     const map = new Map<string, CalendarEventItem[]>();
 
+    // 1. Dedicated Calendar Events (Highest visual precedence)
+    if (rawEvents) {
+      for (const e of rawEvents) {
+        if (!e.startTime) continue;
+        const dateKey = e.startTime.slice(0, 10);
+        if (!map.has(dateKey)) {
+          map.set(dateKey, []);
+        }
+        const sTime = e.startTime.slice(11, 16);
+        const eTime = e.endTime ? e.endTime.slice(11, 16) : '';
+        map.get(dateKey)!.push({
+          date: dateKey,
+          kind: 'event',
+          title: e.title,
+          timeStr: eTime ? `${sTime} - ${eTime}` : sTime,
+          calendarEvent: e,
+          applicationItem: items.find(i => i.application.id === e.applicationId)
+        });
+      }
+    }
+
+    // 2. Action Tasks with Deadlines
     for (const item of items) {
       for (const task of item.tasks) {
         if (!task.dueDate) continue;
@@ -81,6 +104,9 @@ export class CalendarWidget {
         }
         map.get(dateKey)!.push({
           date: dateKey,
+          kind: 'task',
+          title: task.title,
+          timeStr: task.dueDate.includes('T') ? task.dueDate.slice(11, 16) : undefined,
           task: task,
           applicationItem: item
         });
@@ -90,8 +116,8 @@ export class CalendarWidget {
     return map;
   }
 
-  public render(container: HTMLElement, items: ApplicationItem[]): void {
-    const eventsMap = this.extractEventsMap(items);
+  public render(container: HTMLElement, items: ApplicationItem[], rawEvents?: CalendarEvent[]): void {
+    const eventsMap = this.extractEventsMap(items, rawEvents);
     const monthNames = [
       'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
       'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
@@ -118,15 +144,15 @@ export class CalendarWidget {
       const isToday = dateStr === todayStr;
       const isSelected = dateStr === this.selectedDate;
       const events = eventsMap.get(dateStr) || [];
-      const hasInterview = events.some(e => e.task.type === 'Interview');
-      const hasTask = events.length > 0;
+      const hasCalendarEvent = events.some(e => e.kind === 'event' || e.task?.type === 'Interview');
+      const hasTaskItem = events.some(e => e.kind === 'task');
 
       let dotHtml = '';
-      if (hasTask) {
+      if (events.length > 0) {
         dotHtml = `
           <div class="cal-dots-container">
-            ${hasInterview ? '<span class="cal-dot interview" title="Ada Jadwal Wawancara"></span>' : ''}
-            <span class="cal-dot task" title="${events.length} Agenda"></span>
+            ${hasCalendarEvent ? '<span class="cal-dot interview" title="Ada Jadwal Wawancara / Event"></span>' : ''}
+            ${hasTaskItem ? '<span class="cal-dot task" title="Ada Tugas / Deadline"></span>' : ''}
           </div>
         `;
       }

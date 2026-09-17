@@ -12,6 +12,12 @@ import { attachmentsRouter } from './routes/attachments.js';
 import { companiesRouter } from './routes/companies.js';
 import { urlCheckerRouter } from './routes/urlChecker.js';
 import { careerLinksRouter } from './routes/career-links.js';
+import { userDocumentsRouter } from './routes/user-documents.js';
+import { interviewsRouter } from './routes/interviews.js';
+import { eventsRouter } from './routes/events.js';
+import { remindersRouter } from './routes/reminders.js';
+import { trashRouter } from './routes/trash.js';
+import { searchRouter } from './routes/search.js';
 
 const app = express();
 const PORT = process.env.PORT ?? 3000;
@@ -36,8 +42,8 @@ app.use(cors({
 }));
 
 app.use(cookieParser());
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
 app.use('/health', healthRouter);
 app.use('/api/v1/auth', authRouter);
@@ -49,7 +55,26 @@ app.use('/api/v1/attachments', attachmentsRouter);
 app.use('/api/v1/companies', companiesRouter);
 app.use('/api/v1/check-url', urlCheckerRouter);
 app.use('/api/v1/career-links', careerLinksRouter);
+app.use('/api/v1/user-documents', userDocumentsRouter);
+app.use('/api/v1/interviews', interviewsRouter);
+app.use('/api/v1/events', eventsRouter);
+app.use('/api/v1/reminders', remindersRouter);
+app.use('/api/v1/trash', trashRouter);
+app.use('/api/v1/search', searchRouter);
+
+// Error middleware for payload too large
+app.use((err: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err?.type === 'entity.too.large') {
+    res.status(413).json({
+      error: 'Ukuran payload berkas terlalu besar. Batas maksimal ukuran berkas adalah 10 MB.',
+      code: 'FILE_TOO_LARGE'
+    });
+    return;
+  }
+  next(err);
+});
 
 app.listen(PORT, () => {
   console.log(`[jobtrack-backend] Running on http://localhost:${PORT}`);
 });
+

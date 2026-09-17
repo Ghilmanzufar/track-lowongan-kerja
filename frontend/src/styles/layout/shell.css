@@ -398,8 +398,15 @@
   background-color: var(--bg-muted);
   padding: 1px 5px;
   border-radius: var(--radius-xs);
-  pointer-events: none;
   border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+
+.search-shortcut-badge:hover {
+  background-color: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
 }
 
 .topbar-account-btn {
