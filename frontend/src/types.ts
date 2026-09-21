@@ -485,7 +485,7 @@ export const JOB_SOURCES_CONFIG: Record<
   Other: { label: 'Lainnya', icon: getIconSvg('pin'), color: '#64748b' }
 };
 
-export type AppView = 'dashboard' | 'board' | 'list' | 'agenda' | 'analytics' | 'career-links' | 'documents' | 'trash' | 'application' | 'stage';
+export type AppView = 'dashboard' | 'board' | 'list' | 'agenda' | 'analytics' | 'career-links' | 'documents' | 'trash' | 'application' | 'stage' | 'profile';
 
 // ─── Master Document & Resume Vault ──────────────────────────────────
 

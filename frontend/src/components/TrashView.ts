@@ -6,6 +6,7 @@ import { store } from '../services/store';
 import { showToast } from '../main';
 import type { TrashItem, TrashEntityType } from '../types';
 import { getIconSvg } from '../utils/icons';
+import { showConfirmDialog } from './Dialog';
 
 let currentTab: 'all' | TrashEntityType = 'all';
 
@@ -64,9 +65,8 @@ function getEntityLabel(type: TrashEntityType): string {
   }
 }
 
-export async function renderTrashView(container: HTMLElement): Promise<void> {
-  // Load fresh trash data
-  await store.loadTrash();
+export function renderTrashView(container: HTMLElement): void {
+  // Data already loaded from store.init() — no async needed
 
   const renderContent = () => {
     const allItems = store.getTrashItems();
@@ -218,22 +218,22 @@ export async function renderTrashView(container: HTMLElement): Promise<void> {
     // Empty Trash
     const btnEmptyTrash = container.querySelector<HTMLButtonElement>('#btnEmptyTrash');
     btnEmptyTrash?.addEventListener('click', async () => {
-      const confirmed = window.confirm(
-        'PERINGATAN: Apakah Anda yakin ingin mengosongkan seluruh isi tempat sampah?\n\nSemua item yang dihapus akan dibersihkan secara permanen dari server dan tidak dapat dikembalikan lagi.'
+      const confirmed = await showConfirmDialog(
+        'Kosongkan seluruh tempat sampah? Semua item akan dihapus permanen dan tidak dapat dikembalikan.'
       );
       if (!confirmed) return;
 
       try {
-        btnEmptyTrash.disabled = true;
-        btnEmptyTrash.textContent = 'Membersihkan...';
+        btnEmptyTrash!.disabled = true;
+        btnEmptyTrash!.textContent = 'Membersihkan...';
         await store.emptyAllTrash();
         showToast('Tempat sampah berhasil dikosongkan.', 'success');
         renderContent();
       } catch (err) {
         console.error('Failed to empty trash:', err);
         showToast('Gagal mengosongkan tempat sampah.', 'error');
-        btnEmptyTrash.disabled = false;
-        btnEmptyTrash.textContent = 'Kosongkan Sampah';
+        btnEmptyTrash!.disabled = false;
+        btnEmptyTrash!.textContent = 'Kosongkan Sampah';
       }
     });
 
@@ -258,8 +258,8 @@ export async function renderTrashView(container: HTMLElement): Promise<void> {
             btn.disabled = false;
           }
         } else if (action === 'permanent-delete') {
-          const confirmed = window.confirm(
-            `Hapus "${title}" secara permanen?\n\nTindakan ini TIDAK DAPAT dibatalkan.`
+          const confirmed = await showConfirmDialog(
+            `Hapus "${title}" secara permanen? Tindakan ini tidak dapat dibatalkan.`
           );
           if (!confirmed) return;
 

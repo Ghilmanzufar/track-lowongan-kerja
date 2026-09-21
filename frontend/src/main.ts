@@ -14,6 +14,7 @@ import { renderAnalyticsView } from './components/AnalyticsView';
 import { renderCareerLinksView } from './components/CareerLinksView';
 import { renderDocumentVaultView } from './components/DocumentVaultView';
 import { renderTrashView } from './components/TrashView';
+import { renderProfileView } from './components/ProfileView';
 import { setupQuickAddModal } from './components/QuickAddModal';
 import { setupDetailModal } from './components/DetailModal';
 import { setupFilterDrawer } from './components/FilterDrawer';
@@ -225,9 +226,10 @@ function setupWorkspaceEvents(): void {
   });
 
   sidebarProfileBtn?.addEventListener('click', () => {
-    const user = authStore.getUser();
-    if (user) {
-      showToast(`Akun: ${user.displayName || user.email} (${user.email})`, 'info');
+    store.setView('profile');
+    window.location.hash = 'profile';
+    if (isMobile()) {
+      closeSidebar();
     }
   });
 
@@ -296,6 +298,10 @@ function setupWorkspaceEvents(): void {
     trash: {
       title: 'Tempat Sampah / Recently Deleted',
       subtitle: 'Pulihkan item yang terhapus kapan saja atau hapus secara permanen'
+    },
+    profile: {
+      title: 'Profil Pengguna',
+      subtitle: 'Informasi akun, ringkasan aktivitas, dan pengaturan'
     },
     application: {
       title: 'Workspace Lamaran',
@@ -377,6 +383,9 @@ function setupWorkspaceEvents(): void {
       case 'trash':
         renderTrashView(viewContainer);
         break;
+      case 'profile':
+        renderProfileView(viewContainer);
+        break;
       case 'application': {
         const rawHash = window.location.hash.slice(1);
         if (rawHash.startsWith('application/')) {
@@ -419,7 +428,7 @@ function setupWorkspaceEvents(): void {
       return;
     }
     const hash = rawHash as AppView;
-    const validViews: AppView[] = ['dashboard', 'board', 'list', 'agenda', 'analytics', 'career-links', 'documents', 'trash'];
+    const validViews: AppView[] = ['dashboard', 'board', 'list', 'agenda', 'analytics', 'career-links', 'documents', 'trash', 'profile'];
     if (validViews.includes(hash)) {
       store.setView(hash);
     } else {

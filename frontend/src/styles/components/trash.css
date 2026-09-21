@@ -328,14 +328,107 @@
 }
 
 @media (max-width: 640px) {
+  /* Container padding on mobile */
+  .trash-container {
+    padding: 8px 16px 40px;
+    gap: 14px;
+  }
+
+  /* Header: stack vertically */
+  .trash-header-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .trash-header-info h2 {
+    font-size: 1.1rem;
+    flex-wrap: wrap;
+  }
+
+  .trash-header-info p {
+    font-size: 0.82rem;
+  }
+
+  .trash-header-actions {
+    width: 100%;
+  }
+
+  .btn-empty-trash {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Tabs: horizontal scroll */
+  .trash-tabs-nav {
+    gap: 6px;
+    padding: 2px 0 8px;
+    scrollbar-width: none;
+  }
+
+  .trash-tabs-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .trash-tab-btn {
+    padding: 7px 12px;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+
+  /* Card: stack vertically */
   .trash-card {
     flex-direction: column;
     align-items: flex-start;
+    gap: 10px;
+    padding: 14px;
+    /* Disable hover transform on touch — prevents unclickable state */
+    transform: none !important;
   }
+
+  .trash-card:hover {
+    transform: none;
+  }
+
+  /* Allow title and subtitle to wrap */
+  .trash-card-title {
+    white-space: normal;
+    word-break: break-word;
+    font-size: 0.9rem;
+  }
+
+  .trash-card-sub {
+    white-space: normal;
+    word-break: break-word;
+    font-size: 0.8rem;
+  }
+
+  /* Meta info: allow wrap */
+  .trash-card-meta {
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 0.74rem;
+  }
+
+  /* Actions: full-width, pinned to bottom of card */
   .trash-card-actions {
     width: 100%;
     justify-content: flex-end;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+    gap: 8px;
+  }
+
+  .btn-restore-item,
+  .btn-perm-delete-item {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.8rem;
+    padding: 8px 10px;
+  }
+
+  .btn-restore-item:hover,
+  .btn-perm-delete-item:hover {
+    transform: none;
   }
 }

@@ -63,11 +63,6 @@ export function renderDocumentVaultView(container: HTMLElement): void {
             Kelola master CV, cover letter, dan portofolio dengan versioning terstruktur. Catat versi mana yang digunakan saat melamar ke tiap lowongan.
           </p>
         </div>
-        <div>
-          <button type="button" class="btn btn-primary" id="btnOpenAddDocModal">
-            + Tambah Master Dokumen
-          </button>
-        </div>
       </div>
 
       <!-- Quick Stats Bar -->
@@ -315,9 +310,8 @@ function setupVaultEventListeners(container: HTMLElement): void {
     });
   });
 
-  // Open add document modal
+  // Open add document modal (empty state button)
   const openModal = () => showAddDocumentDialog(container);
-  container.querySelector('#btnOpenAddDocModal')?.addEventListener('click', openModal);
   container.querySelector('#btnEmptyAddDoc')?.addEventListener('click', openModal);
 
   // Add version button per doc

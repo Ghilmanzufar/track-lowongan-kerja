@@ -53,6 +53,7 @@
   align-items: center;
   gap: 12px;
   min-width: 140px;
+  box-sizing: border-box;
 }
 
 .vault-stat-icon {
@@ -200,6 +201,8 @@
   border-radius: var(--radius-sm);
   gap: 12px;
   transition: all 0.15s ease;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .version-node-item:hover {
@@ -484,5 +487,184 @@
     width: auto;
     align-self: flex-end;
     margin-left: auto;
+  }
+
+  /* ── Vault Mobile ── */
+
+  /* Prevent the vault from causing horizontal page scroll */
+  .vault-container {
+    gap: 14px;
+    padding: 6px 16px 32px;
+    box-sizing: border-box;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Header card: stack vertically */
+  .vault-header-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    box-sizing: border-box;
+  }
+
+  .vault-header-card > div:last-child {
+    width: 100%;
+  }
+
+  .vault-header-card > div:last-child .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .vault-header-info h2 {
+    font-size: 15px;
+    flex-wrap: wrap;
+  }
+
+  .vault-header-info p {
+    font-size: 12px;
+  }
+
+  /* Stats bar: 2-column grid, no overflow */
+  .vault-stats-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .vault-stat-item {
+    min-width: 0 !important;
+    width: 100%;
+    padding: 10px 12px;
+    gap: 8px;
+    box-sizing: border-box;
+  }
+
+  /* The "most used" stat (always last) spans full width when 4 items */
+  .vault-stats-bar .vault-stat-item:last-child:nth-child(n+3) {
+    grid-column: 1 / -1;
+  }
+
+  .vault-stat-num {
+    font-size: 15px;
+  }
+
+  /* Category tabs: horizontal scroll, no wrapping */
+  .vault-tabs-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .vault-category-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    padding: 4px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .vault-category-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .vault-cat-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  /* Doc card: ensure no overflow */
+  .doc-vault-card {
+    box-sizing: border-box;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  /* Doc card header: stack title + actions */
+  .doc-vault-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    box-sizing: border-box;
+  }
+
+  .doc-vault-header > div:last-child {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .doc-vault-title-area {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .doc-vault-desc {
+    white-space: normal;
+    overflow: visible;
+  }
+
+  /* Version tree */
+  .version-tree-list {
+    padding: 10px 12px;
+    box-sizing: border-box;
+  }
+
+  /* Version node: stack left info + actions vertically */
+  .version-node-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px;
+    box-sizing: border-box;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .version-node-left {
+    width: 100%;
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .version-node-actions {
+    width: 100%;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .version-badge {
+    max-width: 100%;
+    word-break: break-word;
+  }
+
+  .version-info {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .version-title-row {
+    flex-wrap: wrap;
+    gap: 4px;
+    width: 100%;
+  }
+
+  .version-meta {
+    flex-wrap: wrap;
   }
 }

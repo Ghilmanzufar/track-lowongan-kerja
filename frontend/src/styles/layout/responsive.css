@@ -264,7 +264,17 @@
   }
 
   body[data-current-view="application"] .mobile-fab-add,
-  body[data-current-view="application"] #mobileFabAdd {
+  body[data-current-view="application"] #mobileFabAdd,
+  body[data-current-view="trash"] .mobile-fab-add,
+  body[data-current-view="trash"] #mobileFabAdd,
+  body[data-current-view="documents"] .mobile-fab-add,
+  body[data-current-view="documents"] #mobileFabAdd,
+  body[data-current-view="analytics"] .mobile-fab-add,
+  body[data-current-view="analytics"] #mobileFabAdd,
+  body[data-current-view="career-links"] .mobile-fab-add,
+  body[data-current-view="career-links"] #mobileFabAdd,
+  body[data-current-view="agenda"] .mobile-fab-add,
+  body[data-current-view="agenda"] #mobileFabAdd {
     display: none !important;
   }
 
