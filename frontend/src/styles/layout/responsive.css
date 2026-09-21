@@ -235,6 +235,12 @@
     scroll-snap-align: center;
   }
 
+  /* Hide stage header add buttons on mobile since mobile-fab-add is available */
+  .column-add-btn,
+  .vertical-stage-actions {
+    display: none !important;
+  }
+
   /* List View: Hide table, show modern stacked cards */
   .dense-table-container {
     display: none;
