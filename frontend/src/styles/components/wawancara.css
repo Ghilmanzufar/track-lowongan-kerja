@@ -650,8 +650,14 @@
 
   .interview-banner-actions {
     width: 100%;
-    flex-wrap: wrap;
-    justify-content: flex-start;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .interview-banner-actions #btnDeleteInterviewRound {
+    margin-left: auto;
   }
 }
 
