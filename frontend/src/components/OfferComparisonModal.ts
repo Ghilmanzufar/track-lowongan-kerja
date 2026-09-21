@@ -341,20 +341,11 @@ export class OfferComparisonModal {
           `}
 
         </div>
-
-        <!-- Footer -->
-        <div class="offer-modal-footer">
-          <div style="font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
-            <span>💡 Estimasi take-home pay mengasumsikan potongan standar ~8% (BPJS & PPh21).</span>
-          </div>
-          <button type="button" class="btn btn-secondary btn-sm" id="btnDoneOfferModal">Tutup Komparasi</button>
-        </div>
       </div>
     `;
 
     // Listeners
     this.dialog.querySelector('#btnCloseOfferModal')?.addEventListener('click', () => this.close());
-    this.dialog.querySelector('#btnDoneOfferModal')?.addEventListener('click', () => this.close());
 
     // Search input listener
     const searchInput = this.dialog.querySelector<HTMLInputElement>('#offerPickerSearch');

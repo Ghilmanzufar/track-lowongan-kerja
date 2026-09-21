@@ -790,30 +790,7 @@ dialog > form,
   word-break: break-word;
 }
 
-/* Modal Footer */
-.offer-modal-footer {
-  padding: 12px 20px;
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--bg-surface);
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  gap: 8px;
-}
 
-@media (max-width: 640px) {
-  .offer-modal-footer {
-    padding: 10px 14px;
-  }
-
-  .offer-modal-footer .btn {
-    width: 100%;
-    min-height: 40px;
-    justify-content: center;
-  }
-}
 
 /* ========================================= */
 /* FILE PREVIEW MODAL                        */
