@@ -155,9 +155,6 @@ export function renderWawancaraTab(
               ${getIconSvg('externalLink', { size: 13 })} Buka Link Meeting
             </a>
           ` : ''}
-          <button class="btn btn-primary btn-sm" id="btnSaveInterviewDetails" type="button" style="display: inline-flex; align-items: center; gap: 5px;">
-            ${getIconSvg('save', { size: 13 })} Simpan Sesi
-          </button>
           <button class="btn btn-danger btn-sm" id="btnDeleteInterviewRound" type="button" title="Hapus sesi wawancara ini" aria-label="Hapus sesi" style="display: inline-flex; align-items: center;">
             ${getIconSvg('trash', { size: 13 })}
           </button>
@@ -814,23 +811,6 @@ function attachWawancaraListeners(
       if (onUpdateCallback) onUpdateCallback();
     } catch {
       toast('Gagal memperbarui status', 'error');
-    }
-  });
-
-  // Save full interview details button in banner
-  container.querySelector('#btnSaveInterviewDetails')?.addEventListener('click', async () => {
-    const btn = container.querySelector<HTMLButtonElement>('#btnSaveInterviewDetails');
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = `${getIconSvg('repeat', { size: 13 })} Menyimpan...`;
-    }
-    try {
-      await collectAndSaveInterviewData(container, interview, onUpdateCallback);
-    } finally {
-      if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = `${getIconSvg('save', { size: 13 })} Simpan Sesi`;
-      }
     }
   });
 }
