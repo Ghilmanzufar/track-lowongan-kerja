@@ -665,6 +665,7 @@
   flex-direction: column;
   gap: 16px;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .stage-detail-nav {
@@ -673,6 +674,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .stage-detail-breadcrumb {
@@ -708,6 +710,7 @@
   gap: 16px;
   box-shadow: var(--shadow-sm);
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .stage-banner-main {
@@ -1089,13 +1092,24 @@
 
   .stage-detail-nav {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
     gap: 8px;
   }
 
-  .stage-detail-nav .btn {
+  .stage-detail-breadcrumb {
     width: 100%;
-    justify-content: center;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .stage-detail-nav .btn,
+  #btnStageBackToKanban {
+    width: auto;
+    align-self: flex-start;
+    justify-content: flex-start;
+    flex-shrink: 0;
   }
 
   .stage-banner-title {

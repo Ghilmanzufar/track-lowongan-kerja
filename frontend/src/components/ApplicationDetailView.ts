@@ -58,15 +58,13 @@ export async function renderApplicationDetailView(
       <div class="app-detail-page">
         <div style="text-align: center; padding: 60px 20px; background: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: var(--radius-md);">
           <div style="margin-bottom: 12px; color: var(--text-muted);">${getIconSvg('search', { size: 40 })}</div>
-          <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary);">
-            Lamaran Tidak Ditemukan
-          </h3>
-          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 18px;">
-            Data lamaran dengan ID <code>${escapeHtml(applicationId)}</code> mungkin telah dihapus atau tidak tersedia.
+          <h2 style="font-size: 16px; margin-bottom: 6px;">Lamaran Tidak Ditemukan</h2>
+          <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">
+            Data lamaran dengan ID tersebut tidak tersedia atau telah dihapus.
           </p>
-          <a href="#board" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
-            ← Kembali ke Kanban Lamaran
-          </a>
+          <button type="button" class="btn btn-primary" id="btnBackToBoardNotFound">
+            Kembali ke Kanban Board
+          </button>
         </div>
       </div>
     `;
@@ -299,16 +297,16 @@ export async function renderApplicationDetailView(
         renderRingkasanTab(bodyEl, item, dialogEl, rerender);
         break;
       case 'tugas':
-        renderTugasTab(bodyEl, item);
+        renderTugasTab(bodyEl, item, rerender);
         break;
       case 'dokumen':
-        await renderDokumenTab(bodyEl, item);
+        await renderDokumenTab(bodyEl, item, rerender);
         break;
       case 'kontak':
-        renderKontakTab(bodyEl, item);
+        renderKontakTab(bodyEl, item, rerender);
         break;
       case 'catatan':
-        renderCatatanTab(bodyEl, item);
+        renderCatatanTab(bodyEl, item, rerender);
         break;
       case 'interview_prep':
         renderWawancaraTab(bodyEl, item, dialogEl, rerender);

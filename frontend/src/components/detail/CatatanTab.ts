@@ -22,7 +22,20 @@ export function resetCatatanState(): void {
   expandedRevisionNoteIds.clear();
 }
 
-export function renderCatatanTab(container: HTMLElement, item: ApplicationItem): void {
+export function renderCatatanTab(
+  container: HTMLElement,
+  item: ApplicationItem,
+  onRefresh?: () => void
+): void {
+  const refresh = () => {
+    if (onRefresh) {
+      onRefresh();
+    } else {
+      const updated = store.getItems().find((i) => i.application.id === item.application.id) || item;
+      renderCatatanTab(container, updated, onRefresh);
+    }
+  };
+
   const notesData = parseNotesData(item.application.notes, item.application.createdAt);
   const activeNotes = notesData.items;
   const historyLogs = [...notesData.logs].sort(
@@ -74,7 +87,7 @@ export function renderCatatanTab(container: HTMLElement, item: ApplicationItem):
   container.querySelectorAll<HTMLButtonElement>('[data-notes-subview]').forEach((btn) => {
     btn.addEventListener('click', () => {
       notesActiveSubView = (btn.getAttribute('data-notes-subview') as 'notes' | 'history') || 'notes';
-      renderCatatanTab(container, item);
+      refresh();
     });
   });
 
@@ -118,6 +131,7 @@ export function renderCatatanTab(container: HTMLElement, item: ApplicationItem):
       });
       inputNewNote.value = '';
       toast('Catatan baru berhasil ditambahkan', 'success');
+      refresh();
     } catch {
       toast('Gagal menambahkan catatan', 'error');
     }
@@ -140,7 +154,7 @@ export function renderCatatanTab(container: HTMLElement, item: ApplicationItem):
     btn.addEventListener('click', () => {
       const noteId = btn.getAttribute('data-edit-note');
       editingNoteId = editingNoteId === noteId ? null : noteId;
-      renderCatatanTab(container, item);
+      refresh();
     });
   });
 
@@ -148,7 +162,7 @@ export function renderCatatanTab(container: HTMLElement, item: ApplicationItem):
   container.querySelectorAll<HTMLButtonElement>('[data-cancel-edit-note]').forEach((btn) => {
     btn.addEventListener('click', () => {
       editingNoteId = null;
-      renderCatatanTab(container, item);
+      refresh();
     });
   });
 
@@ -168,7 +182,7 @@ export function renderCatatanTab(container: HTMLElement, item: ApplicationItem):
 
       if (targetNote.content === newText) {
         editingNoteId = null;
-        renderCatatanTab(container, item);
+        refresh();
         return;
       }
 
@@ -204,16 +218,22 @@ export function renderCatatanTab(container: HTMLElement, item: ApplicationItem):
         logs: [editLog, ...notesData.logs]
       };
 
+      // Close editing mode immediately
+      editingNoteId = null;
+
       try {
         await store.updateApplicationDetails(item.application.id, {
           notes: JSON.stringify(updatedData),
           noteAction: 'edited',
           noteSnippet: newText.slice(0, 60)
         });
-        editingNoteId = null;
         toast('Catatan berhasil diperbarui (tercatat di riwayat)', 'success');
-      } catch {
+        refresh();
+      } catch (err) {
+        editingNoteId = noteId;
+        console.error('Error updating note:', err);
         toast('Gagal memperbarui catatan', 'error');
+        refresh();
       }
     });
   });
@@ -251,6 +271,7 @@ export function renderCatatanTab(container: HTMLElement, item: ApplicationItem):
             noteSnippet: targetNote.content.slice(0, 60)
           });
           toast('Catatan dihapus (tercatat di log riwayat)', 'info');
+          refresh();
         } catch {
           toast('Gagal menghapus catatan', 'error');
         }
@@ -268,7 +289,7 @@ export function renderCatatanTab(container: HTMLElement, item: ApplicationItem):
         } else {
           expandedRevisionNoteIds.add(noteId);
         }
-        renderCatatanTab(container, item);
+        refresh();
       }
     });
   });

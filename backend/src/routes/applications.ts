@@ -569,7 +569,7 @@ applicationsRouter.post('/', async (req: AuthenticatedRequest, res: Response) =>
         foundDate: now,
         applyDeadline: applyDeadline ? new Date(applyDeadline) : null,
         location: location ?? null,
-        workType: (workType as never) ?? null,
+        workType: workType ? (workType.toLowerCase() as never) : null,
         salaryMin: salaryMin ?? null,
         salaryMax: salaryMax ?? null,
         tags,
@@ -728,7 +728,7 @@ applicationsRouter.patch('/:id', async (req: AuthenticatedRequest, res: Response
       data: {
         ...(body['title'] !== undefined ? { title: body['title'] as string } : {}),
         ...(body['location'] !== undefined ? { location: body['location'] as string } : {}),
-        ...(body['workType'] !== undefined ? { workType: body['workType'] as never } : {}),
+        ...(body['workType'] !== undefined ? { workType: body['workType'] ? ((body['workType'] as string).toLowerCase() as never) : null } : {}),
         ...(body['salaryMin'] !== undefined ? { salaryMin: body['salaryMin'] as number } : {}),
         ...(body['salaryMax'] !== undefined ? { salaryMax: body['salaryMax'] as number } : {}),
         ...(body['applyDeadline'] !== undefined

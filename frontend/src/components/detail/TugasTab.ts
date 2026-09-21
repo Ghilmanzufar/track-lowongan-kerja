@@ -12,7 +12,20 @@ export function resetTugasState(): void {
   editingTaskId = null;
 }
 
-export function renderTugasTab(container: HTMLElement, item: ApplicationItem): void {
+export function renderTugasTab(
+  container: HTMLElement,
+  item: ApplicationItem,
+  onRerender?: () => void
+): void {
+  const refresh = () => {
+    if (onRerender) {
+      onRerender();
+    } else {
+      const freshItem = store.getItems().find((i) => i.application.id === item.application.id) || item;
+      renderTugasTab(container, freshItem, onRerender);
+    }
+  };
+
   const nowIso = new Date().toISOString();
   const openTasks = item.tasks.filter((t) => t.status !== 'Done');
   const doneTasks = item.tasks.filter((t) => t.status === 'Done');
@@ -120,6 +133,7 @@ export function renderTugasTab(container: HTMLElement, item: ApplicationItem): v
       titleInput.value = '';
       dueInput.value = '';
       toast('Tugas berhasil ditambahkan', 'success');
+      refresh();
     } catch {
       toast('Gagal menambahkan tugas', 'error');
     }
@@ -145,6 +159,7 @@ export function renderTugasTab(container: HTMLElement, item: ApplicationItem): v
         const isDone = cb.checked;
         await store.updateTask(taskId, { status: isDone ? 'Done' : 'Open' });
         toast(isDone ? 'Tugas ditandai selesai' : 'Tugas dibuka kembali', 'info');
+        refresh();
       }
     });
   });
@@ -156,19 +171,7 @@ export function renderTugasTab(container: HTMLElement, item: ApplicationItem): v
       if (taskId && (await showConfirmDialog('Hapus tugas ini?'))) {
         await store.deleteTask(taskId);
         toast('Tugas dihapus', 'info');
-      }
-    });
-  });
-
-  // Task Snooze (+1 day / +3 days)
-  container.querySelectorAll<HTMLButtonElement>('[data-snooze-task]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const taskId = btn.getAttribute('data-snooze-task');
-      const days = parseInt(btn.getAttribute('data-snooze-days') || '1', 10);
-      if (taskId) {
-        const targetDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
-        await store.updateTask(taskId, { dueDate: targetDate.toISOString() });
-        toast(`Jadwal tugas ditunda +${days} hari`, 'info');
+        refresh();
       }
     });
   });
@@ -178,7 +181,7 @@ export function renderTugasTab(container: HTMLElement, item: ApplicationItem): v
     btn.addEventListener('click', () => {
       const taskId = btn.getAttribute('data-edit-task');
       editingTaskId = editingTaskId === taskId ? null : taskId;
-      renderTugasTab(container, item);
+      refresh();
     });
   });
 
@@ -193,16 +196,31 @@ export function renderTugasTab(container: HTMLElement, item: ApplicationItem): v
       const dueInput = form.querySelector<HTMLInputElement>('[data-edit-task-due]')!;
       const prioritySelect = form.querySelector<HTMLSelectElement>('[data-edit-task-priority]')!;
 
+      const newTitle = titleInput.value.trim();
+      const newDue = dueInput.value ? new Date(dueInput.value).toISOString() : undefined;
+      const newPriority = prioritySelect.value as TaskPriority;
+
+      const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Menyimpan...';
+      }
+
+      // Close editing state first so UI updates cleanly
+      editingTaskId = null;
+
       try {
         await store.updateTask(taskId, {
-          title: titleInput.value.trim(),
-          dueDate: dueInput.value ? new Date(dueInput.value).toISOString() : undefined,
-          priority: prioritySelect.value as TaskPriority
+          title: newTitle,
+          dueDate: newDue,
+          priority: newPriority
         });
-        editingTaskId = null;
         toast('Tugas berhasil diperbarui', 'success');
+        refresh();
       } catch {
+        editingTaskId = taskId;
         toast('Gagal memperbarui tugas', 'error');
+        refresh();
       }
     });
   });
@@ -211,7 +229,7 @@ export function renderTugasTab(container: HTMLElement, item: ApplicationItem): v
   container.querySelectorAll<HTMLButtonElement>('[data-cancel-edit-task]').forEach((btn) => {
     btn.addEventListener('click', () => {
       editingTaskId = null;
-      renderTugasTab(container, item);
+      refresh();
     });
   });
 }
@@ -268,12 +286,6 @@ function renderSingleTaskRow(t: Task, nowIso: string, item: ApplicationItem): st
       <div class="task-item-card-actions">
         <a href="${gCalUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs btn-icon" title="Tambah ke Google Calendar" style="font-size: 11px; padding: 0 6px; height: 24px; display: inline-flex; align-items: center;">${getIconSvg('calendar', { size: 12 })}</a>
         <button type="button" class="btn btn-secondary btn-xs btn-icon" data-task-ics="${t.id}" title="Unduh File .ics" style="font-size: 11px; padding: 0 6px; height: 24px; display: inline-flex; align-items: center;">${getIconSvg('download', { size: 12 })}</button>
-        ${
-          t.status !== 'Done'
-            ? `<button class="btn btn-secondary btn-sm" data-snooze-task="${t.id}" data-snooze-days="1" title="Tunda 1 hari" style="font-size: 10.5px; padding: 0 6px; height: 24px;">+1d</button>
-               <button class="btn btn-secondary btn-sm" data-snooze-task="${t.id}" data-snooze-days="3" title="Tunda 3 hari" style="font-size: 10.5px; padding: 0 6px; height: 24px;">+3d</button>`
-            : ''
-        }
         <button class="btn btn-secondary btn-sm" data-edit-task="${t.id}" title="Edit tugas" aria-label="Edit tugas" style="font-size: 11px; padding: 0 7px; height: 24px; display: inline-flex; align-items: center;">${getIconSvg('edit', { size: 12 })}</button>
         <button class="btn btn-danger btn-sm" data-delete-task="${t.id}" title="Hapus tugas" aria-label="Hapus tugas" style="font-size: 11px; padding: 0 7px; height: 24px; display: inline-flex; align-items: center;">${getIconSvg('trash', { size: 12 })}</button>
       </div>

@@ -12,6 +12,7 @@ import { escapeHtml, formatDateWIB, MAX_FILE_SIZE_MB, MAX_FILE_SIZE_BYTES, forma
 import { getIconSvg } from '../utils/icons';
 import { showConfirmDialog, showAlertDialog } from './Dialog';
 import { showToast } from '../main';
+import { showFilePreviewModal } from './FilePreviewModal';
 
 let currentCategoryFilter: DocumentCategory | 'all' = 'all';
 
@@ -269,10 +270,19 @@ function renderVersionRow(ver: DocumentVersion): string {
 
       <div class="version-node-actions">
         ${
-          openUrl
-            ? `<a href="${openUrl}" ${isLink ? 'target="_blank" rel="noopener noreferrer"' : `download="${escapeHtml(ver.fileName || 'document.pdf')}"`} class="btn btn-secondary btn-xs" style="font-size: 11.5px; padding: 3px 9px; display:inline-flex; align-items:center; gap:4px;">
-                 ${isLink ? `${getIconSvg('externalLink', { size: 12 })} Buka` : `${getIconSvg('download', { size: 12 })} Unduh`}
+          isLink && openUrl
+            ? `<a href="${openUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs" style="font-size: 11.5px; padding: 3px 9px; display:inline-flex; align-items:center; gap:4px;">
+                 ${getIconSvg('externalLink', { size: 12 })} Buka
                </a>`
+            : isFile && openUrl
+            ? `
+               <button type="button" class="btn btn-secondary btn-xs" data-preview-vault-version="${ver.id}" style="font-size: 11.5px; padding: 3px 8px; display:inline-flex; align-items:center; gap:4px;" title="Lihat pratinjau berkas">
+                 ${getIconSvg('eye', { size: 11 })} Lihat
+               </button>
+               <a href="${openUrl}" download="${escapeHtml(ver.fileName || 'dokumen.pdf')}" class="btn btn-secondary btn-xs" style="font-size: 11.5px; padding: 3px 8px; display:inline-flex; align-items:center; gap:4px;" title="Unduh berkas">
+                 ${getIconSvg('download', { size: 11 })} Unduh
+               </a>
+              `
             : ''
         }
         ${
@@ -394,6 +404,34 @@ function setupVaultEventListeners(container: HTMLElement): void {
       const version = allDocs.flatMap((d) => d.versions || []).find((v) => v.id === verId);
       if (version && version.applications && version.applications.length > 0) {
         showUsageDialog(version);
+      }
+    });
+  });
+
+  // Preview vault version
+  container.querySelectorAll<HTMLButtonElement>('[data-preview-vault-version]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const verId = btn.getAttribute('data-preview-vault-version');
+      if (!verId) return;
+      const allDocs = store.getUserDocuments();
+      let foundVer: DocumentVersion | null = null;
+      let foundDoc: UserDocument | null = null;
+      for (const d of allDocs) {
+        const v = (d.versions || []).find((ver) => ver.id === verId);
+        if (v) {
+          foundVer = v;
+          foundDoc = d;
+          break;
+        }
+      }
+      if (foundVer && (foundVer.fileDataUrl || foundVer.url)) {
+        showFilePreviewModal({
+          title: foundDoc?.title || foundVer.versionName,
+          fileName: foundVer.fileName || `${foundDoc?.title || 'dokumen'}.pdf`,
+          fileSize: foundVer.fileSize,
+          mimeType: foundVer.mimeType,
+          fileDataUrl: foundVer.fileDataUrl || foundVer.url || '',
+        });
       }
     });
   });

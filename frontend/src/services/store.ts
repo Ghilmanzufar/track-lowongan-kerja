@@ -242,6 +242,7 @@ class JobTrackStore {
   }
 
   public setSelectedApplicationId(id: string | null): void {
+    if (this.selectedAppId === id) return;
     this.selectedAppId = id;
     this.notify();
   }

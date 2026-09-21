@@ -8,6 +8,7 @@ import { escapeHtml, formatDateTimeWIB } from '../../utils';
 import { generateInterviewGoogleCalendarUrl, downloadInterviewIcsFile } from '../../utils/calendar';
 import { toast } from './shared';
 import { getIconSvg } from '../../utils/icons';
+import { showConfirmDialog } from '../Dialog';
 
 let activeRoundId: string | null = null;
 let activeSubTab: 'schedule' | 'prep' | 'questions' | 'star' | 'notes' | 'evaluation' | 'followup' = 'schedule';
@@ -338,6 +339,16 @@ function renderScheduleSubTab(interview: InterviewItem): string {
           <textarea id="ivInterviewerNotesInput" class="form-control" style="min-height: 60px; font-size: 12px;" placeholder="Latar belakang, topik kesukaan, gaya komunikasi, dll.">${escapeHtml(interview.interviewerNotes || '')}</textarea>
         </div>
       </div>
+
+      <!-- Subtab Footer Save Bar -->
+      <div class="interview-subtab-footer">
+        <span class="subtab-footer-hint">
+          ${getIconSvg('info', { size: 13 })} Simpan perubahan jadwal & profil pewawancara agar tersimpan permanen.
+        </span>
+        <button class="btn btn-primary btn-sm btn-subtab-save" id="btnSaveScheduleSubTab" type="button">
+          ${getIconSvg('save', { size: 13 })} Simpan Jadwal & Pewawancara
+        </button>
+      </div>
     </div>
   `;
 }
@@ -386,6 +397,16 @@ function renderPrepSubTab(interview: InterviewItem): string {
           </div>
           <textarea id="ivTechNotesInput" class="form-control" style="min-height: 120px; font-size: 12px; resize: vertical;" placeholder="Tech stack utama yang digunakan, best practices, dan materi yang perlu direview...">${escapeHtml(prep.techStackNotes || '')}</textarea>
         </div>
+      </div>
+
+      <!-- Subtab Footer Save Bar -->
+      <div class="interview-subtab-footer">
+        <span class="subtab-footer-hint">
+          ${getIconSvg('info', { size: 13 })} Checklist kesiapan dan catatan riset akan tersimpan di sesi wawancara ini.
+        </span>
+        <button class="btn btn-primary btn-sm btn-subtab-save" id="btnSavePrepSubTab" type="button">
+          ${getIconSvg('save', { size: 13 })} Simpan Persiapan & Riset
+        </button>
       </div>
     </div>
   `;
@@ -444,6 +465,16 @@ function renderQuestionsSubTab(interview: InterviewItem): string {
           Tanyakan hal-hal berbobot di akhir sesi untuk menunjukkan ketertarikan dan inisiatif mendalam Anda.
         </p>
         <textarea id="ivQuestionsToAskInput" class="form-control" style="min-height: 90px; font-size: 12px; line-height: 1.5;" placeholder="Tuliskan satu pertanyaan per baris...">${escapeHtml(toAskList.join('\n'))}</textarea>
+      </div>
+
+      <!-- Subtab Footer Save Bar -->
+      <div class="interview-subtab-footer">
+        <span class="subtab-footer-hint">
+          ${getIconSvg('info', { size: 13 })} Simpan daftar pertanyaan prediksi dan pertanyaan untuk pewawancara.
+        </span>
+        <button class="btn btn-primary btn-sm btn-subtab-save" id="btnSaveQuestionsSubTab" type="button">
+          ${getIconSvg('save', { size: 13 })} Simpan Pertanyaan & Q&A
+        </button>
       </div>
     </div>
   `;
@@ -508,6 +539,16 @@ function renderStarSubTab(interview: InterviewItem): string {
           </div>
         `).join('')}
       </div>
+
+      <!-- Subtab Footer Save Bar -->
+      <div class="interview-subtab-footer">
+        <span class="subtab-footer-hint">
+          ${getIconSvg('info', { size: 13 })} Cerita pengalaman metode STAR Anda akan disimpan ke database.
+        </span>
+        <button class="btn btn-primary btn-sm btn-subtab-save" id="btnSaveStarSubTab" type="button">
+          ${getIconSvg('save', { size: 13 })} Simpan Jawaban STAR
+        </button>
+      </div>
     </div>
   `;
 }
@@ -515,19 +556,31 @@ function renderStarSubTab(interview: InterviewItem): string {
 // ─── Sub-tab 5: Catatan Sesi ──────────────────────────────────────────────────
 function renderNotesSubTab(interview: InterviewItem): string {
   return `
-    <div class="interview-section-card">
-      <div class="interview-section-header">
-        <div class="interview-section-title">
-          <span>${getIconSvg('fileText', { size: 14 })}</span> Catatan Langsung Selama & Pasca Wawancara
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div class="interview-section-card">
+        <div class="interview-section-header">
+          <div class="interview-section-title">
+            <span>${getIconSvg('fileText', { size: 14 })}</span> Catatan Langsung Selama & Pasca Wawancara
+          </div>
         </div>
-      </div>
-      <p style="font-size: 11.5px; color: var(--text-secondary); margin: 0 0 10px 0;">
-        Catat poin-poin penting, pertanyaan teknis yang belum sempat terjawab, feedback lisan pewawancara, atau langkah berikutnya.
-      </p>
-      <textarea id="ivLiveNotesInput" class="form-control" style="min-height: 220px; font-size: 12.5px; line-height: 1.6;" placeholder="Catatan interview:
+        <p style="font-size: 11.5px; color: var(--text-secondary); margin: 0 0 10px 0;">
+          Catat poin-poin penting, pertanyaan teknis yang belum sempat terjawab, feedback lisan pewawancara, atau langkah berikutnya.
+        </p>
+        <textarea id="ivLiveNotesInput" class="form-control" style="min-height: 220px; font-size: 12.5px; line-height: 1.6;" placeholder="Catatan interview:
 - Pewawancara menanyakan tentang...
 - Hal yang mereka sukai dari jawaban saya: ...
 - Pekerjaan rumah yang harus dipelajari: ...">${escapeHtml(interview.notes || '')}</textarea>
+      </div>
+
+      <!-- Subtab Footer Save Bar -->
+      <div class="interview-subtab-footer">
+        <span class="subtab-footer-hint">
+          ${getIconSvg('info', { size: 13 })} Simpan catatan diskusi dan feedback wawancara ini ke database.
+        </span>
+        <button class="btn btn-primary btn-sm btn-subtab-save" id="btnSaveNotesSubTab" type="button">
+          ${getIconSvg('save', { size: 13 })} Simpan Catatan Sesi
+        </button>
+      </div>
     </div>
   `;
 }
@@ -588,6 +641,16 @@ function renderEvaluationSubTab(interview: InterviewItem): string {
           <textarea id="ivFeedbackInput" class="form-control" style="min-height: 60px; font-size: 12px;" placeholder="Feedback yang disampaikan HR atau user saat interview selesai atau via email...">${escapeHtml(ev.feedback || '')}</textarea>
         </div>
       </div>
+
+      <!-- Subtab Footer Save Bar -->
+      <div class="interview-subtab-footer">
+        <span class="subtab-footer-hint">
+          ${getIconSvg('info', { size: 13 })} Simpan hasil evaluasi, rating performa, dan catatan refleksi ke database.
+        </span>
+        <button class="btn btn-primary btn-sm btn-subtab-save" id="btnSaveEvaluationSubTab" type="button">
+          ${getIconSvg('save', { size: 13 })} Simpan Evaluasi
+        </button>
+      </div>
     </div>
   `;
 }
@@ -635,14 +698,24 @@ Salam hangat,
           <textarea id="ivThankYouTemplateInput" class="form-control" style="min-height: 160px; font-size: 12px; line-height: 1.6;" placeholder="Template pesan follow-up...">${escapeHtml(generatedTemplate)}</textarea>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-          <button class="btn btn-secondary btn-sm" id="btnCopyThankYouNote" type="button" style="display:inline-flex; align-items:center; gap:6px;">
+        <div class="followup-actions-bar">
+          <button class="btn btn-secondary btn-sm" id="btnCopyThankYouNote" type="button">
             ${getIconSvg('clipboard', { size: 13 })} Salin Pesan ke Clipboard
           </button>
-          <button class="btn btn-primary btn-sm" id="btnCreateFollowUpReminder" type="button" style="display:inline-flex; align-items:center; gap:6px;">
+          <button class="btn btn-secondary btn-sm" id="btnCreateFollowUpReminder" type="button">
             ${getIconSvg('clock', { size: 13 })} Buat Pengingat Follow-up di Agenda (H+1)
           </button>
         </div>
+      </div>
+
+      <!-- Subtab Footer Save Bar -->
+      <div class="interview-subtab-footer">
+        <span class="subtab-footer-hint">
+          ${getIconSvg('info', { size: 13 })} Simpan draf template pesan follow-up dan status ke database.
+        </span>
+        <button class="btn btn-primary btn-sm btn-subtab-save" id="btnSaveFollowUpSubTab" type="button">
+          ${getIconSvg('save', { size: 13 })} Simpan Follow-up
+        </button>
       </div>
     </div>
   `;
@@ -658,6 +731,7 @@ function attachWawancaraListeners(
   // Round navigation click
   container.querySelectorAll<HTMLButtonElement>('.interview-round-tab').forEach((btn) => {
     btn.addEventListener('click', () => {
+      syncCurrentSubTabToMemory(container, interview);
       activeRoundId = btn.getAttribute('data-round-id');
       renderWawancaraTab(container, item, document.getElementById('detailDialog') as HTMLDialogElement, onUpdateCallback);
     });
@@ -666,6 +740,7 @@ function attachWawancaraListeners(
   // Sub-tab navigation click
   container.querySelectorAll<HTMLButtonElement>('.wawancara-subtab-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
+      syncCurrentSubTabToMemory(container, interview);
       activeSubTab = btn.getAttribute('data-subtab') as any;
       const contentEl = container.querySelector('#wawancaraSubtabContent');
       if (contentEl) {
@@ -682,12 +757,22 @@ function attachWawancaraListeners(
 
   // Add new round button
   container.querySelector('#btnAddNewRound')?.addEventListener('click', async () => {
+    syncCurrentSubTabToMemory(container, interview);
     await createQuickRound(item, 'Technical', onUpdateCallback);
   });
 
   // Delete round button
   container.querySelector('#btnDeleteInterviewRound')?.addEventListener('click', async () => {
-    if (confirm(`Hapus sesi wawancara "${interview.roundTitle}" beserta pengingatnya?`)) {
+    const confirmed = await showConfirmDialog(
+      `Apakah Anda yakin ingin menghapus sesi wawancara "${interview.roundTitle}" beserta seluruh tugas pengingatnya?`,
+      'Hapus Sesi Wawancara',
+      {
+        confirmText: 'Ya, Hapus Sesi',
+        cancelText: 'Batal',
+        confirmVariant: 'danger'
+      }
+    );
+    if (confirmed) {
       try {
         await store.deleteInterview(interview.id);
         toast('Sesi wawancara berhasil dihapus', 'success');
@@ -732,9 +817,21 @@ function attachWawancaraListeners(
     }
   });
 
-  // Save full interview details button
+  // Save full interview details button in banner
   container.querySelector('#btnSaveInterviewDetails')?.addEventListener('click', async () => {
-    await collectAndSaveInterviewData(container, interview, onUpdateCallback);
+    const btn = container.querySelector<HTMLButtonElement>('#btnSaveInterviewDetails');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `${getIconSvg('repeat', { size: 13 })} Menyimpan...`;
+    }
+    try {
+      await collectAndSaveInterviewData(container, interview, onUpdateCallback);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `${getIconSvg('save', { size: 13 })} Simpan Sesi`;
+      }
+    }
   });
 }
 
@@ -868,6 +965,144 @@ function attachSubTabSpecificListeners(
       toast('Gagal membuat pengingat follow-up', 'error');
     }
   });
+
+  // Local Save Buttons (inside subtab footer cards)
+  container.querySelectorAll<HTMLButtonElement>('.btn-subtab-save').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = `${getIconSvg('repeat', { size: 13 })} Menyimpan...`;
+      try {
+        await collectAndSaveInterviewData(container, interview, onUpdateCallback);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
+    });
+  });
+}
+
+// ─── Synchronize Active Subtab Inputs to Memory ──────────────────────────────
+function syncCurrentSubTabToMemory(container: HTMLElement, interview: InterviewItem): void {
+  // 1. Jadwal & Pewawancara
+  const roundTitleInput = container.querySelector('#ivRoundTitleInput') as HTMLInputElement | null;
+  if (roundTitleInput) interview.roundTitle = roundTitleInput.value;
+
+  const typeSelect = container.querySelector('#ivTypeSelect') as HTMLSelectElement | null;
+  if (typeSelect) interview.type = typeSelect.value as InterviewType;
+
+  const scheduledAtInput = container.querySelector('#ivScheduledAtInput') as HTMLInputElement | null;
+  if (scheduledAtInput) {
+    interview.scheduledAt = scheduledAtInput.value ? new Date(scheduledAtInput.value).toISOString() : undefined;
+  }
+
+  const durationInput = container.querySelector('#ivDurationInput') as HTMLInputElement | null;
+  if (durationInput) interview.durationMinutes = Number(durationInput.value) || 60;
+
+  const locationInput = container.querySelector('#ivLocationInput') as HTMLInputElement | null;
+  if (locationInput) interview.location = locationInput.value;
+
+  const meetingLinkInput = container.querySelector('#ivMeetingLinkInput') as HTMLInputElement | null;
+  if (meetingLinkInput) interview.meetingLink = meetingLinkInput.value;
+
+  const interviewerNameInput = container.querySelector('#ivInterviewerNameInput') as HTMLInputElement | null;
+  if (interviewerNameInput) interview.interviewerName = interviewerNameInput.value;
+
+  const interviewerRoleInput = container.querySelector('#ivInterviewerRoleInput') as HTMLInputElement | null;
+  if (interviewerRoleInput) interview.interviewerRole = interviewerRoleInput.value;
+
+  const interviewerEmailInput = container.querySelector('#ivInterviewerEmailInput') as HTMLInputElement | null;
+  if (interviewerEmailInput) interview.interviewerEmail = interviewerEmailInput.value;
+
+  const interviewerLinkedinInput = container.querySelector('#ivInterviewerLinkedinInput') as HTMLInputElement | null;
+  if (interviewerLinkedinInput) interview.interviewerLinkedin = interviewerLinkedinInput.value;
+
+  const interviewerNotesInput = container.querySelector('#ivInterviewerNotesInput') as HTMLTextAreaElement | null;
+  if (interviewerNotesInput) interview.interviewerNotes = interviewerNotesInput.value;
+
+  // 2. Persiapan & Riset
+  const prepCheckboxes = container.querySelectorAll<HTMLInputElement>('.iv-prep-checkbox');
+  const companyNotesInput = container.querySelector('#ivCompanyNotesInput') as HTMLTextAreaElement | null;
+  const techNotesInput = container.querySelector('#ivTechNotesInput') as HTMLTextAreaElement | null;
+
+  if (prepCheckboxes.length > 0 || companyNotesInput || techNotesInput) {
+    if (!interview.preparation) interview.preparation = { completedChecklist: [] };
+    if (prepCheckboxes.length > 0) {
+      const checked: string[] = [];
+      prepCheckboxes.forEach(cb => {
+        if (cb.checked) checked.push(cb.value);
+      });
+      interview.preparation.completedChecklist = checked;
+    }
+    if (companyNotesInput) interview.preparation.companyNotes = companyNotesInput.value;
+    if (techNotesInput) interview.preparation.techStackNotes = techNotesInput.value;
+  }
+
+  // 3. Pertanyaan & Q&A
+  const questionCards = container.querySelectorAll('.question-item-card');
+  const toAskInput = container.querySelector('#ivQuestionsToAskInput') as HTMLTextAreaElement | null;
+
+  if (questionCards.length > 0 || toAskInput) {
+    if (!interview.questions) interview.questions = { predicted: [], toAsk: [] };
+    if (questionCards.length > 0) {
+      const predicted: PredictedQuestionItem[] = [];
+      questionCards.forEach((el, idx) => {
+        const q = (el.querySelector('.q-title-input') as HTMLInputElement)?.value || '';
+        const a = (el.querySelector('.q-answer-input') as HTMLTextAreaElement)?.value || '';
+        if (q.trim()) {
+          predicted.push({ id: `pred-${idx}`, question: q.trim(), answerNotes: a.trim() });
+        }
+      });
+      interview.questions.predicted = predicted;
+    }
+    if (toAskInput) {
+      interview.questions.toAsk = toAskInput.value.split('\n').map(s => s.trim()).filter(Boolean);
+    }
+  }
+
+  // 4. STAR Answers
+  const starCards = container.querySelectorAll('.star-story-card');
+  if (starCards.length > 0) {
+    const starAnswers: StarStoryItem[] = [];
+    starCards.forEach((el, idx) => {
+      const title = (el.querySelector('.star-title-input') as HTMLInputElement)?.value || `Cerita #${idx + 1}`;
+      const situation = (el.querySelector('.star-situation-input') as HTMLTextAreaElement)?.value || '';
+      const task = (el.querySelector('.star-task-input') as HTMLTextAreaElement)?.value || '';
+      const action = (el.querySelector('.star-action-input') as HTMLTextAreaElement)?.value || '';
+      const result = (el.querySelector('.star-result-input') as HTMLTextAreaElement)?.value || '';
+      starAnswers.push({ id: `star-${idx}`, title, situation, task, action, result });
+    });
+    interview.starAnswers = starAnswers;
+  }
+
+  // 5. Catatan Sesi
+  const liveNotesInput = container.querySelector('#ivLiveNotesInput') as HTMLTextAreaElement | null;
+  if (liveNotesInput) interview.notes = liveNotesInput.value;
+
+  // 6. Evaluasi
+  const ratingInput = container.querySelector('#ivRatingVal') as HTMLInputElement | null;
+  const diffSelect = container.querySelector('#ivDifficultySelect') as HTMLSelectElement | null;
+  const strengthsInput = container.querySelector('#ivStrengthsInput') as HTMLTextAreaElement | null;
+  const improveInput = container.querySelector('#ivImprovementsInput') as HTMLTextAreaElement | null;
+  const feedbackInput = container.querySelector('#ivFeedbackInput') as HTMLTextAreaElement | null;
+
+  if (ratingInput || diffSelect || strengthsInput || improveInput || feedbackInput) {
+    if (!interview.evaluation) interview.evaluation = {};
+    if (ratingInput && ratingInput.value) interview.evaluation.rating = Number(ratingInput.value) || 0;
+    if (diffSelect) interview.evaluation.difficulty = diffSelect.value as any;
+    if (strengthsInput) interview.evaluation.strengths = strengthsInput.value;
+    if (improveInput) interview.evaluation.improvements = improveInput.value;
+    if (feedbackInput) interview.evaluation.feedback = feedbackInput.value;
+  }
+
+  // 7. Follow-up
+  const followUpSelect = container.querySelector('#ivFollowUpStatusSelect') as HTMLSelectElement | null;
+  const followUpTemplate = container.querySelector('#ivThankYouTemplateInput') as HTMLTextAreaElement | null;
+  if (followUpSelect || followUpTemplate) {
+    if (!interview.followUp) interview.followUp = { status: 'None' };
+    if (followUpSelect) interview.followUp.status = followUpSelect.value as any;
+    if (followUpTemplate) interview.followUp.template = followUpTemplate.value;
+  }
 }
 
 // ─── Collect & Save Form Data ────────────────────────────────────────────────
@@ -876,105 +1111,33 @@ async function collectAndSaveInterviewData(
   interview: InterviewItem,
   onUpdateCallback?: () => void
 ): Promise<void> {
-  const roundTitle = (container.querySelector('#ivRoundTitleInput') as HTMLInputElement)?.value || interview.roundTitle;
-  const type = ((container.querySelector('#ivTypeSelect') as HTMLSelectElement)?.value || interview.type) as InterviewType;
-  const scheduledAt = (container.querySelector('#ivScheduledAtInput') as HTMLInputElement)?.value;
-  const durationMinutes = Number((container.querySelector('#ivDurationInput') as HTMLInputElement)?.value) || interview.durationMinutes || 60;
-  const location = (container.querySelector('#ivLocationInput') as HTMLInputElement)?.value ?? interview.location;
-  const meetingLink = (container.querySelector('#ivMeetingLinkInput') as HTMLInputElement)?.value ?? interview.meetingLink;
-
-  const interviewerName = (container.querySelector('#ivInterviewerNameInput') as HTMLInputElement)?.value ?? interview.interviewerName;
-  const interviewerRole = (container.querySelector('#ivInterviewerRoleInput') as HTMLInputElement)?.value ?? interview.interviewerRole;
-  const interviewerEmail = (container.querySelector('#ivInterviewerEmailInput') as HTMLInputElement)?.value ?? interview.interviewerEmail;
-  const interviewerLinkedin = (container.querySelector('#ivInterviewerLinkedinInput') as HTMLInputElement)?.value ?? interview.interviewerLinkedin;
-  const interviewerNotes = (container.querySelector('#ivInterviewerNotesInput') as HTMLTextAreaElement)?.value ?? interview.interviewerNotes;
-
-  // Preparation
-  const completedChecklist: string[] = [];
-  container.querySelectorAll<HTMLInputElement>('.iv-prep-checkbox:checked').forEach((cb) => {
-    completedChecklist.push(cb.value);
-  });
-  const companyNotes = (container.querySelector('#ivCompanyNotesInput') as HTMLTextAreaElement)?.value ?? interview.preparation?.companyNotes;
-  const techStackNotes = (container.querySelector('#ivTechNotesInput') as HTMLTextAreaElement)?.value ?? interview.preparation?.techStackNotes;
-
-  // Questions
-  const predicted: PredictedQuestionItem[] = [];
-  container.querySelectorAll('.question-item-card').forEach((el, idx) => {
-    const q = (el.querySelector('.q-title-input') as HTMLInputElement)?.value || '';
-    const a = (el.querySelector('.q-answer-input') as HTMLTextAreaElement)?.value || '';
-    if (q.trim()) {
-      predicted.push({ id: `pred-${idx}`, question: q.trim(), answerNotes: a.trim() });
-    }
-  });
-
-  const toAskRaw = (container.querySelector('#ivQuestionsToAskInput') as HTMLTextAreaElement)?.value;
-  const toAsk = toAskRaw ? toAskRaw.split('\n').map(s => s.trim()).filter(Boolean) : (interview.questions?.toAsk || []);
-
-  // STAR Answers
-  const starAnswers: StarStoryItem[] = [];
-  container.querySelectorAll('.star-story-card').forEach((el, idx) => {
-    const title = (el.querySelector('.star-title-input') as HTMLInputElement)?.value || `Cerita #${idx + 1}`;
-    const situation = (el.querySelector('.star-situation-input') as HTMLTextAreaElement)?.value || '';
-    const task = (el.querySelector('.star-task-input') as HTMLTextAreaElement)?.value || '';
-    const action = (el.querySelector('.star-action-input') as HTMLTextAreaElement)?.value || '';
-    const result = (el.querySelector('.star-result-input') as HTMLTextAreaElement)?.value || '';
-    starAnswers.push({ id: `star-${idx}`, title, situation, task, action, result });
-  });
-
-  // Notes
-  const notes = (container.querySelector('#ivLiveNotesInput') as HTMLTextAreaElement)?.value ?? interview.notes;
-
-  // Evaluation
-  const rating = Number((container.querySelector('#ivRatingVal') as HTMLInputElement)?.value) || interview.evaluation?.rating;
-  const difficulty = ((container.querySelector('#ivDifficultySelect') as HTMLSelectElement)?.value as any) ?? interview.evaluation?.difficulty;
-  const strengths = (container.querySelector('#ivStrengthsInput') as HTMLTextAreaElement)?.value ?? interview.evaluation?.strengths;
-  const improvements = (container.querySelector('#ivImprovementsInput') as HTMLTextAreaElement)?.value ?? interview.evaluation?.improvements;
-  const feedback = (container.querySelector('#ivFeedbackInput') as HTMLTextAreaElement)?.value ?? interview.evaluation?.feedback;
-
-  // Follow-up
-  const followUpStatus = ((container.querySelector('#ivFollowUpStatusSelect') as HTMLSelectElement)?.value as any) ?? interview.followUp?.status ?? 'None';
-  const followUpTemplate = (container.querySelector('#ivThankYouTemplateInput') as HTMLTextAreaElement)?.value ?? interview.followUp?.template;
+  // Synchronize active sub-tab into interview object first
+  syncCurrentSubTabToMemory(container, interview);
 
   const payload: Partial<InterviewItem> = {
-    roundTitle,
-    type,
-    scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : (interview.scheduledAt || undefined),
-    durationMinutes,
-    location,
-    meetingLink,
-    interviewerName,
-    interviewerRole,
-    interviewerEmail,
-    interviewerLinkedin,
-    interviewerNotes,
-    preparation: {
-      completedChecklist: completedChecklist.length > 0 ? completedChecklist : (interview.preparation?.completedChecklist || []),
-      companyNotes,
-      techStackNotes
-    },
-    questions: {
-      predicted: predicted.length > 0 ? predicted : (interview.questions?.predicted || []),
-      toAsk
-    },
-    starAnswers: starAnswers.length > 0 ? starAnswers : (interview.starAnswers || []),
-    notes,
-    evaluation: {
-      rating,
-      difficulty,
-      strengths,
-      improvements,
-      feedback
-    },
-    followUp: {
-      status: followUpStatus,
-      template: followUpTemplate
-    }
+    roundTitle: interview.roundTitle,
+    type: interview.type,
+    scheduledAt: interview.scheduledAt,
+    durationMinutes: interview.durationMinutes,
+    location: interview.location,
+    meetingLink: interview.meetingLink,
+    interviewerName: interview.interviewerName,
+    interviewerRole: interview.interviewerRole,
+    interviewerEmail: interview.interviewerEmail,
+    interviewerLinkedin: interview.interviewerLinkedin,
+    interviewerNotes: interview.interviewerNotes,
+    preparation: interview.preparation,
+    questions: interview.questions,
+    starAnswers: interview.starAnswers,
+    notes: interview.notes,
+    evaluation: interview.evaluation,
+    followUp: interview.followUp
   };
 
   try {
     const updated = await store.updateInterview(interview.id, payload);
     Object.assign(interview, updated);
-    toast('Seluruh catatan & data wawancara berhasil disimpan ke database!', 'success');
+    toast('Seluruh catatan & evaluasi wawancara berhasil disimpan ke database!', 'success');
     if (onUpdateCallback) onUpdateCallback();
   } catch {
     toast('Gagal menyimpan perubahan wawancara', 'error');

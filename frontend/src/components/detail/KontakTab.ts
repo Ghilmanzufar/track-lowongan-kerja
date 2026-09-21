@@ -11,7 +11,20 @@ export function resetKontakState(): void {
   editingContactId = null;
 }
 
-export function renderKontakTab(container: HTMLElement, item: ApplicationItem): void {
+export function renderKontakTab(
+  container: HTMLElement,
+  item: ApplicationItem,
+  onRefresh?: () => void
+): void {
+  const refresh = () => {
+    if (onRefresh) {
+      onRefresh();
+    } else {
+      const updated = store.getItems().find((i) => i.application.id === item.application.id) || item;
+      renderKontakTab(container, updated, onRefresh);
+    }
+  };
+
   container.innerHTML = `
     <div style="display: flex; flex-direction: column; gap: 16px;">
       <!-- Add Contact Form -->
@@ -80,6 +93,7 @@ export function renderKontakTab(container: HTMLElement, item: ApplicationItem): 
       linkedinInput.value = '';
       notesInput.value = '';
       toast('Kontak berhasil disimpan', 'success');
+      refresh();
     } catch {
       toast('Gagal menyimpan kontak', 'error');
     }
@@ -90,8 +104,13 @@ export function renderKontakTab(container: HTMLElement, item: ApplicationItem): 
     btn.addEventListener('click', async () => {
       const cId = btn.getAttribute('data-delete-contact');
       if (cId && (await showConfirmDialog('Hapus kontak ini?'))) {
-        await store.deleteContact(cId);
-        toast('Kontak dihapus', 'info');
+        try {
+          await store.deleteContact(cId);
+          toast('Kontak dihapus', 'info');
+          refresh();
+        } catch {
+          toast('Gagal menghapus kontak', 'error');
+        }
       }
     });
   });
@@ -101,7 +120,7 @@ export function renderKontakTab(container: HTMLElement, item: ApplicationItem): 
     btn.addEventListener('click', () => {
       const cId = btn.getAttribute('data-edit-contact');
       editingContactId = editingContactId === cId ? null : cId;
-      renderKontakTab(container, item);
+      refresh();
     });
   });
 
@@ -112,12 +131,21 @@ export function renderKontakTab(container: HTMLElement, item: ApplicationItem): 
       const cId = form.getAttribute('data-form-edit-contact');
       if (!cId) return;
 
+      const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Menyimpan...';
+      }
+
       const name = form.querySelector<HTMLInputElement>('[data-edit-contact-name]')!.value.trim();
       const role = form.querySelector<HTMLInputElement>('[data-edit-contact-role]')!.value.trim();
       const email = form.querySelector<HTMLInputElement>('[data-edit-contact-email]')!.value.trim();
       const phone = form.querySelector<HTMLInputElement>('[data-edit-contact-phone]')!.value.trim();
       const linkedinUrl = form.querySelector<HTMLInputElement>('[data-edit-contact-linkedin]')!.value.trim();
       const notes = form.querySelector<HTMLInputElement>('[data-edit-contact-notes]')!.value.trim();
+
+      // Close editing mode immediately
+      editingContactId = null;
 
       try {
         await store.updateContact(cId, {
@@ -128,10 +156,13 @@ export function renderKontakTab(container: HTMLElement, item: ApplicationItem): 
           linkedinUrl: linkedinUrl || undefined,
           notes: notes || undefined
         });
-        editingContactId = null;
         toast('Kontak berhasil diperbarui', 'success');
-      } catch {
+        refresh();
+      } catch (err) {
+        editingContactId = cId;
+        console.error('Error updating contact:', err);
         toast('Gagal memperbarui kontak', 'error');
+        refresh();
       }
     });
   });
@@ -140,7 +171,7 @@ export function renderKontakTab(container: HTMLElement, item: ApplicationItem): 
   container.querySelectorAll<HTMLButtonElement>('[data-cancel-edit-contact]').forEach((btn) => {
     btn.addEventListener('click', () => {
       editingContactId = null;
-      renderKontakTab(container, item);
+      refresh();
     });
   });
 }

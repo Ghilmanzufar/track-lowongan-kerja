@@ -16,6 +16,7 @@ import {
 import { showConfirmDialog, showAlertDialog } from '../Dialog';
 import { toast } from './shared';
 import { getIconSvg } from '../../utils/icons';
+import { showFilePreviewModal } from '../FilePreviewModal';
 
 let editingDocId: string | null = null;
 
@@ -23,7 +24,20 @@ export function resetDokumenState(): void {
   editingDocId = null;
 }
 
-export async function renderDokumenTab(container: HTMLElement, item: ApplicationItem): Promise<void> {
+export async function renderDokumenTab(
+  container: HTMLElement,
+  item: ApplicationItem,
+  onRefresh?: () => void
+): Promise<void> {
+  const refresh = () => {
+    if (onRefresh) {
+      onRefresh();
+    } else {
+      const updated = store.getItems().find((i) => i.application.id === item.application.id) || item;
+      renderDokumenTab(container, updated, onRefresh);
+    }
+  };
+
   const appliedDocs: ApplicationDocumentItem[] = item.appliedDocuments || [];
   const attachments: Attachment[] = item.attachments || [];
 
@@ -93,12 +107,21 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
                           </div>
                         </div>
 
-                        <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                        <div style="display: flex; gap: 6px; flex-shrink: 0; align-items: center;">
                           ${
-                            targetUrl
-                              ? `<a href="${targetUrl}" ${isLink ? 'target="_blank" rel="noopener noreferrer"' : `download="${escapeHtml(ad.version.fileName || 'document.pdf')}"`} class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 0 9px; display: inline-flex; align-items: center; gap: 4px;">
-                                    ${isLink ? 'Buka ↗' : `${getIconSvg('download', { size: 12 })} Unduh`}
+                            isLink && targetUrl
+                              ? `<a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 0 9px; display: inline-flex; align-items: center; gap: 4px;">
+                                    ${getIconSvg('externalLink', { size: 12 })} Buka
                                   </a>`
+                              : targetUrl
+                              ? `
+                                <button type="button" class="btn btn-secondary btn-sm" data-preview-applied="${ad.version.id}" style="font-size: 11.5px; padding: 0 9px; display: inline-flex; align-items: center; gap: 4px;" title="Lihat pratinjau dokumen">
+                                  ${getIconSvg('eye', { size: 12 })} Lihat
+                                </button>
+                                <a href="${targetUrl}" download="${escapeHtml(ad.version.fileName || 'dokumen.pdf')}" class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 0 8px; display: inline-flex; align-items: center; gap: 4px;" title="Unduh dokumen">
+                                  ${getIconSvg('download', { size: 12 })} Unduh
+                                </a>
+                              `
                               : ''
                           }
                           <button type="button" class="btn btn-danger btn-sm" data-unlink-doc="${ad.version.id}" style="font-size: 11px; padding: 0 7px; display: inline-flex; align-items: center;" title="Lepas dokumen dari lamaran ini" aria-label="Lepas dokumen">
@@ -109,7 +132,6 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
                     `;
                   })
                   .join('')
-          }                  .join('')
           }
         </div>
       </div>
@@ -125,7 +147,6 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
               Berkas tersimpan khusus untuk lamaran kerja di perusahaan ini.
             </div>
           </div>
-          <span class="tag-badge" style="font-size: 11px; background: rgba(16, 185, 129, 0.15); color: var(--accent-green); font-weight: 600;">Database Server</span>
         </div>
 
         <!-- Upload Form -->
@@ -166,8 +187,11 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
                       </span>
                     </div>
                   </div>
-                  <div style="display: flex; gap: 6px; flex-shrink: 0;">
-                    <a href="${att.dataUrl}" download="${escapeHtml(att.fileName)}" class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 0 8px; display: inline-flex; align-items: center; gap: 4px;">
+                  <div style="display: flex; gap: 6px; flex-shrink: 0; align-items: center;">
+                    <button type="button" class="btn btn-secondary btn-sm" data-preview-attachment="${att.id}" style="font-size: 11.5px; padding: 0 9px; display: inline-flex; align-items: center; gap: 4px;" title="Lihat pratinjau berkas">
+                      ${getIconSvg('eye', { size: 12 })} Lihat
+                    </button>
+                    <a href="${att.dataUrl}" download="${escapeHtml(att.fileName)}" class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 0 8px; display: inline-flex; align-items: center; gap: 4px;" title="Unduh berkas">
                       ${getIconSvg('download', { size: 12 })} Unduh
                     </a>
                     <button type="button" class="btn btn-danger btn-sm" data-delete-attachment="${att.id}" style="font-size: 11px; padding: 0 7px; display: inline-flex; align-items: center;" title="Hapus berkas" aria-label="Hapus berkas">
@@ -225,7 +249,7 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
 
   // --- Applied Documents Handlers ---
   container.querySelector('#btnLinkDocFromVault')?.addEventListener('click', () => {
-    showLinkVaultDocDialog(container, item);
+    showLinkVaultDocDialog(container, item, refresh);
   });
 
   // Unlink Applied Document
@@ -237,12 +261,29 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
         try {
           await store.unlinkDocumentFromApplication(item.application.id, verId);
           toast('Tautan dokumen dilepas', 'info');
-          const updatedItem = store.getSelectedItem() || item;
-          renderDokumenTab(container, updatedItem);
+          refresh();
         } catch {
           toast('Gagal melepas dokumen', 'error');
         }
       }
+    });
+  });
+
+  // Preview Applied Document
+  container.querySelectorAll<HTMLButtonElement>('[data-preview-applied]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const verId = btn.getAttribute('data-preview-applied');
+      const ad = appliedDocs.find((d) => d.version.id === verId);
+      if (!ad) return;
+      const fileUrl = (ad.version as any).fileDataUrl || ad.version.url;
+      if (!fileUrl) return;
+      showFilePreviewModal({
+        title: ad.document.title,
+        fileName: ad.version.fileName || `${ad.document.title}.pdf`,
+        fileSize: ad.version.fileSize,
+        mimeType: ad.version.mimeType,
+        fileDataUrl: fileUrl,
+      });
     });
   });
 
@@ -308,8 +349,7 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
         });
 
         toast('Berkas berhasil disimpan ke database', 'success');
-        const updatedItem = store.getSelectedItem() || item;
-        renderDokumenTab(container, updatedItem);
+        refresh();
       } catch (err: any) {
         console.error('Error saving attachment:', err);
         toast(err.message || 'Gagal menyimpan berkas ke database', 'error');
@@ -327,12 +367,27 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
         try {
           await store.deleteAttachment(attId);
           toast('Berkas lampiran dihapus', 'info');
-          const updatedItem = store.getSelectedItem() || item;
-          renderDokumenTab(container, updatedItem);
+          refresh();
         } catch {
           toast('Gagal menghapus berkas', 'error');
         }
       }
+    });
+  });
+
+  // Preview Attachment
+  container.querySelectorAll<HTMLButtonElement>('[data-preview-attachment]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const attId = btn.getAttribute('data-preview-attachment');
+      const att = attachments.find((a) => a.id === attId);
+      if (!att || !att.dataUrl) return;
+      showFilePreviewModal({
+        title: att.label,
+        fileName: att.fileName,
+        fileSize: att.fileSize,
+        mimeType: att.mimeType,
+        fileDataUrl: att.dataUrl,
+      });
     });
   });
 
@@ -372,8 +427,7 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
       labelInput.value = '';
       urlInput.value = '';
       toast('Tautan dokumen berhasil ditambahkan', 'success');
-      const updatedItem = store.getSelectedItem() || item;
-      renderDokumenTab(container, updatedItem);
+      refresh();
     } catch {
       toast('Gagal menambahkan tautan dokumen', 'error');
     }
@@ -386,8 +440,7 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
       if (docId && (await showConfirmDialog('Hapus tautan dokumen ini?'))) {
         await store.deleteDocument(docId);
         toast('Tautan dokumen dihapus', 'info');
-        const updatedItem = store.getSelectedItem() || item;
-        renderDokumenTab(container, updatedItem);
+        refresh();
       }
     });
   });
@@ -397,7 +450,7 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
     btn.addEventListener('click', () => {
       const docId = btn.getAttribute('data-edit-doc');
       editingDocId = editingDocId === docId ? null : docId;
-      renderDokumenTab(container, item);
+      refresh();
     });
   });
 
@@ -408,6 +461,12 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
       const docId = form.getAttribute('data-form-edit-doc');
       if (!docId) return;
 
+      const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Menyimpan...';
+      }
+
       const label = form.querySelector<HTMLInputElement>('[data-edit-doc-label]')!.value.trim();
       let url = form.querySelector<HTMLInputElement>('[data-edit-doc-url]')!.value.trim();
 
@@ -415,14 +474,18 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
         url = 'https://' + url;
       }
 
+      // Close editing mode immediately so UI refreshes cleanly
+      editingDocId = null;
+
       try {
         await store.updateDocument(docId, { label, url });
-        editingDocId = null;
         toast('Dokumen berhasil diperbarui', 'success');
-        const updatedItem = store.getSelectedItem() || item;
-        renderDokumenTab(container, updatedItem);
-      } catch {
+        refresh();
+      } catch (err) {
+        editingDocId = docId;
+        console.error('Error updating document link:', err);
         toast('Gagal memperbarui dokumen', 'error');
+        refresh();
       }
     });
   });
@@ -431,7 +494,7 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
   container.querySelectorAll<HTMLButtonElement>('[data-cancel-edit-doc]').forEach((btn) => {
     btn.addEventListener('click', () => {
       editingDocId = null;
-      renderDokumenTab(container, item);
+      refresh();
     });
   });
 }
@@ -469,47 +532,87 @@ function renderSingleDocumentRow(d: DocumentLink): string {
   `;
 }
 
-function showLinkVaultDocDialog(container: HTMLElement, item: ApplicationItem): void {
+function showLinkVaultDocDialog(container: HTMLElement, item: ApplicationItem, onLinked?: () => void): void {
   const allDocs = store.getUserDocuments();
   const linkedVersionIds = new Set((item.appliedDocuments || []).map((ad) => ad.documentVersionId));
 
+  const categoryIcons: Record<DocumentCategory, string> = {
+    Resume: getIconSvg('fileText', { size: 18 }),
+    CoverLetter: getIconSvg('mail', { size: 18 }),
+    Portfolio: getIconSvg('briefcase', { size: 18 }),
+    Other: getIconSvg('folder', { size: 18 })
+  };
+
+  const categoryLabels: Record<DocumentCategory, string> = {
+    Resume: 'CV / Resume',
+    CoverLetter: 'Cover Letter',
+    Portfolio: 'Portofolio',
+    Other: 'Dokumen'
+  };
+
   const dialog = document.createElement('dialog');
   dialog.className = 'app-dialog';
+  dialog.style.maxWidth = '680px';
   dialog.innerHTML = `
-    <div class="modal-header">
-      <h3 class="modal-title">Hubungkan Dokumen dari Vault ke Lamaran</h3>
-      <button class="modal-close" data-close-dialog aria-label="Tutup">${getIconSvg('x', { size: 14 })}</button>
+    <div class="modal-header" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border-color);">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="color: var(--accent-blue); display: flex; align-items: center;">${getIconSvg('fileText', { size: 18 })}</span>
+        <h3 class="modal-title" style="font-size: 14.5px; font-weight: 700; margin: 0;">Hubungkan Dokumen dari Vault ke Lamaran</h3>
+      </div>
+      <button class="modal-close" data-close-dialog aria-label="Tutup" style="margin: 0;">${getIconSvg('x', { size: 14 })}</button>
     </div>
-    <div class="modal-body">
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
-        Pilih versi master resume/portofolio yang Anda gunakan saat melamar di <strong>${escapeHtml(item.company.name)}</strong>:
+    <div class="modal-body" style="padding: 16px 18px;">
+      <p style="font-size: 12.5px; color: var(--text-muted); margin: 0 0 14px 0; line-height: 1.4;">
+        Pilih versi master resume atau portofolio dari <strong>Vault Dokumen</strong> yang Anda pakai saat melamar di <strong>${escapeHtml(item.company.name)}</strong>:
       </p>
 
       <div class="applied-picker-list">
         ${
           allDocs.length === 0
-            ? `<div style="text-align: center; padding: 16px; font-size: 12px; color: var(--text-muted);">
-                Belum ada dokumen di Vault Dokumen. Buat dokumen di menu Vault Dokumen terlebih dahulu.
+            ? `<div style="text-align: center; padding: 24px 16px; font-size: 12.5px; color: var(--text-muted); background-color: var(--bg-subtle); border-radius: var(--radius-sm); border: 1px dashed var(--border-color);">
+                Belum ada dokumen tersimpan di Vault Dokumen.<br/>
+                <span style="font-size: 11px; color: var(--text-secondary);">Silakan tambahkan dokumen master terlebih dahulu melalui menu Vault Dokumen di sidebar.</span>
                </div>`
             : allDocs
                 .flatMap((doc) =>
                   (doc.versions || []).map((ver) => {
                     const isAlreadyLinked = linkedVersionIds.has(ver.id);
+                    const icon = categoryIcons[doc.category] || getIconSvg('fileText', { size: 18 });
+                    const catLabel = categoryLabels[doc.category] || doc.category;
+                    const isLink = ver.storageType === 'Link';
+                    let storageLabel = isLink ? 'Tautan ↗' : 'Berkas 📄';
+                    if (isLink && ver.url) {
+                      const u = ver.url.toLowerCase();
+                      if (u.includes('drive.google.com')) storageLabel = 'Google Drive ↗';
+                      else if (u.includes('canva.com')) storageLabel = 'Canva ↗';
+                      else if (u.includes('notion.')) storageLabel = 'Notion ↗';
+                      else if (u.includes('github.com')) storageLabel = 'GitHub ↗';
+                    }
+
                     return `
                       <div class="applied-picker-item ${isAlreadyLinked ? 'selected' : ''}" data-pick-version="${ver.id}">
-                        <div>
-                          <div style="display: flex; align-items: center; gap: 6px;">
-                            <strong style="font-size: 13px; color: var(--text-primary);">${escapeHtml(doc.title)}</strong>
-                            <span class="version-badge" style="font-size: 11px; padding: 1px 6px;">${escapeHtml(ver.versionName)}</span>
-                            ${ver.isDefault ? `<span style="font-size: 10px; color: #10b981; font-weight: 600; display: inline-flex; align-items: center; gap: 2px;">${getIconSvg('star', { size: 10 })} Default</span>` : ''}
+                        <div class="applied-picker-item-main">
+                          <div class="applied-picker-icon" title="${catLabel}">
+                            ${icon}
                           </div>
-                          ${ver.notes ? `<div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">"${escapeHtml(ver.notes)}"</div>` : ''}
+                          <div class="applied-picker-info">
+                            <div class="applied-picker-title-row">
+                              <h4 class="applied-picker-title">${escapeHtml(doc.title)}</h4>
+                              <div class="applied-picker-badges">
+                                <span class="version-badge">${escapeHtml(ver.versionName)}</span>
+                                <span class="badge-meta-pill">${catLabel}</span>
+                                <span class="badge-meta-pill">${storageLabel}</span>
+                                ${ver.isDefault ? `<span class="badge-default-star">${getIconSvg('star', { size: 10 })} Default</span>` : ''}
+                              </div>
+                            </div>
+                            ${ver.notes ? `<p class="applied-picker-notes">"${escapeHtml(ver.notes)}"</p>` : ''}
+                          </div>
                         </div>
-                        <div>
+                        <div class="applied-picker-action">
                           ${
                             isAlreadyLinked
-                              ? `<span class="tag-badge" style="font-size: 11px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600; display: inline-flex; align-items: center; gap: 3px;">${getIconSvg('check', { size: 11 })} Terhubung</span>`
-                              : `<button type="button" class="btn btn-secondary btn-xs" data-do-link="${ver.id}">+ Hubungkan</button>`
+                              ? `<span class="tag-badge" style="font-size: 11px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: var(--radius-xs);">${getIconSvg('check', { size: 12 })} Terhubung</span>`
+                              : `<button type="button" class="btn btn-primary btn-sm" data-do-link="${ver.id}" style="font-size: 11.5px; padding: 4px 12px; font-weight: 600;">+ Hubungkan</button>`
                           }
                         </div>
                       </div>
@@ -519,9 +622,6 @@ function showLinkVaultDocDialog(container: HTMLElement, item: ApplicationItem): 
                 .join('')
         }
       </div>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-secondary btn-sm" data-close-dialog>Telesai / Tutup</button>
     </div>
   `;
 
@@ -534,6 +634,13 @@ function showLinkVaultDocDialog(container: HTMLElement, item: ApplicationItem): 
   };
 
   dialog.querySelectorAll('[data-close-dialog]').forEach((btn) => btn.addEventListener('click', close));
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) close();
+  });
+  dialog.addEventListener('cancel', (e) => {
+    e.preventDefault();
+    close();
+  });
 
   dialog.querySelectorAll<HTMLButtonElement>('[data-do-link]').forEach((btn) => {
     btn.addEventListener('click', async () => {
@@ -543,8 +650,12 @@ function showLinkVaultDocDialog(container: HTMLElement, item: ApplicationItem): 
         await store.linkDocumentToApplication(item.application.id, verId);
         toast('Dokumen berhasil dihubungkan!', 'success');
         close();
-        const updatedItem = store.getSelectedItem() || item;
-        renderDokumenTab(container, updatedItem);
+        if (onLinked) {
+          onLinked();
+        } else {
+          const updatedItem = store.getItems().find((i) => i.application.id === item.application.id) || item;
+          renderDokumenTab(container, updatedItem);
+        }
       } catch {
         toast('Gagal menghubungkan dokumen', 'error');
       }
