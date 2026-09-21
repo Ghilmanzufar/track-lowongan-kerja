@@ -57,14 +57,17 @@ export function renderAnalyticsView(container: HTMLElement): void {
 
       <!-- Recruitment Conversion Funnel Section -->
       <div class="funnel-container funnel-visual-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <div>
-            <h3 style="font-size: 14.5px; font-weight: 700; margin: 0;">Corong Rekrutmen (Recruitment Funnel)</h3>
-            <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">Visualisasi perjalanan lamaran dari tahap kirim hingga penerimaan kerja.</p>
+        <div class="funnel-header">
+          <div class="funnel-header-left">
+            <h3 class="funnel-header-title">Corong Rekrutmen (Recruitment Funnel)</h3>
+            <p class="funnel-header-desc">Visualisasi perjalanan lamaran dari tahap kirim hingga penerimaan kerja.</p>
           </div>
-          <span class="tag-badge" style="background: rgba(37, 99, 235, 0.15); color: var(--primary); font-weight: 600;">
-            ${stats.totalApplications} Total Pipeline
-          </span>
+          <div class="funnel-header-right">
+            <span class="funnel-badge-pill">
+              <span class="funnel-badge-count">${stats.totalApplications}</span>
+              <span class="funnel-badge-label">Total Pipeline</span>
+            </span>
+          </div>
         </div>
 
         <div class="funnel-steps-list">
@@ -105,7 +108,7 @@ export function renderAnalyticsView(container: HTMLElement): void {
       </div>
 
       <!-- Dua Kolom: Distribusi Status & Efektivitas Sumber -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 16px;">
+      <div class="analytics-2col-grid">
         
         <!-- Distribusi Status Lamaran -->
         <div class="funnel-container">
@@ -161,7 +164,7 @@ export function renderAnalyticsView(container: HTMLElement): void {
       </div>
 
       <!-- Dua Kolom: Sektor Industri & Kecepatan Proses Rekrutmen -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 16px;">
+      <div class="analytics-2col-grid">
         
         <!-- Distribusi Sektor Industri -->
         <div class="funnel-container">
