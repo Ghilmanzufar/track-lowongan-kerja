@@ -22,6 +22,7 @@ import { initGlobalSearch } from './components/GlobalSearchDropdown';
 import { renderFooter } from './components/Footer';
 import { renderApplicationDetailView } from './components/ApplicationDetailView';
 import { renderStageDetailView } from './components/StageDetailView';
+import { showConfirmDialog } from './components/Dialog';
 import { TabKey } from './components/DetailModal';
 import { notificationService } from './services/notification';
 import { AppView, ApplicationStage, User } from './types';
@@ -204,6 +205,17 @@ function setupWorkspaceEvents(): void {
 
   // Logout Trigger
   btnLogout?.addEventListener('click', async () => {
+    const confirmed = await showConfirmDialog(
+      'Apakah Anda yakin ingin keluar dari akun?',
+      'Konfirmasi Keluar',
+      {
+        confirmText: 'Ya, Keluar',
+        cancelText: 'Batal',
+        confirmVariant: 'danger'
+      }
+    );
+    if (!confirmed) return;
+
     try {
       await logout();
       showToast('Berhasil keluar (logout).', 'info');
