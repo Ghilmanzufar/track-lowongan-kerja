@@ -13,6 +13,7 @@ export class OfferComparisonModal {
   private selectedAppIds: string[] = [];
   private searchQuery: string = '';
   private viewMode: ComparisonViewMode = 'table';
+  private isPickerOpen: boolean = false;
 
   private constructor() {
     this.dialog = document.createElement('dialog');
@@ -35,12 +36,13 @@ export class OfferComparisonModal {
     const prioritized = allItems.filter(i =>
       ['Offer', 'Accepted', 'Interview', 'Screening'].includes(i.application.stage)
     );
-    OfferComparisonModal.instance.selectedAppIds = (prioritized.length >= 2 ? prioritized : allItems)
+    const initialSelected = (prioritized.length >= 2 ? prioritized : allItems)
       .slice(0, 3)
       .map(i => i.application.id);
 
+    OfferComparisonModal.instance.selectedAppIds = initialSelected;
     OfferComparisonModal.instance.searchQuery = '';
-    // On small screen, default to table with swipe hint, but user can easily toggle
+    OfferComparisonModal.instance.isPickerOpen = initialSelected.length === 0;
     OfferComparisonModal.instance.render();
     OfferComparisonModal.instance.dialog.showModal();
   }
@@ -82,53 +84,80 @@ export class OfferComparisonModal {
           </button>
         </div>
 
-        <!-- Modal Body -->
+        <!-- Modal Body (Unified smooth scroll without nested traps) -->
         <div class="offer-modal-body">
           
-          <!-- Select Candidates Selector -->
-          <div class="offer-picker-section">
-            <div class="offer-picker-header">
-              <span class="offer-picker-title">Pilih Lamaran yang Dibandingkan</span>
-              <span class="offer-picker-badge ${isMaxReached ? 'badge-full' : ''}">
-                ${selectedItems.length}/3 Dipilih ${isMaxReached ? '(Maksimal)' : ''}
+          <!-- Selected Candidates Summary Bar -->
+          <div class="offer-selected-bar">
+            <div class="offer-selected-chips-group">
+              <span class="offer-selected-label">
+                ${selectedItems.length > 0 ? `Dibandingkan (${selectedItems.length}/3):` : 'Pilih Lamaran:'}
               </span>
+              <div class="offer-chips-list">
+                ${selectedItems.map(item => `
+                  <span class="offer-selected-chip">
+                    <span class="offer-chip-name">${escapeHtml(item.company.name)}</span>
+                    <button type="button" class="offer-chip-remove" data-remove-app="${item.application.id}" title="Lepas ${escapeHtml(item.company.name)}">✕</button>
+                  </span>
+                `).join('')}
+              </div>
             </div>
-
-            ${allItems.length > 4 ? `
-              <input
-                type="text"
-                class="offer-picker-search"
-                id="offerPickerSearch"
-                placeholder="Cari nama perusahaan atau posisi..."
-                value="${escapeHtml(this.searchQuery)}"
-              />
-            ` : ''}
-
-            <div class="offer-picker-list">
-              ${filteredCandidateList.length === 0 ? `
-                <div style="font-size: 11.5px; color: var(--text-muted); padding: 8px;">
-                  Tidak ada lamaran yang cocok dengan "${escapeHtml(this.searchQuery)}".
-                </div>
-              ` : filteredCandidateList.map(item => {
-                const isChecked = this.selectedAppIds.includes(item.application.id);
-                const isDisabled = !isChecked && isMaxReached;
-                return `
-                  <label class="offer-picker-item ${isChecked ? 'is-selected' : ''} ${isDisabled ? 'is-disabled' : ''}" title="${isDisabled ? 'Maksimal 3 lamaran dipilih' : escapeHtml(item.jobPosting.title)}">
-                    <input
-                      type="checkbox"
-                      class="offer-app-picker"
-                      value="${item.application.id}"
-                      ${isChecked ? 'checked' : ''}
-                      ${isDisabled ? 'disabled' : ''}
-                    />
-                    <span class="offer-picker-label-text">
-                      <strong>${escapeHtml(item.company.name)}</strong> - ${escapeHtml(item.jobPosting.title)}
-                    </span>
-                  </label>
-                `;
-              }).join('')}
-            </div>
+            <button type="button" class="btn btn-secondary btn-sm btn-toggle-picker" id="btnTogglePicker">
+              ${this.isPickerOpen ? 'Tutup Pilihan ▲' : selectedItems.length === 0 ? '+ Pilih Lamaran' : 'Ubah Pilihan ▾'}
+            </button>
           </div>
+
+          <!-- Collapsible Picker Panel (Expands without nested scroll) -->
+          ${this.isPickerOpen ? `
+            <div class="offer-picker-panel">
+              <div class="offer-picker-header">
+                <span class="offer-picker-title">Pilih Hingga 3 Lamaran</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="offer-picker-badge ${isMaxReached ? 'badge-full' : ''}">
+                    ${selectedItems.length}/3 Dipilih
+                  </span>
+                  <button type="button" class="btn btn-primary btn-xs" id="btnDonePicker">
+                    Selesai ✓
+                  </button>
+                </div>
+              </div>
+
+              ${allItems.length > 4 ? `
+                <input
+                  type="text"
+                  class="offer-picker-search"
+                  id="offerPickerSearch"
+                  placeholder="Cari perusahaan atau posisi..."
+                  value="${escapeHtml(this.searchQuery)}"
+                />
+              ` : ''}
+
+              <div class="offer-picker-chips-grid">
+                ${filteredCandidateList.length === 0 ? `
+                  <div style="font-size: 11.5px; color: var(--text-muted); padding: 8px;">
+                    Tidak ada lamaran yang cocok dengan "${escapeHtml(this.searchQuery)}".
+                  </div>
+                ` : filteredCandidateList.map(item => {
+                  const isChecked = this.selectedAppIds.includes(item.application.id);
+                  const isDisabled = !isChecked && isMaxReached;
+                  return `
+                    <label class="offer-picker-item ${isChecked ? 'is-selected' : ''} ${isDisabled ? 'is-disabled' : ''}" title="${isDisabled ? 'Maksimal 3 lamaran dipilih' : escapeHtml(item.jobPosting.title)}">
+                      <input
+                        type="checkbox"
+                        class="offer-app-picker"
+                        value="${item.application.id}"
+                        ${isChecked ? 'checked' : ''}
+                        ${isDisabled ? 'disabled' : ''}
+                      />
+                      <span class="offer-picker-label-text">
+                        <strong>${escapeHtml(item.company.name)}</strong> - ${escapeHtml(item.jobPosting.title)}
+                      </span>
+                    </label>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          ` : ''}
 
           <!-- Comparison Section Toolbar -->
           ${selectedItems.length > 0 ? `
@@ -346,6 +375,16 @@ export class OfferComparisonModal {
 
     // Listeners
     this.dialog.querySelector('#btnCloseOfferModal')?.addEventListener('click', () => this.close());
+
+    this.dialog.querySelector('#btnTogglePicker')?.addEventListener('click', () => {
+      this.isPickerOpen = !this.isPickerOpen;
+      this.render();
+    });
+
+    this.dialog.querySelector('#btnDonePicker')?.addEventListener('click', () => {
+      this.isPickerOpen = false;
+      this.render();
+    });
 
     // Search input listener
     const searchInput = this.dialog.querySelector<HTMLInputElement>('#offerPickerSearch');
