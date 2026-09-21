@@ -96,11 +96,12 @@ export function renderAgendaView(container: HTMLElement): void {
         </div>
 
         <div class="agenda-header-actions">
-          <button type="button" class="btn btn-primary btn-sm" id="btnOpenNewEventDialog" style="gap: 5px; display:inline-flex; align-items:center;">
-            <span>${getIconSvg('calendar', { size: 14 })}</span> + Buat Event Baru
+          <button type="button" class="btn btn-primary btn-sm" id="btnOpenNewEventDialog">
+            ${getIconSvg('calendar', { size: 14 })}
+            <span>+ Buat Event Baru</span>
           </button>
           <button type="button" class="btn ${isNotifGranted ? 'btn-secondary' : 'btn-primary'} btn-sm" id="btnEnableNotif" title="Aktifkan Notifikasi Desktop">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            ${getIconSvg('bell', { size: 14 })}
             <span>${isNotifGranted ? 'Notifikasi Aktif' : 'Aktifkan Pengingat'}</span>
           </button>
         </div>
