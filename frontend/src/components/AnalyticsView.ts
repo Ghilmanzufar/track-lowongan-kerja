@@ -142,16 +142,19 @@ export function renderAnalyticsView(container: HTMLElement): void {
                   ${stats.sourceAnalysis
                     .map(
                       (s) => `
-                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; padding: 5px 0; border-bottom: 1px solid var(--border-color);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; padding: 6px 0; border-bottom: 1px solid var(--border-color);">
                           <div>
-                            <span style="font-weight: 600;">${escapeHtml(s.source)}</span>
-                            <div style="font-size: 11px; color: var(--text-muted);">${s.count} total dilamar (${s.percentage}%)</div>
+                            <div style="font-weight: 600; display: flex; align-items: center; gap: 6px; color: var(--text-primary);">
+                              ${s.icon ? `<span style="display: inline-flex; align-items: center; color: var(--primary);">${s.icon}</span>` : ''}
+                              <span>${escapeHtml(s.source)}</span>
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${s.count} total dilamar (${s.percentage}%)</div>
                           </div>
                           <div style="text-align: right;">
                             <span class="mono" style="font-weight: 700; color: ${s.successRate > 0 ? 'var(--accent-green)' : 'var(--text-muted)'};">
                               ${s.successRate}% lolos
                             </span>
-                            <div style="font-size: 10.5px; color: var(--text-muted);">${s.interviewOrBetterCount} ke wawancara</div>
+                            <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">${s.interviewOrBetterCount} ke wawancara</div>
                           </div>
                         </div>
                       `

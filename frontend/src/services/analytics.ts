@@ -1,6 +1,7 @@
 // Analytics Service based on FRD-FSD.md Section 3.7 & Multi-Dimension Job Search Insights
 
 import { ApplicationItem, ApplicationStage, isActive, isClosed, JOB_SOURCES_CONFIG } from '../types';
+import { getIconSvg } from '../utils/icons';
 
 export interface StageCount {
   stage: ApplicationStage;
@@ -18,6 +19,7 @@ export interface FunnelStepMetric {
 
 export interface SourceMetric {
   source: string;
+  icon?: string;
   count: number;
   percentage: number;
   interviewOrBetterCount: number;
@@ -387,32 +389,42 @@ export function computeAnalytics(items: ApplicationItem[]): AnalyticsSummary {
   };
 
   // 4. Source Analysis
-  const sourceMap = new Map<string, { total: number; advanced: number }>();
+  const sourceMap = new Map<string, { label: string; icon?: string; total: number; advanced: number }>();
 
   for (const item of items) {
-    let sourceLabel = 'Manual / Direct';
+    let sourceKey = 'manual';
+    let label = 'Manual / Direct';
+    let icon = getIconSvg('globe');
+
     if (item.jobPosting.source && JOB_SOURCES_CONFIG[item.jobPosting.source]) {
-      sourceLabel = `${JOB_SOURCES_CONFIG[item.jobPosting.source].icon} ${JOB_SOURCES_CONFIG[item.jobPosting.source].label}`;
+      sourceKey = item.jobPosting.source;
+      label = JOB_SOURCES_CONFIG[item.jobPosting.source].label;
+      icon = JOB_SOURCES_CONFIG[item.jobPosting.source].icon;
     } else if (item.jobPosting.sourceUrl) {
       try {
         const url = new URL(item.jobPosting.sourceUrl);
-        sourceLabel = url.hostname.replace(/^www\./, '');
+        sourceKey = url.hostname.replace(/^www\./, '');
+        label = sourceKey;
+        icon = getIconSvg('globe');
       } catch {
-        sourceLabel = item.jobPosting.sourceUrl.substring(0, 30);
+        sourceKey = item.jobPosting.sourceUrl.substring(0, 30);
+        label = sourceKey;
+        icon = getIconSvg('globe');
       }
     }
 
-    const current = sourceMap.get(sourceLabel) || { total: 0, advanced: 0 };
+    const current = sourceMap.get(sourceKey) || { label, icon, total: 0, advanced: 0 };
     current.total += 1;
     if (['Screening', 'Interview', 'Offer', 'Accepted'].includes(item.application.stage)) {
       current.advanced += 1;
     }
-    sourceMap.set(sourceLabel, current);
+    sourceMap.set(sourceKey, current);
   }
 
-  const sourceAnalysis: SourceMetric[] = Array.from(sourceMap.entries())
-    .map(([source, data]) => ({
-      source,
+  const sourceAnalysis: SourceMetric[] = Array.from(sourceMap.values())
+    .map((data) => ({
+      source: data.label,
+      icon: data.icon,
       count: data.total,
       percentage: totalApplications > 0 ? Math.round((data.total / totalApplications) * 100) : 0,
       interviewOrBetterCount: data.advanced,
