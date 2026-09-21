@@ -34,6 +34,7 @@ const EVENT_TYPE_LABELS: Record<CalendarEventType, string> = {
 
 const calendarWidget = new CalendarWidget();
 let activeCategoryTab: 'all' | 'events' | 'tasks' | 'reminders' = 'all';
+let isMobileCalendarExpanded: boolean = false;
 
 export function renderAgendaView(container: HTMLElement): void {
   const items = store.getItems();
@@ -86,7 +87,7 @@ export function renderAgendaView(container: HTMLElement): void {
   container.innerHTML = `
     <div class="agenda-wrapper">
       <!-- Top header bar -->
-      <div class="agenda-header-row" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+      <div class="agenda-header-row">
         <div>
           <h2 style="font-size: 18px; font-weight: 700; margin: 0; color: var(--text-primary);">Agenda & Kalender Terpadu</h2>
           <p style="font-size: 12.5px; color: var(--text-secondary); margin: 2px 0 0 0;">
@@ -94,7 +95,7 @@ export function renderAgendaView(container: HTMLElement): void {
           </p>
         </div>
 
-        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <div class="agenda-header-actions">
           <button type="button" class="btn btn-primary btn-sm" id="btnOpenNewEventDialog" style="gap: 5px; display:inline-flex; align-items:center;">
             <span>${getIconSvg('calendar', { size: 14 })}</span> + Buat Event Baru
           </button>
@@ -105,10 +106,23 @@ export function renderAgendaView(container: HTMLElement): void {
         </div>
       </div>
 
+      <!-- Mobile Calendar Collapsible Toggle Bar -->
+      <div class="mobile-calendar-toggle-bar" id="btnToggleMobileCalendar">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span>${getIconSvg('calendar', { size: 15 })}</span>
+          <span style="font-weight: 600; font-size: 12.5px;">
+            ${selectedDate ? `Kalender: Tanggal ${selectedDate}` : 'Buka Kalender Bulanan'}
+          </span>
+        </div>
+        <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">
+          ${isMobileCalendarExpanded ? 'Tutup Kalender ▲' : 'Buka Kalender ▼'}
+        </span>
+      </div>
+
       <!-- Main Layout: Left Calendar Column, Right Agenda Content Column -->
       <div class="agenda-layout-grid">
         <!-- Left Column: Interactive Monthly Calendar -->
-        <div class="agenda-calendar-col" id="agendaCalendarContainer"></div>
+        <div class="agenda-calendar-col ${isMobileCalendarExpanded ? '' : 'mobile-collapsed'}" id="agendaCalendarContainer"></div>
 
         <!-- Right Column: Segmented Feed (Events, Tasks, Reminders) -->
         <div class="agenda-feed-col">
@@ -162,7 +176,7 @@ export function renderAgendaView(container: HTMLElement): void {
             <input type="text" id="evTitleInput" class="form-control" placeholder="Misal: Technical Interview, HR Screening" required />
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-grid-2col">
             <div>
               <label class="form-label" style="font-size: 11.5px; font-weight: 600;">Tipe Event</label>
               <select id="evTypeInput" class="form-control">
@@ -185,7 +199,7 @@ export function renderAgendaView(container: HTMLElement): void {
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-grid-2col">
             <div>
               <label class="form-label" style="font-size: 11.5px; font-weight: 600;">Waktu Mulai (WIB) *</label>
               <input type="datetime-local" id="evStartInput" class="form-control" required />
@@ -196,7 +210,7 @@ export function renderAgendaView(container: HTMLElement): void {
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-grid-2col">
             <div>
               <label class="form-label" style="font-size: 11.5px; font-weight: 600;">Tautan / Meeting URL</label>
               <input type="url" id="evMeetingUrlInput" class="form-control" placeholder="https://meet.google.com/..." />
@@ -432,16 +446,16 @@ function renderTaskItem(task: Task, item: ApplicationItem, now: Date): string {
 function renderReminderItem(rem: ReminderItem): string {
   return `
     <div class="agenda-reminder-item" data-reminder-id="${rem.id}">
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span style="display: flex; align-items: center; color: #d97706;">${getIconSvg('bell', { size: 16 })}</span>
+      <div class="agenda-reminder-left">
+        <span style="display: flex; align-items: center; color: #d97706; flex-shrink: 0;">${getIconSvg('bell', { size: 16 })}</span>
         <div>
-          <div style="font-size: 12.5px; font-weight: 600; color: var(--text-primary);">${escapeHtml(rem.title)}</div>
-          <div style="font-size: 11px; color: var(--text-secondary);">
+          <div class="agenda-reminder-title">${escapeHtml(rem.title)}</div>
+          <div class="agenda-reminder-time">
             Waktu Pengingat: <strong>${formatDateTimeWIB(rem.remindAt)}</strong>
           </div>
         </div>
       </div>
-      <button type="button" class="btn btn-danger btn-sm" data-delete-reminder="${rem.id}" title="Hapus pengingat" style="padding: 2px 6px; display:inline-flex; align-items:center; justify-content:center;">
+      <button type="button" class="btn btn-danger btn-sm" data-delete-reminder="${rem.id}" title="Hapus pengingat" style="padding: 4px 8px; display:inline-flex; align-items:center; justify-content:center; min-height:34px; min-width:34px;">
         ${getIconSvg('trash', { size: 12 })}
       </button>
     </div>
@@ -455,6 +469,12 @@ function attachAgendaListeners(
   rawEvents: CalendarEvent[],
   items: ApplicationItem[]
 ): void {
+  // Toggle mobile calendar
+  container.querySelector('#btnToggleMobileCalendar')?.addEventListener('click', () => {
+    isMobileCalendarExpanded = !isMobileCalendarExpanded;
+    renderAgendaView(container);
+  });
+
   // Category tab clicks
   container.querySelectorAll<HTMLButtonElement>('.agenda-tab-btn').forEach((btn) => {
     btn.addEventListener('click', () => {

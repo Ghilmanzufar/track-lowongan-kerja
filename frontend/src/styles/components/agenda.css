@@ -399,6 +399,21 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   ACTION BUTTONS & TOOLBARS
+   ───────────────────────────────────────────────────────────────────────────── */
+.agenda-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.agenda-actions-group .btn {
+  font-size: 11px;
+  padding: 4px 8px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
    REMINDER ITEMS
    ───────────────────────────────────────────────────────────────────────────── */
 .agenda-reminder-item {
@@ -406,11 +421,266 @@
   border: 1px solid rgba(245, 158, 11, 0.3);
   border-left: 3px solid #f59e0b;
   border-radius: var(--radius-sm);
-  padding: 9px 12px;
-  margin-bottom: 6px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  transition: box-shadow var(--transition-fast);
+}
+
+.agenda-reminder-item:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.agenda-reminder-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.agenda-reminder-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.agenda-reminder-time {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   FORM GRIDS & MODAL STYLING
+   ───────────────────────────────────────────────────────────────────────────── */
+.form-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Mobile Calendar Toggle Bar */
+.mobile-calendar-toggle-bar {
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.mobile-calendar-toggle-bar:hover {
+  background-color: var(--bg-subtle);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MOBILE RESPONSIVE RULES (Max-width: 768px)
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .agenda-wrapper {
+    padding: 12px 14px;
+  }
+
+  .agenda-header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .agenda-header-row h2 {
+    font-size: 16px !important;
+  }
+
+  .agenda-header-actions {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .agenda-header-actions .btn {
+    flex: 1 1 calc(50% - 4px);
+    min-height: 40px;
+    font-size: 12px;
+    font-weight: 600;
+    justify-content: center;
+  }
+
+  .agenda-layout-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* Mobile Calendar Toggle */
+  .mobile-calendar-toggle-bar {
+    display: flex;
+  }
+
+  .agenda-calendar-col.mobile-collapsed {
+    display: none;
+  }
+
+  .agenda-calendar-col {
+    margin-bottom: 12px;
+  }
+
+  .jobtrack-calendar-card {
+    padding: 10px 12px;
+  }
+
+  .cal-header {
+    margin-bottom: 10px;
+  }
+
+  .cal-month-title {
+    font-size: 13px;
+  }
+
+  .cal-days-grid {
+    gap: 2px;
+  }
+
+  .cal-day {
+    font-size: 11.5px;
+    min-height: 38px;
+  }
+
+  /* Segmented Navigation Tabs */
+  .agenda-tab-nav {
+    padding: 3px;
+    gap: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .agenda-tab-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .agenda-tab-btn {
+    padding: 6px 10px;
+    font-size: 11.5px;
+    flex-shrink: 0;
+  }
+
+  /* Event Cards */
+  .agenda-event-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .agenda-event-title-row {
+    gap: 6px;
+  }
+
+  .agenda-event-title {
+    font-size: 13px;
+    width: 100%;
+    margin-top: 2px;
+  }
+
+  .agenda-event-meta {
+    font-size: 11px;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  /* Actions Group Stacked Below */
+  .agenda-actions-group {
+    width: 100%;
+    border-top: 1px solid var(--border-color);
+    padding-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .agenda-actions-group .btn {
+    min-height: 34px;
+    font-size: 11px;
+  }
+
+  .agenda-actions-group .btn-meet {
+    flex: 1 1 100%;
+    min-height: 38px;
+    justify-content: center;
+    font-weight: 600;
+  }
+
+  /* Task Items */
+  .agenda-item {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .agenda-item-left {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .agenda-task-title {
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .agenda-task-meta {
+    font-size: 11px;
+    gap: 5px;
+    margin-top: 4px;
+  }
+
+  /* Reminder Items */
+  .agenda-reminder-item {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .agenda-reminder-title {
+    font-size: 12.5px;
+  }
+
+  .agenda-reminder-time {
+    font-size: 11px;
+  }
+
+  /* Form dialogs on mobile */
+  .form-grid-2col {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  #newEventDialog {
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    margin: auto;
+    border-radius: var(--radius-sm);
+  }
+
+  #newEventDialog .modal-content {
+    padding: 14px 16px !important;
+  }
+
+  #newEventDialog .modal-content form input,
+  #newEventDialog .modal-content form select,
+  #newEventDialog .modal-content form textarea {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
 }
 
