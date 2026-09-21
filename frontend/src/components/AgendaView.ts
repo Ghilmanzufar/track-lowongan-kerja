@@ -148,8 +148,8 @@ export function renderAgendaView(container: HTMLElement): void {
 
           <!-- Active Filter Header (if date selected) -->
           ${selectedDate ? `
-            <div style="background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xs); padding: 8px 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 12px;">
-              <span>Menampilkan jadwal untuk tanggal: <strong>${selectedDate}</strong></span>
+            <div class="agenda-filter-banner">
+              <span class="agenda-filter-banner-text">Menampilkan jadwal untuk tanggal: <strong>${selectedDate}</strong></span>
               <button type="button" class="btn-clear-date-filter">Tampilkan Semua Tanggal</button>
             </div>
           ` : ''}
@@ -357,9 +357,9 @@ function renderEventCard(ev: CalendarEvent, now: Date, items: ApplicationItem[])
         </div>
       </div>
 
-      <div class="agenda-actions-group" style="display: flex; align-items: center; gap: 6px;">
+      <div class="agenda-actions-group">
         ${ev.meetingUrl ? `
-          <a href="${escapeHtml(ev.meetingUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="font-size: 11px; padding: 4px 8px; font-weight: 600; display:inline-flex; align-items:center; gap:4px;">
+          <a href="${escapeHtml(ev.meetingUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm btn-meet" style="font-size: 11px; padding: 4px 8px; font-weight: 600; display:inline-flex; align-items:center; gap:4px;">
             ${getIconSvg('rocket', { size: 12 })} Buka Meeting
           </a>
         ` : ''}
@@ -394,8 +394,8 @@ function renderTaskItem(task: Task, item: ApplicationItem, now: Date): string {
   return `
     <div class="agenda-item ${isOverdue ? 'overdue' : ''}" data-task-id="${task.id}">
       <div class="agenda-item-left">
-        <input type="checkbox" ${task.status === 'Done' ? 'checked' : ''} data-toggle-done="${task.id}" style="cursor: pointer; width: 16px; height: 16px;" title="Tandai selesai">
-        <div>
+        <input type="checkbox" ${task.status === 'Done' ? 'checked' : ''} data-toggle-done="${task.id}" style="cursor: pointer; width: 16px; height: 16px; flex-shrink: 0;" title="Tandai selesai">
+        <div class="agenda-task-info">
           <div class="agenda-task-title" style="${task.status === 'Done' ? 'text-decoration: line-through; opacity: 0.6;' : ''}">
             ${escapeHtml(task.title)}
           </div>
@@ -448,14 +448,14 @@ function renderReminderItem(rem: ReminderItem): string {
     <div class="agenda-reminder-item" data-reminder-id="${rem.id}">
       <div class="agenda-reminder-left">
         <span style="display: flex; align-items: center; color: #d97706; flex-shrink: 0;">${getIconSvg('bell', { size: 16 })}</span>
-        <div>
+        <div class="agenda-reminder-info">
           <div class="agenda-reminder-title">${escapeHtml(rem.title)}</div>
           <div class="agenda-reminder-time">
             Waktu Pengingat: <strong>${formatDateTimeWIB(rem.remindAt)}</strong>
           </div>
         </div>
       </div>
-      <button type="button" class="btn btn-danger btn-sm" data-delete-reminder="${rem.id}" title="Hapus pengingat" style="padding: 4px 8px; display:inline-flex; align-items:center; justify-content:center; min-height:34px; min-width:34px;">
+      <button type="button" class="btn btn-danger btn-sm" data-delete-reminder="${rem.id}" title="Hapus pengingat" style="padding: 4px 8px; display:inline-flex; align-items:center; justify-content:center; min-height:34px; min-width:34px; flex-shrink: 0;">
         ${getIconSvg('trash', { size: 12 })}
       </button>
     </div>

@@ -6,11 +6,16 @@
   max-width: 860px;
   margin: 0 auto;
   width: 100%;
-  flex-shrink: 0;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .agenda-group {
   margin-bottom: 20px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .agenda-group-title {
@@ -40,6 +45,10 @@
   margin-bottom: 6px;
   gap: 12px;
   transition: border-color var(--transition-fast);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .agenda-item.overdue {
@@ -52,12 +61,23 @@
   align-items: center;
   gap: 10px;
   flex: 1;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.agenda-task-info {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .agenda-task-title {
   font-weight: 600;
   font-size: 13px;
   color: var(--text-primary);
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .agenda-task-meta {
@@ -67,6 +87,9 @@
   font-size: 11.5px;
   color: var(--text-secondary);
   flex-wrap: wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-width: 0;
 }
 
 .priority-badge {
@@ -100,14 +123,26 @@
    ───────────────────────────────────────────────────────────────────────────── */
 .agenda-layout-grid {
   display: grid;
-  grid-template-columns: 310px 1fr;
+  grid-template-columns: 310px minmax(0, 1fr);
   gap: 16px;
   align-items: start;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.agenda-calendar-col,
+.agenda-feed-col {
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 900px) {
   .agenda-layout-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -118,18 +153,33 @@
   margin-bottom: 16px;
   flex-wrap: wrap;
   gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .agenda-filter-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: var(--bg-subtle);
+  background-color: var(--bg-surface);
   border: 1px solid var(--border-color);
   padding: 8px 12px;
   border-radius: var(--radius-sm);
   font-size: 12px;
   margin-bottom: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.agenda-filter-banner-text {
+  min-width: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  color: var(--text-primary);
 }
 
 .jobtrack-calendar-card {
@@ -287,6 +337,10 @@
   padding: 4px;
   margin-bottom: 14px;
   overflow-x: auto;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .agenda-tab-btn {
@@ -345,6 +399,10 @@
   align-items: center;
   gap: 12px;
   transition: box-shadow var(--transition-fast);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .agenda-event-card:hover {
@@ -361,6 +419,8 @@
   flex-direction: column;
   gap: 4px;
   flex: 1;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .agenda-event-title-row {
@@ -368,12 +428,18 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .agenda-event-title {
   font-size: 13.5px;
   font-weight: 700;
   color: var(--text-primary);
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  min-width: 0;
 }
 
 .agenda-time-pill {
@@ -387,6 +453,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .agenda-event-meta {
@@ -396,6 +463,10 @@
   font-size: 12px;
   color: var(--text-secondary);
   flex-wrap: wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -406,6 +477,7 @@
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .agenda-actions-group .btn {
@@ -428,6 +500,10 @@
   align-items: center;
   gap: 12px;
   transition: box-shadow var(--transition-fast);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .agenda-reminder-item:hover {
@@ -442,17 +518,29 @@
   flex: 1;
 }
 
+.agenda-reminder-info {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .agenda-reminder-title {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.35;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .agenda-reminder-time {
   font-size: 11.5px;
   color: var(--text-secondary);
   margin-top: 2px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -477,6 +565,8 @@
   cursor: pointer;
   user-select: none;
   transition: background-color 0.15s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .mobile-calendar-toggle-bar:hover {
@@ -488,7 +578,11 @@
    ───────────────────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .agenda-wrapper {
-    padding: 12px 14px;
+    padding: 12px 14px 88px 14px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
   }
 
   .agenda-header-row {
@@ -496,6 +590,8 @@
     align-items: stretch;
     gap: 10px;
     margin-bottom: 14px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .agenda-header-row h2 {
@@ -510,21 +606,48 @@
   }
 
   .agenda-header-actions .btn {
-    flex: 1 1 calc(50% - 4px);
-    min-height: 40px;
+    flex: 1 1 140px;
+    min-height: 38px;
     font-size: 12px;
     font-weight: 600;
     justify-content: center;
   }
 
   .agenda-layout-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .agenda-filter-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 8px 10px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .agenda-filter-banner-text {
+    font-size: 12px;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  .btn-clear-date-filter {
+    font-size: 11.5px;
+    padding: 2px 0;
+    align-self: flex-start;
   }
 
   /* Mobile Calendar Toggle */
   .mobile-calendar-toggle-bar {
     display: flex;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .agenda-calendar-col.mobile-collapsed {
@@ -533,10 +656,15 @@
 
   .agenda-calendar-col {
     margin-bottom: 12px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .jobtrack-calendar-card {
     padding: 10px 12px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .cal-header {
@@ -553,7 +681,7 @@
 
   .cal-day {
     font-size: 11.5px;
-    min-height: 38px;
+    min-height: 34px;
   }
 
   /* Segmented Navigation Tabs */
@@ -562,6 +690,11 @@
     gap: 4px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    max-width: 100%;
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    box-sizing: border-box;
   }
 
   .agenda-tab-nav::-webkit-scrollbar {
@@ -578,45 +711,61 @@
   .agenda-event-card {
     flex-direction: column;
     align-items: stretch;
-    padding: 12px 14px;
+    padding: 12px;
     gap: 10px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .agenda-event-title-row {
     gap: 6px;
+    width: 100%;
+    min-width: 0;
   }
 
   .agenda-event-title {
     font-size: 13px;
     width: 100%;
     margin-top: 2px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
   }
 
   .agenda-event-meta {
     font-size: 11px;
     gap: 6px;
     margin-top: 4px;
+    width: 100%;
+    min-width: 0;
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
 
   /* Actions Group Stacked Below */
   .agenda-actions-group {
     width: 100%;
+    max-width: 100%;
     border-top: 1px solid var(--border-color);
     padding-top: 8px;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 6px;
+    box-sizing: border-box;
   }
 
   .agenda-actions-group .btn {
-    min-height: 34px;
+    min-height: 32px;
     font-size: 11px;
+    padding: 4px 8px;
+    box-sizing: border-box;
   }
 
   .agenda-actions-group .btn-meet {
     flex: 1 1 100%;
-    min-height: 38px;
+    min-height: 36px;
     justify-content: center;
     font-weight: 600;
   }
@@ -625,38 +774,75 @@
   .agenda-item {
     flex-direction: column;
     align-items: stretch;
-    padding: 12px 14px;
+    padding: 12px;
     gap: 10px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .agenda-item-left {
     align-items: flex-start;
     gap: 10px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .agenda-task-info {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
   }
 
   .agenda-task-title {
     font-size: 13px;
     line-height: 1.35;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
   }
 
   .agenda-task-meta {
     font-size: 11px;
     gap: 5px;
     margin-top: 4px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    width: 100%;
   }
 
   /* Reminder Items */
   .agenda-reminder-item {
     padding: 10px 12px;
     gap: 10px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .agenda-reminder-left {
+    min-width: 0;
+    flex: 1;
+    gap: 8px;
+  }
+
+  .agenda-reminder-info {
+    min-width: 0;
+    flex: 1;
   }
 
   .agenda-reminder-title {
     font-size: 12.5px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
   }
 
   .agenda-reminder-time {
     font-size: 11px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    white-space: normal;
   }
 
   /* Form dialogs on mobile */
@@ -670,10 +856,12 @@
     max-width: calc(100vw - 16px) !important;
     margin: auto;
     border-radius: var(--radius-sm);
+    box-sizing: border-box;
   }
 
   #newEventDialog .modal-content {
     padding: 14px 16px !important;
+    box-sizing: border-box;
   }
 
   #newEventDialog .modal-content form input,
@@ -681,6 +869,8 @@
   #newEventDialog .modal-content form textarea {
     font-size: 13px;
     padding: 8px 10px;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 }
 
