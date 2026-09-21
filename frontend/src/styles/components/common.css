@@ -108,6 +108,11 @@
   outline: none;
 }
 
+.form-group {
+  margin-bottom: 12px;
+  min-width: 0;
+}
+
 .form-row {
   display: flex;
   gap: 10px;
@@ -115,6 +120,21 @@
 
 .form-row .form-group {
   flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-row .form-group,
+  .form-row > * {
+    width: 100% !important;
+    flex: none !important;
+    min-width: 0 !important;
+  }
 }
 
 /* ========================================= */
@@ -247,3 +267,14 @@
 .mobile-fab-add:active {
   transform: scale(0.95);
 }
+
+/* ========================================= */
+/* VECTOR SVG ICON SYSTEM (ANTI-SLOP)        */
+/* ========================================= */
+.ui-icon {
+  display: inline-block;
+  vertical-align: -0.15em;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+

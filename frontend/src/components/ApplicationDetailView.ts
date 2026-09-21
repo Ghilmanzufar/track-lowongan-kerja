@@ -13,6 +13,7 @@ import { escapeHtml, formatSalary } from '../utils';
 import { showConfirmDialog } from './Dialog';
 import { toast, parseNotesData, WORK_TYPE_LABELS } from './detail/shared';
 import { TabKey } from './DetailModal';
+import { getIconSvg } from '../utils/icons';
 
 import { renderRingkasanTab } from './detail/RingkasanTab';
 import { renderTugasTab } from './detail/TugasTab';
@@ -56,7 +57,7 @@ export async function renderApplicationDetailView(
     container.innerHTML = `
       <div class="app-detail-page">
         <div style="text-align: center; padding: 60px 20px; background: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: var(--radius-md);">
-          <div style="font-size: 40px; margin-bottom: 12px;">🔍</div>
+          <div style="margin-bottom: 12px; color: var(--text-muted);">${getIconSvg('search', { size: 40 })}</div>
           <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary);">
             Lamaran Tidak Ditemukan
           </h3>
@@ -64,7 +65,7 @@ export async function renderApplicationDetailView(
             Data lamaran dengan ID <code>${escapeHtml(applicationId)}</code> mungkin telah dihapus atau tidak tersedia.
           </p>
           <a href="#board" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
-            ← Kembali ke Kanban Board
+            ← Kembali ke Kanban Lamaran
           </a>
         </div>
       </div>
@@ -152,13 +153,13 @@ export async function renderApplicationDetailView(
             </h1>
 
             <div class="app-detail-meta-pills">
-              ${workType ? `<span class="badge-pill">💼 ${workType}</span>` : ''}
-              ${item.jobPosting.location ? `<span class="badge-pill">📍 ${escapeHtml(item.jobPosting.location)}</span>` : ''}
-              ${salary ? `<span class="badge-pill badge-salary">💰 ${salary}</span>` : ''}
-              ${source ? `<span class="badge-pill" style="border-color: ${source.color}40; color: ${source.color};">${source.icon} ${source.label}</span>` : ''}
+              ${workType ? `<span class="badge-pill" style="display:inline-flex; align-items:center; gap:5px;">${getIconSvg('briefcase', { size: 12 })} ${workType}</span>` : ''}
+              ${item.jobPosting.location ? `<span class="badge-pill" style="display:inline-flex; align-items:center; gap:5px;">${getIconSvg('mapPin', { size: 12 })} ${escapeHtml(item.jobPosting.location)}</span>` : ''}
+              ${salary ? `<span class="badge-pill badge-salary" style="display:inline-flex; align-items:center; gap:5px;">${getIconSvg('dollar', { size: 12 })} ${salary}</span>` : ''}
+              ${source ? `<span class="badge-pill" style="border-color: ${source.color}40; color: ${source.color}; display:inline-flex; align-items:center; gap:5px;">${source.icon} ${item.jobPosting.source === 'Other' && item.jobPosting.keywords ? `Lainnya (${escapeHtml(item.jobPosting.keywords)})` : source.label}</span>` : ''}
               ${item.jobPosting.sourceUrl ? `
-                <a href="${escapeHtml(item.jobPosting.sourceUrl)}" target="_blank" rel="noopener noreferrer" class="badge-pill badge-link" title="Buka postingan asli">
-                  🔗 Link Lowongan ↗
+                <a href="${escapeHtml(item.jobPosting.sourceUrl)}" target="_blank" rel="noopener noreferrer" class="badge-pill badge-link" title="Buka postingan asli" style="display:inline-flex; align-items:center; gap:5px;">
+                  ${getIconSvg('link', { size: 12 })} Link Lowongan ↗
                 </a>
               ` : ''}
             </div>
@@ -171,7 +172,7 @@ export async function renderApplicationDetailView(
             Tahap Lamaran (Pipeline Stage)
           </label>
           <div style="display: flex; align-items: center; gap: 8px;">
-            <select id="fullPageStageSelect" class="form-select" style="font-weight: 700; font-size: 13px; min-width: 180px;">
+            <select id="fullPageStageSelect" class="form-select" style="font-weight: 700; font-size: 13px; width: 100%;">
               ${stages
                 .map(
                   (st) =>
@@ -204,7 +205,7 @@ export async function renderApplicationDetailView(
           Catatan ${notesCount > 0 ? `<span class="tab-count">${notesCount}</span>` : ''}
         </button>
         <button class="detail-tab-btn ${currentFullPageTab === 'interview_prep' ? 'active' : ''}" data-fulltab="interview_prep" type="button">
-          🎯 Wawancara ${interviewsCount > 0 ? `<span class="tab-count">${interviewsCount}</span>` : ''}
+          Wawancara ${interviewsCount > 0 ? `<span class="tab-count">${interviewsCount}</span>` : ''}
         </button>
         <button class="detail-tab-btn ${currentFullPageTab === 'riwayat' ? 'active' : ''}" data-fulltab="riwayat" type="button">
           Riwayat ${historyCount > 0 ? `<span class="tab-count">${historyCount}</span>` : ''}
@@ -212,7 +213,7 @@ export async function renderApplicationDetailView(
       </div>
 
       <!-- Tab Content Area -->
-      <div class="app-detail-body modal-body" id="fullPageTabBody" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 var(--radius-md) var(--radius-md); padding: 20px;"></div>
+      <div class="app-detail-body" id="fullPageTabBody"></div>
     </div>
   `;
 

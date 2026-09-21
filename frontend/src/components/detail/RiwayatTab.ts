@@ -1,5 +1,6 @@
 import { ApplicationItem, ApplicationStage, STAGES_CONFIG } from '../../types';
 import { formatDateTimeWIB, formatRelativeTime, escapeHtml } from '../../utils';
+import { getIconSvg } from '../../utils/icons';
 
 export function renderRiwayatTab(container: HTMLElement, item: ApplicationItem): void {
   const activities = [...item.activities].sort(
@@ -45,7 +46,7 @@ function renderStageJourney(item: ApplicationItem): string {
     <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 4px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 14px;">⏱️</span>
+          <span style="display: flex; align-items: center;">${getIconSvg('clock', { size: 15 })}</span>
           <h4 style="font-size: 13px; font-weight: 700; margin: 0; color: var(--text-primary);">Perjalanan Tahap (Stage Journey)</h4>
         </div>
         <span class="stage-badge ${currentConfig.badgeClass}" style="font-size: 11px;">
@@ -81,7 +82,7 @@ function renderStageJourney(item: ApplicationItem): string {
                       ${
                         fromConfig
                           ? `<span style="color: var(--text-muted);">${escapeHtml(fromConfig.label)}</span>
-                             <span style="color: var(--text-muted); font-size: 10px;">➔</span>`
+                             <span style="color: var(--text-muted); display: inline-flex; align-items: center;">${getIconSvg('arrowRight', { size: 10 })}</span>`
                           : ''
                       }
                       <span class="stage-badge ${toConfig.badgeClass}" style="font-size: 11px;">

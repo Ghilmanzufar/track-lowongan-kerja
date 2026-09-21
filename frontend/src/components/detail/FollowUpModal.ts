@@ -2,6 +2,7 @@ import { ApplicationItem, CONTACT_METHOD_CONFIG, FOLLOW_UP_STATUS_CONFIG } from 
 import { store } from '../../services/store';
 import { toast } from './shared';
 import { escapeHtml } from '../../utils';
+import { getIconSvg, IconName } from '../../utils/icons';
 
 /**
  * Show Dialog to edit Follow-up schedule, method, response status, and notes
@@ -10,6 +11,10 @@ export function showFollowUpEditDialog(
   item: ApplicationItem,
   onSaved: () => Promise<void>
 ): void {
+  if (['Saved', 'ToApply'].includes(item.application.stage)) {
+    toast('Follow-up tracker hanya dapat digunakan jika status lamaran sudah berada di tahap Terkirim (Applied) atau selanjutnya.', 'info');
+    return;
+  }
   const dialog = document.createElement('dialog');
   dialog.className = 'custom-dialog';
   dialog.style.maxWidth = '520px';
@@ -32,13 +37,13 @@ export function showFollowUpEditDialog(
     <div style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px;">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 20px;">📬</span>
+          <span style="display: flex; align-items: center;">${getIconSvg('inbox', { size: 20 })}</span>
           <div>
             <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--text-primary);">Atur Follow-up Lamaran</h3>
             <span style="font-size: 12px; color: var(--text-muted);">${escapeHtml(item.company.name)} • ${escapeHtml(item.jobPosting.title)}</span>
           </div>
         </div>
-        <button type="button" class="btn btn-icon btn-sm btn-close-fu" style="border: none; background: transparent; cursor: pointer; font-size: 18px; color: var(--text-muted);">✕</button>
+        <button type="button" class="btn btn-icon btn-sm btn-close-fu" aria-label="Tutup" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted);">${getIconSvg('x', { size: 16 })}</button>
       </div>
 
       <form id="formFollowUpTracker" class="fu-modal-body">
@@ -54,11 +59,6 @@ export function showFollowUpEditDialog(
           <div class="form-group">
             <label class="form-label" for="fuNextFollowUp">Jadwal Follow-up Berikutnya</label>
             <input type="date" id="fuNextFollowUp" class="form-input" value="${currentNextFollowUp}" />
-            <div style="display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap;">
-              <button type="button" class="btn btn-xs btn-secondary btn-quick-next" data-days="3">+3 Hari</button>
-              <button type="button" class="btn btn-xs btn-secondary btn-quick-next" data-days="7">+7 Hari</button>
-              <button type="button" class="btn btn-xs btn-secondary btn-quick-next" data-days="14">+14 Hari</button>
-            </div>
           </div>
         </div>
 
@@ -69,7 +69,7 @@ export function showFollowUpEditDialog(
               ${Object.entries(CONTACT_METHOD_CONFIG)
                 .map(
                   ([key, val]) =>
-                    `<option value="${key}" ${currentMethod === key ? 'selected' : ''}>${val.icon} ${val.label}</option>`
+                    `<option value="${key}" ${currentMethod === key ? 'selected' : ''}>${val.label}</option>`
                 )
                 .join('')}
             </select>
@@ -81,7 +81,7 @@ export function showFollowUpEditDialog(
               ${Object.entries(FOLLOW_UP_STATUS_CONFIG)
                 .map(
                   ([key, val]) =>
-                    `<option value="${key}" ${currentStatus === key ? 'selected' : ''}>${val.icon} ${val.label}</option>`
+                    `<option value="${key}" ${currentStatus === key ? 'selected' : ''}>${val.label}</option>`
                 )
                 .join('')}
             </select>
@@ -122,17 +122,6 @@ export function showFollowUpEditDialog(
     if (input) input.value = todayStr;
   });
 
-  // Buttons quick next follow-up (+3, +7, +14 days)
-  dialog.querySelectorAll('.btn-quick-next').forEach((b) => {
-    b.addEventListener('click', () => {
-      const days = parseInt(b.getAttribute('data-days') || '7', 10);
-      const baseDate = new Date();
-      baseDate.setDate(baseDate.getDate() + days);
-      const nextStr = baseDate.toISOString().substring(0, 10);
-      const input = dialog.querySelector('#fuNextFollowUp') as HTMLInputElement;
-      if (input) input.value = nextStr;
-    });
-  });
 
   dialog.querySelector('#formFollowUpTracker')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -187,10 +176,11 @@ export function showFollowUpTemplatesDialog(item: ApplicationItem): void {
   const company = item.company.name;
   const position = item.jobPosting.title;
 
-  const templates = [
+  const templates: { id: string; icon: IconName; title: string; desc: string; text: string }[] = [
     {
       id: 'formal-email-id',
-      title: '✉️ Email Formal Follow-up Status Lamaran',
+      icon: 'mail',
+      title: 'Email Formal Follow-up Status Lamaran',
       desc: 'Cocok dikirim 5-7 hari kerja setelah mengirim lamaran',
       text: `Subjek: Follow-up Status Lamaran - ${position} - [Nama Anda]
 
@@ -211,7 +201,8 @@ Salam hormat,
     },
     {
       id: 'linkedin-dm-id',
-      title: '💼 LinkedIn DM / WhatsApp Singkat & Ramah',
+      icon: 'briefcase',
+      title: 'LinkedIn DM / WhatsApp Singkat & Ramah',
       desc: 'Cocok untuk direct message ke recruiter atau HR di LinkedIn / WA',
       text: `Halo [Nama HR/Recruiter/Bapak/Ibu], salam kenal!
 
@@ -219,14 +210,15 @@ Semoga kabarnya sehat selalu. Saya sebelumnya telah mengirimkan lamaran untuk po
 
 Jika berkenan, apakah saya boleh menanyakan sekilas kabar terbaru mengenai proses seleksi untuk posisi tersebut?
 
-Terima kasih banyak atas waktu dan perhatiannya! 🙏
+Terima kasih banyak atas waktu dan perhatiannya!
 
 Salam,
 [Nama Anda]`
     },
     {
       id: 'post-interview-id',
-      title: '🎯 Follow-up Pasca Wawancara (Thank You Note)',
+      icon: 'target',
+      title: 'Follow-up Pasca Wawancara (Thank You Note)',
       desc: 'Kirim dalam waktu 24 jam atau 4-5 hari setelah sesi wawancara selesai',
       text: `Subjek: Terima Kasih & Follow-up Wawancara ${position} - [Nama Anda]
 
@@ -245,7 +237,8 @@ Salam hangat,
     },
     {
       id: 'english-followup',
-      title: '🌐 Professional Follow-up (English)',
+      icon: 'globe',
+      title: 'Professional Follow-up (English)',
       desc: 'For international companies, remote roles, or English job postings',
       text: `Subject: Following up on Application for ${position} - [Your Name]
 
@@ -270,13 +263,13 @@ Best regards,
     <div style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; max-height: 85vh; overflow-y: auto;">
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
         <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 20px;">📋</span>
+          <span style="display: flex; align-items: center;">${getIconSvg('clipboard', { size: 20 })}</span>
           <div>
             <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--text-primary);">Template Pesan Follow-up</h3>
             <span style="font-size: 12px; color: var(--text-muted);">Salin pesan siap pakai yang sudah disesuaikan dengan posisi <strong>${escapeHtml(position)}</strong> di <strong>${escapeHtml(company)}</strong></span>
           </div>
         </div>
-        <button type="button" class="btn btn-icon btn-sm btn-close-tmpl" style="border: none; background: transparent; cursor: pointer; font-size: 18px; color: var(--text-muted);">✕</button>
+        <button type="button" class="btn btn-icon btn-sm btn-close-tmpl" aria-label="Tutup" style="border: none; background: transparent; cursor: pointer; color: var(--text-muted);">${getIconSvg('x', { size: 16 })}</button>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -286,11 +279,14 @@ Best regards,
           <div class="fu-template-card">
             <div class="fu-template-header">
               <div>
-                <div style="font-size: 12.5px; font-weight: 700; color: var(--text-primary);">${t.title}</div>
-                <div style="font-size: 11px; color: var(--text-muted);">${t.desc}</div>
+                <div style="font-size: 12.5px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                  <span>${getIconSvg(t.icon, { size: 14 })}</span>
+                  <span>${t.title}</span>
+                </div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${t.desc}</div>
               </div>
               <button type="button" class="btn btn-sm btn-secondary btn-copy-tmpl" data-id="${t.id}" style="display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; padding: 4px 10px;">
-                📋 Salin Teks
+                ${getIconSvg('clipboard', { size: 12 })} Salin Teks
               </button>
             </div>
             <pre class="fu-template-content" id="content-${t.id}">${escapeHtml(t.text)}</pre>
@@ -323,7 +319,7 @@ Best regards,
         try {
           await navigator.clipboard.writeText(targetPre.textContent || '');
           const originalText = b.innerHTML;
-          b.innerHTML = '✓ Disalin!';
+          b.innerHTML = `${getIconSvg('check', { size: 12 })} Disalin!`;
           toast('Template pesan berhasil disalin ke clipboard!', 'success');
           setTimeout(() => {
             b.innerHTML = originalText;

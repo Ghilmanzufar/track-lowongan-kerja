@@ -481,12 +481,13 @@ applicationsRouter.post('/', async (req: AuthenticatedRequest, res: Response) =>
       tags?: string[];
       appliedDocumentVersionIds?: string[];
       allowDuplicate?: boolean;
+      keywords?: string;
     };
 
     const { title, companyName, companyIndustry, stage = 'Saved', source, sourceUrl,
             description, requirements, responsibilities,
             location, workType, salaryMin, salaryMax, applyDeadline, notes, tags = [],
-            appliedDocumentVersionIds = [], allowDuplicate = false } = body;
+            appliedDocumentVersionIds = [], allowDuplicate = false, keywords } = body;
 
     if (!title || !companyName) {
       return res.status(400).json({ error: 'title and companyName are required' });
@@ -571,7 +572,8 @@ applicationsRouter.post('/', async (req: AuthenticatedRequest, res: Response) =>
         workType: (workType as never) ?? null,
         salaryMin: salaryMin ?? null,
         salaryMax: salaryMax ?? null,
-        tags
+        tags,
+        keywords: keywords?.trim() || null
       }
     });
 
@@ -737,7 +739,8 @@ applicationsRouter.patch('/:id', async (req: AuthenticatedRequest, res: Response
         ...(body['description'] !== undefined ? { description: (body['description'] as string)?.trim() || null } : {}),
         ...(body['requirements'] !== undefined ? { requirements: (body['requirements'] as string)?.trim() || null } : {}),
         ...(body['responsibilities'] !== undefined ? { responsibilities: (body['responsibilities'] as string)?.trim() || null } : {}),
-        ...(body['tags'] !== undefined ? { tags: body['tags'] as string[] } : {})
+        ...(body['tags'] !== undefined ? { tags: body['tags'] as string[] } : {}),
+        ...(body['keywords'] !== undefined ? { keywords: (body['keywords'] as string)?.trim() || null } : {})
       }
     });
 

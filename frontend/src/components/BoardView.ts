@@ -6,6 +6,18 @@ import { ApplicationItem, ApplicationStage, STAGES_CONFIG } from '../types';
 import { store } from '../services/store';
 import { formatRelativeTime, escapeHtml, formatSalary } from '../utils';
 import { showConfirmDialog } from './Dialog';
+import { renderFooter } from './Footer';
+import { getIconSvg } from '../utils/icons';
+
+function getSafeHostname(urlStr?: string): string {
+  if (!urlStr) return '';
+  try {
+    const parsed = new URL(urlStr.startsWith('http') ? urlStr : `https://${urlStr}`);
+    return parsed.hostname.replace('www.', '');
+  } catch {
+    return 'URL';
+  }
+}
 
 const ORDERED_STAGES: ApplicationStage[] = [
   'Saved',
@@ -43,8 +55,8 @@ function renderKanbanCard(item: ApplicationItem, now: string): string {
       ${
         item.jobPosting.sourceUrl
           ? `<div class="card-meta-row" style="margin-top: 4px; display: flex; align-items: center; justify-content: space-between;">
-              <a href="${item.jobPosting.sourceUrl}" target="_blank" rel="noopener noreferrer" class="card-url-link" onclick="event.stopPropagation();" title="Buka tautan lowongan">
-                🔗 ${escapeHtml(new URL(item.jobPosting.sourceUrl).hostname.replace('www.', ''))} ↗
+              <a href="${item.jobPosting.sourceUrl}" target="_blank" rel="noopener noreferrer" class="card-url-link" onclick="event.stopPropagation();" title="Buka tautan lowongan" style="display:inline-flex; align-items:center; gap:4px;">
+                ${getIconSvg('link', { size: 11 })} ${escapeHtml(getSafeHostname(item.jobPosting.sourceUrl))} ↗
               </a>
               ${
                 item.jobPosting.tags && item.jobPosting.tags.length > 0
@@ -141,7 +153,7 @@ export function renderBoardView(container: HTMLElement): void {
               ? `
                 <div class="board-active-filter-pill">
                   <span>Filter Aktif (${activeFilterCount})</span>
-                  <button id="boardBtnClearFilters" title="Hapus filter">✕</button>
+                  <button id="boardBtnClearFilters" title="Hapus filter" style="display:inline-flex; align-items:center; justify-content:center;">${getIconSvg('x', { size: 12 })}</button>
                 </div>
               `
               : ''
@@ -188,6 +200,9 @@ export function renderBoardView(container: HTMLElement): void {
                     const config = STAGES_CONFIG[stageKey];
                     const colItems = stageGroups[stageKey];
                     const isEmpty = colItems.length === 0;
+                    const visibleItems = colItems.slice(0, 2);
+                    const hasMore = colItems.length > 2;
+                    const remainingCount = colItems.length - 2;
 
                     return `
                       <div class="board-column drag-target-col ${isEmpty ? 'is-empty-col' : ''}" data-stage="${stageKey}" id="col-${stageKey}">
@@ -214,7 +229,23 @@ export function renderBoardView(container: HTMLElement): void {
                                    <span>Belum ada lamaran</span>
                                    <span class="empty-drop-hint">• Seret kartu ke sini</span>
                                  </div>`
-                              : colItems.map((item) => renderKanbanCard(item, now)).join('')
+                              : `
+                                  ${visibleItems.map((item) => renderKanbanCard(item, now)).join('')}
+                                  ${
+                                    hasMore
+                                      ? `
+                                        <a href="#stage/${stageKey}" class="column-view-more-card" title="Lihat seluruh ${colItems.length} lamaran di tahap ${config.label}">
+                                          <div class="view-more-inner">
+                                            <span class="view-more-text">Lihat lamaran lainnya (+${remainingCount})</span>
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                              <polyline points="9 18 15 12 9 6"></polyline>
+                                            </svg>
+                                          </div>
+                                        </a>
+                                      `
+                                      : ''
+                                  }
+                                `
                           }
                         </div>
 
@@ -232,6 +263,9 @@ export function renderBoardView(container: HTMLElement): void {
                   const config = STAGES_CONFIG[stageKey];
                   const colItems = stageGroups[stageKey];
                   const isEmpty = colItems.length === 0;
+                  const visibleItems = colItems.slice(0, 2);
+                  const hasMore = colItems.length > 2;
+                  const remainingCount = colItems.length - 2;
 
                   return `
                     <div class="vertical-stage-section drag-target-col ${isEmpty ? 'is-empty-stage' : ''}" data-stage="${stageKey}" id="stage-${stageKey}">
@@ -261,7 +295,23 @@ export function renderBoardView(container: HTMLElement): void {
                                  <span>Belum ada lamaran di tahap ${config.label}</span>
                                  <span class="empty-drop-hint">• Seret kartu ke sini atau klik Tambah</span>
                                </div>`
-                            : colItems.map((item) => renderKanbanCard(item, now)).join('')
+                            : `
+                                ${visibleItems.map((item) => renderKanbanCard(item, now)).join('')}
+                                ${
+                                  hasMore
+                                    ? `
+                                      <a href="#stage/${stageKey}" class="column-view-more-card" title="Lihat seluruh ${colItems.length} lamaran di tahap ${config.label}">
+                                        <div class="view-more-inner">
+                                          <span class="view-more-text">Lihat lamaran lainnya (+${remainingCount})</span>
+                                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="9 18 15 12 9 6"></polyline>
+                                          </svg>
+                                        </div>
+                                      </a>
+                                    `
+                                    : ''
+                                }
+                              `
                         }
                       </div>
                     </div>
@@ -276,6 +326,7 @@ export function renderBoardView(container: HTMLElement): void {
   `;
 
   setupBoardInteractions(container);
+  renderFooter(container);
 }
 
 function setupBoardInteractions(container: HTMLElement): void {

@@ -9,6 +9,7 @@ import {
   DocumentStorageType
 } from '../types';
 import { escapeHtml, formatDateWIB, MAX_FILE_SIZE_MB, MAX_FILE_SIZE_BYTES, formatBytes } from '../utils';
+import { getIconSvg } from '../utils/icons';
 import { showConfirmDialog, showAlertDialog } from './Dialog';
 import { showToast } from '../main';
 
@@ -35,10 +36,10 @@ export function renderDocumentVaultView(container: HTMLElement): void {
   const mostUsed = sortedByUsage.length > 0 && (sortedByUsage[0].appliedCount || 0) > 0 ? sortedByUsage[0] : null;
 
   const categoryIcons: Record<DocumentCategory, string> = {
-    Resume: '📄',
-    CoverLetter: '✉️',
-    Portfolio: '💼',
-    Other: '📁'
+    Resume: getIconSvg('fileText', { size: 18 }),
+    CoverLetter: getIconSvg('mail', { size: 18 }),
+    Portfolio: getIconSvg('briefcase', { size: 18 }),
+    Other: getIconSvg('folder', { size: 18 })
   };
 
   const categoryLabels: Record<DocumentCategory, string> = {
@@ -55,7 +56,7 @@ export function renderDocumentVaultView(container: HTMLElement): void {
       <div class="vault-header-card">
         <div class="vault-header-info">
           <h2>
-            <span>🗄️</span> Vault Dokumen &amp; Hub Resume
+            <span>${getIconSvg('folder', { size: 22 })}</span> Vault Dokumen &amp; Hub Resume
           </h2>
           <p>
             Kelola master CV, cover letter, dan portofolio dengan versioning terstruktur. Catat versi mana yang digunakan saat melamar ke tiap lowongan.
@@ -71,7 +72,7 @@ export function renderDocumentVaultView(container: HTMLElement): void {
       <!-- Quick Stats Bar -->
       <div class="vault-stats-bar">
         <div class="vault-stat-item">
-          <div class="vault-stat-icon">📚</div>
+          <div class="vault-stat-icon">${getIconSvg('book', { size: 20 })}</div>
           <div>
             <div class="vault-stat-num">${totalDocs}</div>
             <div class="vault-stat-label">Master Dokumen</div>
@@ -79,7 +80,7 @@ export function renderDocumentVaultView(container: HTMLElement): void {
         </div>
 
         <div class="vault-stat-item">
-          <div class="vault-stat-icon">🏷️</div>
+          <div class="vault-stat-icon">${getIconSvg('tag', { size: 20 })}</div>
           <div>
             <div class="vault-stat-num">${totalVersions}</div>
             <div class="vault-stat-label">Total Versi Terarsip</div>
@@ -87,7 +88,7 @@ export function renderDocumentVaultView(container: HTMLElement): void {
         </div>
 
         <div class="vault-stat-item">
-          <div class="vault-stat-icon">🎯</div>
+          <div class="vault-stat-icon">${getIconSvg('target', { size: 20 })}</div>
           <div>
             <div class="vault-stat-num">${totalApplied}</div>
             <div class="vault-stat-label">Total Penggunaan di Lamaran</div>
@@ -98,7 +99,7 @@ export function renderDocumentVaultView(container: HTMLElement): void {
           mostUsed
             ? `
           <div class="vault-stat-item" style="flex: 1; min-width: 220px;">
-            <div class="vault-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-green);">⭐</div>
+            <div class="vault-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-green);">${getIconSvg('star', { size: 20 })}</div>
             <div>
               <div class="vault-stat-num" style="font-size: 14px; font-weight: 700;">${escapeHtml(mostUsed.versionName)}</div>
               <div class="vault-stat-label">Paling Sering Digunakan (${mostUsed.appliedCount}x)</div>
@@ -115,17 +116,17 @@ export function renderDocumentVaultView(container: HTMLElement): void {
           <button type="button" class="vault-cat-btn ${currentCategoryFilter === 'all' ? 'active' : ''}" data-cat="all">
             Semua (${allDocs.length})
           </button>
-          <button type="button" class="vault-cat-btn ${currentCategoryFilter === 'Resume' ? 'active' : ''}" data-cat="Resume">
-            📄 Resume / CV (${allDocs.filter((d) => d.category === 'Resume').length})
+          <button type="button" class="vault-cat-btn ${currentCategoryFilter === 'Resume' ? 'active' : ''}" data-cat="Resume" style="display:inline-flex; align-items:center; gap:6px;">
+            ${getIconSvg('fileText', { size: 13 })} Resume / CV (${allDocs.filter((d) => d.category === 'Resume').length})
           </button>
-          <button type="button" class="vault-cat-btn ${currentCategoryFilter === 'CoverLetter' ? 'active' : ''}" data-cat="CoverLetter">
-            ✉️ Cover Letter (${allDocs.filter((d) => d.category === 'CoverLetter').length})
+          <button type="button" class="vault-cat-btn ${currentCategoryFilter === 'CoverLetter' ? 'active' : ''}" data-cat="CoverLetter" style="display:inline-flex; align-items:center; gap:6px;">
+            ${getIconSvg('mail', { size: 13 })} Cover Letter (${allDocs.filter((d) => d.category === 'CoverLetter').length})
           </button>
-          <button type="button" class="vault-cat-btn ${currentCategoryFilter === 'Portfolio' ? 'active' : ''}" data-cat="Portfolio">
-            💼 Portofolio (${allDocs.filter((d) => d.category === 'Portfolio').length})
+          <button type="button" class="vault-cat-btn ${currentCategoryFilter === 'Portfolio' ? 'active' : ''}" data-cat="Portfolio" style="display:inline-flex; align-items:center; gap:6px;">
+            ${getIconSvg('briefcase', { size: 13 })} Portofolio (${allDocs.filter((d) => d.category === 'Portfolio').length})
           </button>
-          <button type="button" class="vault-cat-btn ${currentCategoryFilter === 'Other' ? 'active' : ''}" data-cat="Other">
-            📁 Lainnya (${allDocs.filter((d) => d.category === 'Other').length})
+          <button type="button" class="vault-cat-btn ${currentCategoryFilter === 'Other' ? 'active' : ''}" data-cat="Other" style="display:inline-flex; align-items:center; gap:6px;">
+            ${getIconSvg('folder', { size: 13 })} Lainnya (${allDocs.filter((d) => d.category === 'Other').length})
           </button>
         </div>
       </div>
@@ -136,7 +137,7 @@ export function renderDocumentVaultView(container: HTMLElement): void {
           filteredDocs.length === 0
             ? `
           <div style="background: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 48px 24px; text-align: center;">
-            <div style="font-size: 38px; margin-bottom: 12px;">📁</div>
+            <div style="margin-bottom: 12px; color: var(--text-muted);">${getIconSvg('folder', { size: 38 })}</div>
             <h3 style="font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">
               Belum ada master dokumen tersimpan
             </h3>
@@ -172,7 +173,7 @@ function renderDocumentCard(
     <div class="doc-vault-card" data-doc-id="${doc.id}">
       <div class="doc-vault-header">
         <div class="doc-vault-title-area">
-          <span class="doc-vault-icon">${icons[doc.category] || '📄'}</span>
+          <span class="doc-vault-icon">${icons[doc.category] || getIconSvg('fileText', { size: 18 })}</span>
           <div>
             <div style="display: flex; align-items: center; gap: 8px;">
               <span class="doc-vault-title">${escapeHtml(doc.title)}</span>
@@ -192,11 +193,11 @@ function renderDocumentCard(
           <button type="button" class="btn btn-secondary btn-xs" data-add-version="${doc.id}" style="font-size: 11.5px; padding: 4px 10px;">
             + Versi Baru
           </button>
-          <button type="button" class="btn btn-secondary btn-xs" data-edit-doc="${doc.id}" title="Edit judul / kategori" style="font-size: 11px; padding: 4px 8px;">
-            ✎
+          <button type="button" class="btn btn-secondary btn-xs" data-edit-doc="${doc.id}" title="Edit judul / kategori" style="font-size: 11px; padding: 4px 8px; display:inline-flex; align-items:center;">
+            ${getIconSvg('edit', { size: 12 })}
           </button>
-          <button type="button" class="btn btn-danger btn-xs" data-delete-doc="${doc.id}" title="Hapus dokumen" style="font-size: 11px; padding: 4px 8px;">
-            ✕
+          <button type="button" class="btn btn-danger btn-xs" data-delete-doc="${doc.id}" title="Hapus dokumen" style="font-size: 11px; padding: 4px 8px; display:inline-flex; align-items:center;">
+            ${getIconSvg('trash', { size: 12 })}
           </button>
         </div>
       </div>
@@ -219,16 +220,16 @@ function renderVersionRow(ver: DocumentVersion): string {
   const openUrl = isLink ? ver.url : ver.fileDataUrl;
   const isFile = ver.storageType === 'File';
 
-  let storageBadge = '🔗 Tautan';
+  let storageBadge = `${getIconSvg('link', { size: 11 })} Tautan`;
   if (isLink && ver.url) {
     const urlLower = ver.url.toLowerCase();
-    if (urlLower.includes('drive.google.com')) storageBadge = 'Google Drive ↗';
-    else if (urlLower.includes('canva.com')) storageBadge = 'Canva ↗';
-    else if (urlLower.includes('notion.')) storageBadge = 'Notion ↗';
-    else if (urlLower.includes('github.')) storageBadge = 'GitHub ↗';
-    else storageBadge = 'Tautan Web ↗';
+    if (urlLower.includes('drive.google.com')) storageBadge = `${getIconSvg('externalLink', { size: 11 })} Google Drive`;
+    else if (urlLower.includes('canva.com')) storageBadge = `${getIconSvg('externalLink', { size: 11 })} Canva`;
+    else if (urlLower.includes('notion.')) storageBadge = `${getIconSvg('externalLink', { size: 11 })} Notion`;
+    else if (urlLower.includes('github.')) storageBadge = `${getIconSvg('externalLink', { size: 11 })} GitHub`;
+    else storageBadge = `${getIconSvg('externalLink', { size: 11 })} Tautan Web`;
   } else if (isFile) {
-    storageBadge = `Berkas Unggah (${ver.fileName || 'PDF'}) 📥`;
+    storageBadge = `${getIconSvg('download', { size: 11 })} Berkas Unggah (${ver.fileName || 'PDF'})`;
   }
 
   const appliedCount = ver.appliedCount || 0;
@@ -244,11 +245,11 @@ function renderVersionRow(ver: DocumentVersion): string {
           <div class="version-title-row">
             ${
               ver.isDefault
-                ? `<span class="tag-badge" style="font-size: 10px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700; padding: 2px 6px;">⭐ Default</span>`
+                ? `<span class="tag-badge" style="font-size: 10px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700; padding: 2px 6px; display:inline-flex; align-items:center; gap:4px;">${getIconSvg('star', { size: 11 })} Default</span>`
                 : ''
             }
-            <span class="tag-badge" style="font-size: 11px; font-weight: 500; padding: 2px 8px;">
-              ${escapeHtml(storageBadge)}
+            <span class="tag-badge" style="font-size: 11px; font-weight: 500; padding: 2px 8px; display:inline-flex; align-items:center; gap:4px;">
+              ${storageBadge}
             </span>
             ${
               appliedCount > 0
@@ -269,8 +270,8 @@ function renderVersionRow(ver: DocumentVersion): string {
       <div class="version-node-actions">
         ${
           openUrl
-            ? `<a href="${openUrl}" ${isLink ? 'target="_blank" rel="noopener noreferrer"' : `download="${escapeHtml(ver.fileName || 'document.pdf')}"`} class="btn btn-secondary btn-xs" style="font-size: 11.5px; padding: 3px 9px;">
-                 ${isLink ? 'Buka ↗' : 'Unduh 📥'}
+            ? `<a href="${openUrl}" ${isLink ? 'target="_blank" rel="noopener noreferrer"' : `download="${escapeHtml(ver.fileName || 'document.pdf')}"`} class="btn btn-secondary btn-xs" style="font-size: 11.5px; padding: 3px 9px; display:inline-flex; align-items:center; gap:4px;">
+                 ${isLink ? `${getIconSvg('externalLink', { size: 12 })} Buka` : `${getIconSvg('download', { size: 12 })} Unduh`}
                </a>`
             : ''
         }
@@ -281,11 +282,11 @@ function renderVersionRow(ver: DocumentVersion): string {
                </button>`
             : ''
         }
-        <button type="button" class="btn btn-secondary btn-xs" data-edit-version="${ver.id}" title="Edit versi" style="font-size: 11px; padding: 3px 7px;">
-          ✎
+        <button type="button" class="btn btn-secondary btn-xs" data-edit-version="${ver.id}" title="Edit versi" style="font-size: 11px; padding: 3px 7px; display:inline-flex; align-items:center;">
+          ${getIconSvg('edit', { size: 11 })}
         </button>
-        <button type="button" class="btn btn-danger btn-xs" data-delete-version="${ver.id}" title="Hapus versi" style="font-size: 11px; padding: 3px 7px;">
-          ✕
+        <button type="button" class="btn btn-danger btn-xs" data-delete-version="${ver.id}" title="Hapus versi" style="font-size: 11px; padding: 3px 7px; display:inline-flex; align-items:center;">
+          ${getIconSvg('trash', { size: 11 })}
         </button>
       </div>
     </div>
@@ -406,7 +407,7 @@ function showAddDocumentDialog(container: HTMLElement): void {
   dialog.innerHTML = `
     <div class="modal-header">
       <h3 class="modal-title">Tambah Master Dokumen Baru</h3>
-      <button class="modal-close" data-close-dialog>✕</button>
+      <button class="modal-close" data-close-dialog>${getIconSvg('x', { size: 15 })}</button>
     </div>
     <form id="formAddDoc">
       <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px;">
@@ -419,10 +420,10 @@ function showAddDocumentDialog(container: HTMLElement): void {
           <div class="form-group">
             <label class="form-label">Kategori Dokumen</label>
             <select id="addDocCategory" class="form-select">
-              <option value="Resume">📄 Resume / CV</option>
-              <option value="CoverLetter">✉️ Cover Letter</option>
-              <option value="Portfolio">💼 Portofolio</option>
-              <option value="Other">📁 Dokumen Lain</option>
+              <option value="Resume">Resume / CV</option>
+              <option value="CoverLetter">Cover Letter</option>
+              <option value="Portfolio">Portofolio</option>
+              <option value="Other">Dokumen Lain</option>
             </select>
           </div>
           <div class="form-group">
@@ -511,12 +512,12 @@ function showAddDocumentDialog(container: HTMLElement): void {
     const file = addDocFileInput.files[0];
     if (file.size > MAX_FILE_SIZE_BYTES) {
       if (addDocFileHint) {
-        addDocFileHint.innerHTML = `<span style="color: #ef4444; font-weight: 600;">⚠️ File terlalu besar: ${formatBytes(file.size)} (Maks. ${MAX_FILE_SIZE_MB} MB)</span>`;
+        addDocFileHint.innerHTML = `<span style="color: #ef4444; font-weight: 600; display:inline-flex; align-items:center; gap:4px;">${getIconSvg('alert', { size: 13 })} File terlalu besar: ${formatBytes(file.size)} (Maks. ${MAX_FILE_SIZE_MB} MB)</span>`;
       }
       if (addDocSubmitBtn) addDocSubmitBtn.disabled = true;
     } else {
       if (addDocFileHint) {
-        addDocFileHint.innerHTML = `<span style="color: #10b981; font-weight: 500;">✓ ${file.name} (${formatBytes(file.size)} / maks ${MAX_FILE_SIZE_MB} MB)</span>`;
+        addDocFileHint.innerHTML = `<span style="color: #10b981; font-weight: 500; display:inline-flex; align-items:center; gap:4px;">${getIconSvg('checkCircle', { size: 13 })} ${escapeHtml(file.name)} (${formatBytes(file.size)} / maks ${MAX_FILE_SIZE_MB} MB)</span>`;
       }
       if (addDocSubmitBtn) addDocSubmitBtn.disabled = false;
     }
@@ -610,7 +611,7 @@ function showAddVersionDialog(container: HTMLElement, docId: string): void {
   dialog.innerHTML = `
     <div class="modal-header">
       <h3 class="modal-title">Tambah Versi Baru untuk "${escapeHtml(doc.title)}"</h3>
-      <button class="modal-close" data-close-dialog>✕</button>
+      <button class="modal-close" data-close-dialog>${getIconSvg('x', { size: 15 })}</button>
     </div>
     <form id="formAddVersion">
       <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px;">
@@ -698,12 +699,12 @@ function showAddVersionDialog(container: HTMLElement, docId: string): void {
     const file = verFileInputEl.files[0];
     if (file.size > MAX_FILE_SIZE_BYTES) {
       if (verFileHintEl) {
-        verFileHintEl.innerHTML = `<span style="color: #ef4444; font-weight: 600;">⚠️ File terlalu besar: ${formatBytes(file.size)} (Maks. ${MAX_FILE_SIZE_MB} MB)</span>`;
+        verFileHintEl.innerHTML = `<span style="color: #ef4444; font-weight: 600; display:inline-flex; align-items:center; gap:4px;">${getIconSvg('alert', { size: 13 })} File terlalu besar: ${formatBytes(file.size)} (Maks. ${MAX_FILE_SIZE_MB} MB)</span>`;
       }
       if (verSubmitBtnEl) verSubmitBtnEl.disabled = true;
     } else {
       if (verFileHintEl) {
-        verFileHintEl.innerHTML = `<span style="color: #10b981; font-weight: 500;">✓ ${file.name} (${formatBytes(file.size)} / maks ${MAX_FILE_SIZE_MB} MB)</span>`;
+        verFileHintEl.innerHTML = `<span style="color: #10b981; font-weight: 500; display:inline-flex; align-items:center; gap:4px;">${getIconSvg('checkCircle', { size: 13 })} ${escapeHtml(file.name)} (${formatBytes(file.size)} / maks ${MAX_FILE_SIZE_MB} MB)</span>`;
       }
       if (verSubmitBtnEl) verSubmitBtnEl.disabled = false;
     }
@@ -786,7 +787,7 @@ function showEditDocumentDialog(container: HTMLElement, docId: string): void {
   dialog.innerHTML = `
     <div class="modal-header">
       <h3 class="modal-title">Edit Master Dokumen</h3>
-      <button class="modal-close" data-close-dialog>✕</button>
+      <button class="modal-close" data-close-dialog>${getIconSvg('x', { size: 15 })}</button>
     </div>
     <form id="formEditDoc">
       <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px;">
@@ -797,10 +798,10 @@ function showEditDocumentDialog(container: HTMLElement, docId: string): void {
         <div class="form-group">
           <label class="form-label">Kategori Dokumen</label>
           <select id="editDocCategory" class="form-select">
-            <option value="Resume" ${doc.category === 'Resume' ? 'selected' : ''}>📄 Resume / CV</option>
-            <option value="CoverLetter" ${doc.category === 'CoverLetter' ? 'selected' : ''}>✉️ Cover Letter</option>
-            <option value="Portfolio" ${doc.category === 'Portfolio' ? 'selected' : ''}>💼 Portofolio</option>
-            <option value="Other" ${doc.category === 'Other' ? 'selected' : ''}>📁 Dokumen Lain</option>
+            <option value="Resume" ${doc.category === 'Resume' ? 'selected' : ''}>Resume / CV</option>
+            <option value="CoverLetter" ${doc.category === 'CoverLetter' ? 'selected' : ''}>Cover Letter</option>
+            <option value="Portfolio" ${doc.category === 'Portfolio' ? 'selected' : ''}>Portofolio</option>
+            <option value="Other" ${doc.category === 'Other' ? 'selected' : ''}>Dokumen Lain</option>
           </select>
         </div>
         <div class="form-group">
@@ -852,7 +853,7 @@ function showEditVersionDialog(container: HTMLElement, verId: string): void {
   dialog.innerHTML = `
     <div class="modal-header">
       <h3 class="modal-title">Edit Versi "${escapeHtml(version.versionName)}"</h3>
-      <button class="modal-close" data-close-dialog>✕</button>
+      <button class="modal-close" data-close-dialog>${getIconSvg('x', { size: 15 })}</button>
     </div>
     <form id="formEditVer">
       <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px;">
@@ -930,7 +931,7 @@ function showUsageDialog(version: DocumentVersion): void {
   dialog.innerHTML = `
     <div class="modal-header">
       <h3 class="modal-title">Riwayat Penggunaan "${escapeHtml(version.versionName)}"</h3>
-      <button class="modal-close" data-close-dialog>✕</button>
+      <button class="modal-close" data-close-dialog>${getIconSvg('x', { size: 15 })}</button>
     </div>
     <div class="modal-body">
       <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">

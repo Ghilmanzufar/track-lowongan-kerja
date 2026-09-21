@@ -1,4 +1,5 @@
 // JobTrack Types & Data Models based on FRD-FSD.md & architecture.md
+import { getIconSvg } from './utils/icons';
 
 export type ApplicationStage =
   | 'Saved'
@@ -128,37 +129,37 @@ export const FOLLOW_UP_STATUS_CONFIG: Record<
 > = {
   WaitingResponse: {
     label: 'Menunggu Respon',
-    icon: '⏳',
+    icon: getIconSvg('clock'),
     color: '#f59e0b',
     badgeClass: 'fu-status-waiting'
   },
   Replied: {
     label: 'Sudah Dibalas',
-    icon: '💬',
+    icon: getIconSvg('message'),
     color: '#10b981',
     badgeClass: 'fu-status-replied'
   },
   NoResponse: {
     label: 'Belum Ada Respon',
-    icon: '📭',
+    icon: getIconSvg('inbox'),
     color: '#64748b',
     badgeClass: 'fu-status-no-response'
   },
   InterviewScheduled: {
     label: 'Dijadwalkan Interview',
-    icon: '🎯',
+    icon: getIconSvg('target'),
     color: '#8b5cf6',
     badgeClass: 'fu-status-interview'
   }
 };
 
 export const CONTACT_METHOD_CONFIG: Record<string, { label: string; icon: string }> = {
-  Email: { label: 'Email', icon: '✉️' },
-  LinkedIn: { label: 'LinkedIn DM', icon: '💼' },
-  WhatsApp: { label: 'WhatsApp', icon: '💬' },
-  Phone: { label: 'Telepon', icon: '📞' },
-  Portal: { label: 'Job Portal / Website', icon: '🌐' },
-  Other: { label: 'Lainnya', icon: '📌' }
+  Email: { label: 'Email', icon: getIconSvg('mail') },
+  LinkedIn: { label: 'LinkedIn DM', icon: getIconSvg('briefcase') },
+  WhatsApp: { label: 'WhatsApp', icon: getIconSvg('message') },
+  Phone: { label: 'Telepon', icon: getIconSvg('phone') },
+  Portal: { label: 'Job Portal / Website', icon: getIconSvg('globe') },
+  Other: { label: 'Lainnya', icon: getIconSvg('pin') }
 };
 
 export interface Task {
@@ -458,21 +459,33 @@ export const STAGES_CONFIG: Record<ApplicationStage, StageConfig> = {
   }
 };
 
+export const ORDERED_STAGES: ApplicationStage[] = [
+  'Saved',
+  'ToApply',
+  'Applied',
+  'Screening',
+  'Interview',
+  'Offer',
+  'Accepted',
+  'Rejected',
+  'Withdrawn'
+];
+
 export const JOB_SOURCES_CONFIG: Record<
   JobSource,
   { label: string; icon: string; color: string }
 > = {
-  LinkedIn: { label: 'LinkedIn', icon: '💼', color: '#0077b5' },
-  JobStreet: { label: 'JobStreet', icon: '🔍', color: '#1c3f94' },
-  Glints: { label: 'Glints', icon: '🚀', color: '#e84545' },
-  Kalibrr: { label: 'Kalibrr', icon: '🎯', color: '#2ecc71' },
-  CompanyWebsite: { label: 'Website Perusahaan', icon: '🌐', color: '#3b82f6' },
-  Indeed: { label: 'Indeed', icon: '📋', color: '#2164f3' },
-  Referral: { label: 'Rekomendasi (Referral)', icon: '🤝', color: '#8b5cf6' },
-  Other: { label: 'Lainnya', icon: '📌', color: '#64748b' }
+  LinkedIn: { label: 'LinkedIn', icon: getIconSvg('briefcase'), color: '#0077b5' },
+  JobStreet: { label: 'JobStreet', icon: getIconSvg('search'), color: '#1c3f94' },
+  Glints: { label: 'Glints', icon: getIconSvg('rocket'), color: '#e84545' },
+  Kalibrr: { label: 'Kalibrr', icon: getIconSvg('target'), color: '#2ecc71' },
+  CompanyWebsite: { label: 'Website Perusahaan', icon: getIconSvg('globe'), color: '#3b82f6' },
+  Indeed: { label: 'Indeed', icon: getIconSvg('fileText'), color: '#2164f3' },
+  Referral: { label: 'Rekomendasi (Referral)', icon: getIconSvg('users'), color: '#8b5cf6' },
+  Other: { label: 'Lainnya', icon: getIconSvg('pin'), color: '#64748b' }
 };
 
-export type AppView = 'dashboard' | 'board' | 'list' | 'agenda' | 'analytics' | 'career-links' | 'documents' | 'trash' | 'application';
+export type AppView = 'dashboard' | 'board' | 'list' | 'agenda' | 'analytics' | 'career-links' | 'documents' | 'trash' | 'application' | 'stage';
 
 // ─── Master Document & Resume Vault ──────────────────────────────────
 
@@ -585,126 +598,126 @@ export const INDUSTRY_SECTORS: IndustrySectorDef[] = [
     key: 'Pertanian, Kehutanan, dan Perikanan',
     name: 'Pertanian, Kehutanan, dan Perikanan',
     shortName: 'Pertanian & Kehutanan',
-    icon: '🌾',
+    icon: getIconSvg('sprout'),
     description: 'Kelapa sawit, perkebunan, kehutanan, perikanan'
   },
   {
     key: 'Pertambangan dan Penggalian',
     name: 'Pertambangan dan Penggalian',
     shortName: 'Pertambangan & Energi',
-    icon: '⛏️',
+    icon: getIconSvg('pickaxe'),
     description: 'Minyak bumi, gas alam, batu bara, bijih logam, galian mineral'
   },
   {
     key: 'Industri Pengolahan / Manufaktur',
     name: 'Industri Pengolahan / Manufaktur',
     shortName: 'Manufaktur & Pengolahan',
-    icon: '🏭',
+    icon: getIconSvg('factory'),
     description: 'FMCG, otomotif, kimia, semen, makanan-minuman, tekstil, farmasi'
   },
   {
     key: 'Pengadaan Listrik, Gas, Uap/Air Panas, dan Udara Dingin',
     name: 'Pengadaan Listrik, Gas, Uap/Air Panas, dan Udara Dingin',
     shortName: 'Kelistrikan & Gas',
-    icon: '⚡',
+    icon: getIconSvg('zap'),
     description: 'Pembangkit listrik, transmisi, distribusi gas dan energi'
   },
   {
     key: 'Pengelolaan Air, Pengelolaan Air Limbah, Pengelolaan dan Daur Ulang Sampah, serta Aktivitas Remediasi',
     name: 'Pengelolaan Air, Pengelolaan Air Limbah, Pengelolaan dan Daur Ulang Sampah, serta Aktivitas Remediasi',
     shortName: 'Air & Pengelolaan Limbah',
-    icon: '♻️',
+    icon: getIconSvg('recycle'),
     description: 'Penyediaan air bersih, pengolahan limbah & daur ulang'
   },
   {
     key: 'Konstruksi',
     name: 'Konstruksi',
     shortName: 'Konstruksi & Sipil',
-    icon: '🏗️',
+    icon: getIconSvg('hardHat'),
     description: 'Gedung, jalan tol, pelabuhan, instalasi infrastruktur sipil khusus'
   },
   {
     key: 'Perdagangan Besar dan Eceran; Reparasi dan Perawatan Mobil dan Sepeda Motor',
     name: 'Perdagangan Besar dan Eceran; Reparasi dan Perawatan Mobil dan Sepeda Motor',
     shortName: 'Perdagangan & Ritel',
-    icon: '🛒',
+    icon: getIconSvg('shoppingCart'),
     description: 'Supermarket, minimarket, distributor, dealer & bengkel otomotif'
   },
   {
     key: 'Pengangkutan dan Pergudangan',
     name: 'Pengangkutan dan Pergudangan',
     shortName: 'Logistik & Transportasi',
-    icon: '🚚',
+    icon: getIconSvg('truck'),
     description: 'Transportasi darat, laut, udara, kurir, ekspedisi dan pergudangan'
   },
   {
     key: 'Penyediaan Akomodasi dan Penyediaan Makan Minum',
     name: 'Penyediaan Akomodasi dan Penyediaan Makan Minum',
     shortName: 'Perhotelan & F&B',
-    icon: '🍽️',
+    icon: getIconSvg('utensils'),
     description: 'Hotel, resor, restoran, kafe, katering'
   },
   {
     key: 'Informasi dan Komunikasi',
     name: 'Informasi dan Komunikasi',
     shortName: 'IT & Telekomunikasi',
-    icon: '💻',
+    icon: getIconSvg('cpu'),
     description: 'Software, internet portal, telekomunikasi, penyiaran'
   },
   {
     key: 'Aktivitas Keuangan dan Asuransi',
     name: 'Aktivitas Keuangan dan Asuransi',
     shortName: 'Keuangan & Perbankan',
-    icon: '💰',
+    icon: getIconSvg('dollar'),
     description: 'Perbankan, pasar modal, fintech, asuransi, modal ventura'
   },
   {
     key: 'Real Estat',
     name: 'Real Estat',
     shortName: 'Real Estat & Properti',
-    icon: '🏢',
+    icon: getIconSvg('building'),
     description: 'Pengembangan kawasan, perumahan, pengelolaan properti'
   },
   {
     key: 'Aktivitas Profesional, Ilmiah, dan Teknis',
     name: 'Aktivitas Profesional, Ilmiah, dan Teknis',
     shortName: 'Konsultan & Riset',
-    icon: '🔬',
+    icon: getIconSvg('microscope'),
     description: 'Konsultan manajemen, riset sains, hukum, akuntansi, arsitektur'
   },
   {
     key: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan, dan Penunjang Usaha Lainnya',
     name: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan, dan Penunjang Usaha Lainnya',
     shortName: 'Ketenagakerjaan & Karir',
-    icon: '🤝',
+    icon: getIconSvg('users'),
     description: 'Perekrutan tenaga kerja, job board, agen perjalanan, outsourcing'
   },
   {
     key: 'Administrasi Pemerintahan, Pertahanan, dan Jaminan Sosial Wajib',
     name: 'Administrasi Pemerintahan, Pertahanan, dan Jaminan Sosial Wajib',
     shortName: 'Pemerintahan & Lembaga',
-    icon: '🏛️',
+    icon: getIconSvg('landmark'),
     description: 'Kementerian RI, lembaga negara, pertahanan, BPJS'
   },
   {
     key: 'Pendidikan',
     name: 'Pendidikan',
     shortName: 'Pendidikan & Edukasi',
-    icon: '🎓',
+    icon: getIconSvg('graduationCap'),
     description: 'Sekolah, perguruan tinggi, bimbel, edutech'
   },
   {
     key: 'Aktivitas Kesehatan Manusia dan Aktivitas Sosial',
     name: 'Aktivitas Kesehatan Manusia dan Aktivitas Sosial',
     shortName: 'Kesehatan & Farmasi',
-    icon: '🏥',
+    icon: getIconSvg('hospital'),
     description: 'Rumah sakit, klinik, panti sosial, layanan kesehatan'
   },
   {
     key: 'Kesenian, Hiburan, dan Rekreasi',
     name: 'Kesenian, Hiburan, dan Rekreasi',
     shortName: 'Hiburan & Media Kreatif',
-    icon: '🎨',
+    icon: getIconSvg('palette'),
     description: 'Taman hiburan, produksi media kreatif, olahraga, rekreasi'
   }
 ];

@@ -2,6 +2,47 @@
 /* APPLICATION DETAIL MODAL & TABS           */
 /* ========================================= */
 
+/* Sub-header Bar in Detail Modal */
+.detail-modal-subbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 18px;
+  background-color: var(--bg-subtle);
+  border-bottom: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.detail-modal-subbar-stage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-modal-subbar-stage .form-select {
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 4px 28px 4px 10px;
+  min-width: 155px;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+@media (max-width: 640px) {
+  .detail-modal-subbar {
+    padding: 8px 14px;
+    gap: 8px;
+  }
+  .detail-modal-subbar-stage .form-select {
+    min-width: 135px;
+    font-size: 12px;
+  }
+}
+
 /* Detail Modal Tab System */
 .detail-tabs {
   display: flex;
@@ -312,12 +353,16 @@
 /* ========================================= */
 
 .app-detail-page {
+  width: 100%;
   max-width: 1080px;
   margin: 0 auto;
   padding: 10px 16px 40px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  min-width: 0;
 }
 
 .app-detail-top-nav {
@@ -326,6 +371,8 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .app-detail-breadcrumb {
@@ -335,6 +382,8 @@
   font-size: 12.5px;
   color: var(--text-secondary);
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .app-detail-crumb-sep {
@@ -344,12 +393,16 @@
 .app-detail-crumb-parent {
   font-weight: 600;
   color: var(--text-secondary);
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .app-detail-crumb-current {
   font-weight: 700;
   color: var(--text-primary);
-  max-width: 320px;
+  max-width: 240px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -359,6 +412,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .app-detail-hero-card {
@@ -372,6 +426,10 @@
   flex-wrap: wrap;
   gap: 16px;
   box-shadow: var(--shadow-sm);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .app-detail-hero-main {
@@ -380,6 +438,8 @@
   gap: 16px;
   flex: 1;
   min-width: 280px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .app-detail-avatar {
@@ -401,17 +461,23 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .app-detail-company-sub {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
+  word-break: break-word;
 }
 
 .app-detail-hero-title {
@@ -420,6 +486,8 @@
   color: var(--text-primary);
   margin: 0;
   line-height: 1.25;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .app-detail-meta-pills {
@@ -428,6 +496,8 @@
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 6px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .app-detail-meta-pills .badge-pill {
@@ -441,6 +511,9 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  max-width: 100%;
+  box-sizing: border-box;
+  word-break: break-word;
 }
 
 .app-detail-meta-pills .badge-salary {
@@ -468,24 +541,311 @@
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
   min-width: 240px;
+  box-sizing: border-box;
 }
 
 .app-detail-tabs-bar {
   border-radius: var(--radius-md) var(--radius-md) 0 0;
   border: 1px solid var(--border-color);
   border-bottom: none;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.app-detail-tabs-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.app-detail-body {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  padding: 20px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+  min-width: 0;
+  height: auto;
+}
+
+/* Task Item Card System (TugasTab) */
+.task-item-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  box-sizing: border-box;
+  width: 100%;
+  gap: 10px;
+}
+
+.task-item-card.is-overdue {
+  border-left: 3px solid var(--accent-red);
+}
+
+.task-item-card-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.task-item-card-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-item-card-title {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--text-primary);
+  word-break: break-word;
+  overflow-wrap: break-word;
+  display: block;
+}
+
+.task-item-card-actions {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.task-item-edit-form {
+  padding: 10px;
+  border: 1px solid var(--accent-blue);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.task-item-edit-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.task-edit-input-due {
+  flex: 1.5;
+  min-width: 140px;
+}
+
+.task-edit-select-priority {
+  flex: 1;
+  min-width: 100px;
+}
+
+.task-edit-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.app-detail-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px 18px;
+  font-size: 13px;
+  background-color: var(--bg-surface);
+  padding: 18px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 @media (max-width: 768px) {
   .app-detail-hero-card {
     flex-direction: column;
+    padding: 14px;
+    gap: 12px;
+  }
+  .app-detail-hero-main {
+    min-width: 0;
+    width: 100%;
   }
   .app-detail-hero-stage {
-    width: 100%;
-    min-width: 100%;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+  }
+  .app-detail-hero-stage select {
+    width: 100% !important;
+    min-width: 0 !important;
   }
   .app-detail-hero-title {
     font-size: 17px;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-detail-info-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .app-detail-info-grid > div[style*="grid-column: span 2"] {
+    grid-column: span 1 !important;
+  }
+
+  .app-detail-page {
+    padding: 8px 10px 30px;
+    gap: 10px;
+  }
+
+  .app-detail-top-nav {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .app-detail-breadcrumb {
+    flex-wrap: nowrap;
+    overflow: hidden;
+    font-size: 11px;
+    gap: 4px;
+  }
+
+  .app-detail-crumb-parent {
+    max-width: 85px;
+  }
+
+  .app-detail-crumb-current {
+    max-width: 110px;
+  }
+
+  .app-detail-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .app-detail-actions .btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 11.5px;
+    padding: 6px 8px;
+  }
+
+  .app-detail-hero-card {
+    padding: 12px 10px;
+    gap: 10px;
+  }
+
+  .app-detail-hero-main {
+    min-width: 0;
+    gap: 10px;
+  }
+
+  .app-detail-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .app-detail-hero-title {
+    font-size: 15.5px;
+  }
+
+  .app-detail-body {
+    padding: 12px 10px;
+  }
+
+  .detail-tabs {
+    padding: 0 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .detail-tab-btn {
+    padding: 8px 8px;
+    font-size: 11px;
+  }
+
+  .detail-pipeline-stepper {
+    padding: 8px 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .detail-pipeline-stepper::before {
+    min-width: 450px;
+    top: 20px;
+  }
+
+  .stepper-step {
+    min-width: 56px;
+    flex-shrink: 0;
+  }
+
+  .stepper-label {
+    font-size: 10px;
+  }
+
+  .task-item-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .task-item-card-actions {
+    justify-content: flex-end;
+    border-top: 1px solid var(--border-color);
+    padding-top: 8px;
+    margin-top: 2px;
+    width: 100%;
+  }
+
+  .task-item-edit-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .task-edit-input-due,
+  .task-edit-select-priority {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .task-edit-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .task-edit-actions .btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  body[data-current-view="application"] .view-container {
+    display: block;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body[data-current-view="application"] .app-footer {
+    margin-top: 32px;
+    position: static;
   }
 }
 

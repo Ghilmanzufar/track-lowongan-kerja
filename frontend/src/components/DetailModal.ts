@@ -13,6 +13,7 @@ import { escapeHtml } from '../utils';
 import { showConfirmDialog } from './Dialog';
 import { toast, parseNotesData } from './detail/shared';
 import { renderRingkasanTab, resetRingkasanState, isRingkasanEditing } from './detail/RingkasanTab';
+import { getIconSvg } from '../utils/icons';
 
 export type { NoteRevision, NoteItem, NoteAuditEntry, NotesData } from './detail/shared';
 export { parseNotesData } from './detail/shared';
@@ -76,13 +77,21 @@ async function renderDetailContent(dialog: HTMLDialogElement, item: ApplicationI
   const headerStageSelect = dialog.querySelector<HTMLSelectElement>('#detailHeaderStage')!;
 
   headerTitle.innerHTML = `
-    <div style="font-size: 11.5px; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.5px;">
-      ${escapeHtml(item.company.name)}
+    <div style="font-size: 11.5px; text-transform: uppercase; color: var(--text-secondary); font-weight: 600; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px;">
+      <span>${escapeHtml(item.company.name)}</span>
+      ${item.company.industry ? `<span style="color: var(--border-strong);">•</span> <span style="text-transform: none; color: var(--text-muted); font-weight: 500;">${escapeHtml(item.company.industry)}</span>` : ''}
     </div>
-    <div style="font-size: 15.5px; font-weight: 700; color: var(--text-primary); line-height: 1.2;">
+    <div style="font-size: 16px; font-weight: 700; color: var(--text-primary); line-height: 1.25; margin-top: 2px;">
       ${escapeHtml(item.jobPosting.title)}
     </div>
   `;
+
+  // Dynamic border & font color based on current stage
+  const currentStageConfig = STAGES_CONFIG[item.application.stage];
+  if (currentStageConfig) {
+    headerStageSelect.style.borderColor = `${currentStageConfig.color}70`;
+    headerStageSelect.style.color = currentStageConfig.color;
+  }
 
   // Populate Stage Dropdown
   const stages: ApplicationStage[] = [
@@ -132,6 +141,15 @@ async function renderDetailContent(dialog: HTMLDialogElement, item: ApplicationI
     }
   };
 
+  // Wire up full-page button in sub-header
+  const btnOpenFull = dialog.querySelector<HTMLButtonElement>('#detailBtnOpenFullPage');
+  if (btnOpenFull) {
+    btnOpenFull.onclick = () => {
+      closeDetailModal();
+      window.location.hash = `application/${item.application.id}`;
+    };
+  }
+
   // Render Ringkasan Content into body
   const bodyEl = dialog.querySelector<HTMLElement>('#detailBody')!;
   const rerender = async () => {
@@ -156,12 +174,12 @@ async function renderDetailContent(dialog: HTMLDialogElement, item: ApplicationI
       const historyCount = (item.activities || []).length;
 
       const footerTabs: { key: TabKey; label: string; icon: string; count?: number }[] = [
-        { key: 'tugas', label: 'Tugas', icon: '📋', count: openTasksCount },
-        { key: 'dokumen', label: 'Dokumen', icon: '📁', count: docsCount },
-        { key: 'kontak', label: 'Kontak', icon: '👤', count: contactsCount },
-        { key: 'catatan', label: 'Catatan', icon: '📝', count: notesCount },
-        { key: 'interview_prep', label: 'Wawancara', icon: '🎯', count: interviewsCount },
-        { key: 'riwayat', label: 'Riwayat', icon: '🕒', count: historyCount }
+        { key: 'tugas', label: 'Tugas', icon: getIconSvg('clipboard', { size: 14 }), count: openTasksCount },
+        { key: 'dokumen', label: 'Dokumen', icon: getIconSvg('folder', { size: 14 }), count: docsCount },
+        { key: 'kontak', label: 'Kontak', icon: getIconSvg('users', { size: 14 }), count: contactsCount },
+        { key: 'catatan', label: 'Catatan', icon: getIconSvg('fileText', { size: 14 }), count: notesCount },
+        { key: 'interview_prep', label: 'Wawancara', icon: getIconSvg('target', { size: 14 }), count: interviewsCount },
+        { key: 'riwayat', label: 'Riwayat', icon: getIconSvg('clock', { size: 14 }), count: historyCount }
       ];
 
       footerNav.innerHTML = `

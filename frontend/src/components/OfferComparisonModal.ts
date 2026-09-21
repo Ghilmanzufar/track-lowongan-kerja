@@ -3,6 +3,7 @@
 
 import { store } from '../services/store';
 import { escapeHtml, formatSalary } from '../utils';
+import { getIconSvg } from '../utils/icons';
 
 export class OfferComparisonModal {
   private static instance: OfferComparisonModal | null = null;
@@ -58,13 +59,13 @@ export class OfferComparisonModal {
         <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background-color: var(--bg-surface);">
           <div>
             <h2 style="font-size: 16px; font-weight: 700; margin: 0 0 2px 0; display: flex; align-items: center; gap: 8px;">
-              <span>⚖️</span> Kalkulator Komparasi Penawaran & Gaji
+              <span>${getIconSvg('scale', { size: 18 })}</span> Kalkulator Komparasi Penawaran & Gaji
             </h2>
             <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">
               Bandingkan penawaran kerja, benefit, fleksibilitas kerja, dan estimasi take-home pay berdampingan.
             </p>
           </div>
-          <button type="button" class="btn btn-secondary btn-icon" id="btnCloseOfferModal" style="border-radius: 50%; width: 32px; height: 32px;">✕</button>
+          <button type="button" class="btn btn-secondary btn-icon" id="btnCloseOfferModal" style="border-radius: 50%; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">${getIconSvg('x', { size: 16 })}</button>
         </div>
 
         <!-- Modal Body -->
@@ -174,8 +175,8 @@ export class OfferComparisonModal {
                       if (item.application.expectedSalary) score += 10;
                       return `
                         <td>
-                          <span class="comparison-score-badge ${score >= 85 ? 'score-high' : 'score-med'}">
-                            ★ Skor Rekomendasi: ${score}/100
+                          <span class="comparison-score-badge ${score >= 85 ? 'score-high' : 'score-med'}" style="display:inline-flex; align-items:center; gap:4px;">
+                            ${getIconSvg('star', { size: 12 })} Skor Rekomendasi: ${score}/100
                           </span>
                         </td>
                       `;

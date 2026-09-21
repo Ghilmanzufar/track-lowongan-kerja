@@ -7,6 +7,7 @@ import { store } from '../../services/store';
 import { escapeHtml, formatDateTimeWIB } from '../../utils';
 import { generateInterviewGoogleCalendarUrl, downloadInterviewIcsFile } from '../../utils/calendar';
 import { toast } from './shared';
+import { getIconSvg } from '../../utils/icons';
 
 let activeRoundId: string | null = null;
 let activeSubTab: 'schedule' | 'prep' | 'questions' | 'star' | 'notes' | 'evaluation' | 'followup' = 'schedule';
@@ -69,7 +70,7 @@ export function renderWawancaraTab(
     container.innerHTML = `
       <div class="wawancara-container">
         <div style="text-align: center; padding: 36px 20px; background-color: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: var(--radius-sm);">
-          <div style="font-size: 38px; margin-bottom: 12px;">🎯</div>
+          <div style="display: flex; justify-content: center; margin-bottom: 12px;">${getIconSvg('target', { size: 36 })}</div>
           <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary);">
             Belum Ada Sesi Wawancara Tercatat
           </h3>
@@ -77,11 +78,11 @@ export function renderWawancaraTab(
             Lacak seluruh tahapan wawancara Anda di <strong>${escapeHtml(item.company.name)}</strong> secara terstruktur: Jadwal, Pewawancara, Persiapan STAR, Catatan Sesi, Evaluasi, hingga Sinkronisasi ke Agenda & Kalender.
           </p>
           <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-            <button class="btn btn-primary" id="btnInitTechnicalInterview" type="button">
-              💻 Tambah Wawancara Technical
+            <button class="btn btn-primary" id="btnInitTechnicalInterview" type="button" style="display: inline-flex; align-items: center; gap: 6px;">
+              ${getIconSvg('code', { size: 13 })} Tambah Wawancara Technical
             </button>
-            <button class="btn btn-secondary" id="btnInitHrInterview" type="button">
-              👥 Tambah Wawancara HR
+            <button class="btn btn-secondary" id="btnInitHrInterview" type="button" style="display: inline-flex; align-items: center; gap: 6px;">
+              ${getIconSvg('users', { size: 13 })} Tambah Wawancara HR
             </button>
           </div>
         </div>
@@ -133,11 +134,11 @@ export function renderWawancaraTab(
                 ${escapeHtml(currentInterview.roundTitle)}
               </h3>
               <select id="ivStatusSelect" class="form-control" style="font-size: 11.5px; padding: 2px 6px; width: auto; font-weight: 600;">
-                <option value="Scheduled" ${currentInterview.status === 'Scheduled' ? 'selected' : ''}>📅 Terjadwal (Scheduled)</option>
-                <option value="Completed" ${currentInterview.status === 'Completed' ? 'selected' : ''}>⏳ Selesai (Completed)</option>
-                <option value="Passed" ${currentInterview.status === 'Passed' ? 'selected' : ''}>✅ Lolos (Passed)</option>
-                <option value="Failed" ${currentInterview.status === 'Failed' ? 'selected' : ''}>❌ Tidak Lolos (Failed)</option>
-                <option value="Cancelled" ${currentInterview.status === 'Cancelled' ? 'selected' : ''}>🚫 Dibatalkan (Cancelled)</option>
+                <option value="Scheduled" ${currentInterview.status === 'Scheduled' ? 'selected' : ''}>Terjadwal (Scheduled)</option>
+                <option value="Completed" ${currentInterview.status === 'Completed' ? 'selected' : ''}>Selesai (Completed)</option>
+                <option value="Passed" ${currentInterview.status === 'Passed' ? 'selected' : ''}>Lolos (Passed)</option>
+                <option value="Failed" ${currentInterview.status === 'Failed' ? 'selected' : ''}>Tidak Lolos (Failed)</option>
+                <option value="Cancelled" ${currentInterview.status === 'Cancelled' ? 'selected' : ''}>Dibatalkan (Cancelled)</option>
               </select>
             </div>
             <p style="font-size: 12px; color: var(--text-secondary); margin: 3px 0 0 0;">
@@ -149,15 +150,15 @@ export function renderWawancaraTab(
 
         <div class="interview-banner-actions">
           ${currentInterview.meetingLink ? `
-            <a href="${escapeHtml(currentInterview.meetingLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="color: var(--primary); font-weight: 600;">
-              🚀 Buka Link Meeting
+            <a href="${escapeHtml(currentInterview.meetingLink)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="color: var(--primary); font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+              ${getIconSvg('externalLink', { size: 13 })} Buka Link Meeting
             </a>
           ` : ''}
-          <button class="btn btn-primary btn-sm" id="btnSaveInterviewDetails" type="button">
-            💾 Simpan Sesi
+          <button class="btn btn-primary btn-sm" id="btnSaveInterviewDetails" type="button" style="display: inline-flex; align-items: center; gap: 5px;">
+            ${getIconSvg('save', { size: 13 })} Simpan Sesi
           </button>
-          <button class="btn btn-danger btn-sm" id="btnDeleteInterviewRound" type="button" title="Hapus sesi wawancara ini">
-            🗑️
+          <button class="btn btn-danger btn-sm" id="btnDeleteInterviewRound" type="button" title="Hapus sesi wawancara ini" aria-label="Hapus sesi" style="display: inline-flex; align-items: center;">
+            ${getIconSvg('trash', { size: 13 })}
           </button>
         </div>
       </div>
@@ -166,7 +167,7 @@ export function renderWawancaraTab(
       <div class="agenda-sync-hub">
         <div class="agenda-sync-header">
           <div class="agenda-sync-title">
-            <span>🔗</span> Integrasi Agenda & Kalender JobTrack
+            <span>${getIconSvg('link', { size: 14 })}</span> Integrasi Agenda & Kalender JobTrack
           </div>
           <div class="agenda-sync-flow">
             <span>Interview (${currentInterview.type})</span>
@@ -183,21 +184,21 @@ export function renderWawancaraTab(
               ? `Terkoneksi ke <strong>${linkedTasks.length} tugas</strong> di Agenda & Kalender:`
               : 'Belum terhubung dengan pengingat tugas di Agenda.'}
             ${linkedTasks.map(t => `
-              <span style="display: inline-block; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xs); padding: 1px 6px; margin-left: 4px; font-size: 11px;">
-                ${t.status === 'Done' ? '✅' : '⏳'} ${escapeHtml(t.title)} (${formatDateTimeWIB(t.dueDate)})
+              <span style="display: inline-flex; align-items: center; gap: 4px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xs); padding: 1px 6px; margin-left: 4px; font-size: 11px;">
+                ${t.status === 'Done' ? getIconSvg('check', { size: 11 }) : getIconSvg('clock', { size: 11 })} ${escapeHtml(t.title)} (${formatDateTimeWIB(t.dueDate)})
               </span>
             `).join('')}
           </div>
 
           <div class="agenda-sync-actions">
-            <button class="btn btn-secondary btn-sm" id="btnSyncAgendaTasks" type="button" style="font-size: 11.5px; font-weight: 600;">
-              ⚡ Sinkronkan ke Agenda (Sesi & Persiapan)
+            <button class="btn btn-secondary btn-sm" id="btnSyncAgendaTasks" type="button" style="font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+              ${getIconSvg('zap', { size: 12 })} Sinkronkan ke Agenda (Sesi & Persiapan)
             </button>
-            <a href="${generateInterviewGoogleCalendarUrl(currentInterview, item)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="font-size: 11.5px;">
-              📅 Google Calendar
+            <a href="${generateInterviewGoogleCalendarUrl(currentInterview, item)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;">
+              ${getIconSvg('calendar', { size: 12 })} Google Calendar
             </a>
-            <button class="btn btn-secondary btn-sm" id="btnDownloadIcs" type="button" style="font-size: 11.5px;">
-              📥 .ICS
+            <button class="btn btn-secondary btn-sm" id="btnDownloadIcs" type="button" style="font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;">
+              ${getIconSvg('download', { size: 12 })} .ICS
             </button>
           </div>
         </div>
@@ -206,25 +207,25 @@ export function renderWawancaraTab(
       <!-- Inner Navigation Sub-tabs -->
       <div class="wawancara-subtabs">
         <button class="wawancara-subtab-btn ${activeSubTab === 'schedule' ? 'active' : ''}" data-subtab="schedule" type="button">
-          🕒 Jadwal & Pewawancara
+          ${getIconSvg('clock', { size: 13 })} Jadwal & Pewawancara
         </button>
         <button class="wawancara-subtab-btn ${activeSubTab === 'prep' ? 'active' : ''}" data-subtab="prep" type="button">
-          📋 Persiapan & Riset
+          ${getIconSvg('clipboard', { size: 13 })} Persiapan & Riset
         </button>
         <button class="wawancara-subtab-btn ${activeSubTab === 'questions' ? 'active' : ''}" data-subtab="questions" type="button">
-          ❓ Pertanyaan & Q&A
+          ${getIconSvg('helpCircle', { size: 13 })} Pertanyaan & Q&A
         </button>
         <button class="wawancara-subtab-btn ${activeSubTab === 'star' ? 'active' : ''}" data-subtab="star" type="button">
-          ⭐ Jawaban STAR
+          ${getIconSvg('star', { size: 13 })} Jawaban STAR
         </button>
         <button class="wawancara-subtab-btn ${activeSubTab === 'notes' ? 'active' : ''}" data-subtab="notes" type="button">
-          📝 Catatan Sesi
+          ${getIconSvg('fileText', { size: 13 })} Catatan Sesi
         </button>
         <button class="wawancara-subtab-btn ${activeSubTab === 'evaluation' ? 'active' : ''}" data-subtab="evaluation" type="button">
-          📊 Evaluasi
+          ${getIconSvg('barChart', { size: 13 })} Evaluasi
         </button>
         <button class="wawancara-subtab-btn ${activeSubTab === 'followup' ? 'active' : ''}" data-subtab="followup" type="button">
-          ✉️ Follow-up
+          ${getIconSvg('mail', { size: 13 })} Follow-up
         </button>
       </div>
 
@@ -269,8 +270,8 @@ function renderScheduleSubTab(interview: InterviewItem): string {
       <!-- Row 1: Schedule & Meeting Info -->
       <div class="interview-section-card">
         <div class="interview-section-header">
-          <div class="interview-section-title">
-            <span>📅</span> Detail Jadwal & Platform Pertemuan
+          <div class="interview-section-title" style="display: flex; align-items: center; gap: 6px;">
+            <span>${getIconSvg('calendar', { size: 14 })}</span> Detail Jadwal & Platform Pertemuan
           </div>
         </div>
         <div class="interview-two-col">
@@ -310,8 +311,8 @@ function renderScheduleSubTab(interview: InterviewItem): string {
       <!-- Row 2: Interviewer Info -->
       <div class="interview-section-card">
         <div class="interview-section-header">
-          <div class="interview-section-title">
-            <span>👤</span> Profil Pewawancara (Interviewer)
+          <div class="interview-section-title" style="display: flex; align-items: center; gap: 6px;">
+            <span>${getIconSvg('user', { size: 14 })}</span> Profil Pewawancara (Interviewer)
           </div>
         </div>
         <div class="interview-two-col">
@@ -351,8 +352,8 @@ function renderPrepSubTab(interview: InterviewItem): string {
       <!-- Checklist -->
       <div class="interview-section-card">
         <div class="interview-section-header">
-          <div class="interview-section-title">
-            <span>📋</span> Checklist Kesiapan Sesi (${interview.type})
+          <div class="interview-section-title" style="display: flex; align-items: center; gap: 6px;">
+            <span>${getIconSvg('clipboard', { size: 14 })}</span> Checklist Kesiapan Sesi (${interview.type})
           </div>
           <span style="font-size: 11.5px; color: var(--text-muted); font-weight: 600;" id="prepCountBadge">
             ${completedList.length} / ${DEFAULT_PREP_CHECKLIST.length} Selesai
@@ -374,14 +375,14 @@ function renderPrepSubTab(interview: InterviewItem): string {
       <!-- Research Notes -->
       <div class="interview-two-col">
         <div class="interview-section-card">
-          <div class="interview-section-title" style="margin-bottom: 8px;">
-            <span>🏢</span> Catatan Riset Bisnis & Produk
+          <div class="interview-section-title" style="margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+            <span>${getIconSvg('building', { size: 14 })}</span> Catatan Riset Bisnis & Produk
           </div>
           <textarea id="ivCompanyNotesInput" class="form-control" style="min-height: 120px; font-size: 12px; resize: vertical;" placeholder="Profil produk, model bisnis, target pasar, berita terbaru...">${escapeHtml(prep.companyNotes || '')}</textarea>
         </div>
         <div class="interview-section-card">
-          <div class="interview-section-title" style="margin-bottom: 8px;">
-            <span>🛠️</span> Fokus Teknis & Tech Stack
+          <div class="interview-section-title" style="margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+            <span>${getIconSvg('tools', { size: 14 })}</span> Fokus Teknis & Tech Stack
           </div>
           <textarea id="ivTechNotesInput" class="form-control" style="min-height: 120px; font-size: 12px; resize: vertical;" placeholder="Tech stack utama yang digunakan, best practices, dan materi yang perlu direview...">${escapeHtml(prep.techStackNotes || '')}</textarea>
         </div>
@@ -412,8 +413,8 @@ function renderQuestionsSubTab(interview: InterviewItem): string {
       <!-- Predicted Questions -->
       <div class="interview-section-card">
         <div class="interview-section-header">
-          <div class="interview-section-title">
-            <span>🎯</span> Prediksi Pertanyaan & Poin Kunci Jawaban
+          <div class="interview-section-title" style="display: flex; align-items: center; gap: 6px;">
+            <span>${getIconSvg('target', { size: 14 })}</span> Prediksi Pertanyaan & Poin Kunci Jawaban
           </div>
           <button class="btn btn-secondary btn-sm" id="btnAddPredictedQuestion" type="button" style="font-size: 11.5px;">
             + Tambah Pertanyaan
@@ -424,7 +425,7 @@ function renderQuestionsSubTab(interview: InterviewItem): string {
             <div class="question-item-card" data-idx="${idx}">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <input type="text" class="form-control q-title-input" value="${escapeHtml(item.question)}" placeholder="Tuliskan pertanyaan..." style="font-weight: 600; font-size: 12.5px;" />
-                <button type="button" class="btn btn-sm btnDeletePredictedQ" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px;" title="Hapus">✕</button>
+                <button type="button" class="btn btn-sm btnDeletePredictedQ" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px;" title="Hapus" aria-label="Hapus">${getIconSvg('x', { size: 13 })}</button>
               </div>
               <textarea class="form-control q-answer-input" style="min-height: 54px; font-size: 12px;" placeholder="Poin-poin jawaban yang ingin Anda sampaikan...">${escapeHtml(item.answerNotes || '')}</textarea>
             </div>
@@ -435,8 +436,8 @@ function renderQuestionsSubTab(interview: InterviewItem): string {
       <!-- Questions to Ask the Interviewer -->
       <div class="interview-section-card">
         <div class="interview-section-header">
-          <div class="interview-section-title">
-            <span>❓</span> Pertanyaan untuk Pewawancara (Reverse Interview)
+          <div class="interview-section-title" style="display: flex; align-items: center; gap: 6px;">
+            <span>${getIconSvg('helpCircle', { size: 14 })}</span> Pertanyaan untuk Pewawancara (Reverse Interview)
           </div>
         </div>
         <p style="font-size: 11.5px; color: var(--text-secondary); margin: 0 0 8px 0;">
@@ -484,7 +485,7 @@ function renderStarSubTab(interview: InterviewItem): string {
           <div class="star-story-card" data-idx="${idx}">
             <div class="star-story-header">
               <input type="text" class="form-control star-title-input" value="${escapeHtml(s.title)}" placeholder="Judul Topik Cerita (misal: Penanganan Insiden DB, Redesign UI)..." style="font-weight: 700; font-size: 13px; max-width: 80%;" />
-              ${stories.length > 1 ? `<button type="button" class="btn btn-sm btnDeleteStarStory" style="background:none; border:none; color:var(--text-muted); cursor:pointer;" title="Hapus Cerita">🗑️ Hapus</button>` : ''}
+              ${stories.length > 1 ? `<button type="button" class="btn btn-sm btnDeleteStarStory" style="background:none; border:none; color:var(--text-muted); cursor:pointer; display:inline-flex; align-items:center; gap:4px;" title="Hapus Cerita">${getIconSvg('trash', { size: 12 })} Hapus</button>` : ''}
             </div>
             <div class="star-grid">
               <div class="star-box">
@@ -517,7 +518,7 @@ function renderNotesSubTab(interview: InterviewItem): string {
     <div class="interview-section-card">
       <div class="interview-section-header">
         <div class="interview-section-title">
-          <span>📝</span> Catatan Langsung Selama & Pasca Wawancara
+          <span>${getIconSvg('fileText', { size: 14 })}</span> Catatan Langsung Selama & Pasca Wawancara
         </div>
       </div>
       <p style="font-size: 11.5px; color: var(--text-secondary); margin: 0 0 10px 0;">
@@ -541,7 +542,7 @@ function renderEvaluationSubTab(interview: InterviewItem): string {
       <div class="interview-section-card">
         <div class="interview-section-header">
           <div class="interview-section-title">
-            <span>📊</span> Evaluasi Mandiri Performa Wawancara
+            <span>${getIconSvg('barChart', { size: 14 })}</span> Evaluasi Mandiri Performa Wawancara
           </div>
         </div>
 
@@ -551,7 +552,7 @@ function renderEvaluationSubTab(interview: InterviewItem): string {
             <div class="star-rating-selector" id="evaluationRatingSelector">
               ${[1, 2, 3, 4, 5].map((num) => `
                 <button type="button" class="star-rating-btn ${num <= currentRating ? 'active' : ''}" data-val="${num}">
-                  ★
+                  ${getIconSvg('star', { size: 14 })}
                 </button>
               `).join('')}
               <span style="font-size: 12px; font-weight: 600; margin-left: 8px; color: var(--text-primary);" id="ratingValueLabel">
@@ -564,9 +565,9 @@ function renderEvaluationSubTab(interview: InterviewItem): string {
           <div>
             <label class="form-label" style="font-size: 11.5px; font-weight: 600;">Tingkat Kesulitan Wawancara</label>
             <select id="ivDifficultySelect" class="form-control">
-              <option value="Easy" ${ev.difficulty === 'Easy' ? 'selected' : ''}>🟢 Mudah (Easy) — Sesuai ekspektasi</option>
-              <option value="Medium" ${ev.difficulty === 'Medium' || !ev.difficulty ? 'selected' : ''}>🟡 Sedang (Medium) — Cukup menantang</option>
-              <option value="Hard" ${ev.difficulty === 'Hard' ? 'selected' : ''}>🔴 Sulit (Hard) — Banyak pertanyaan mendalam</option>
+              <option value="Easy" ${ev.difficulty === 'Easy' ? 'selected' : ''}>Mudah (Easy) — Sesuai ekspektasi</option>
+              <option value="Medium" ${ev.difficulty === 'Medium' || !ev.difficulty ? 'selected' : ''}>Sedang (Medium) — Cukup menantang</option>
+              <option value="Hard" ${ev.difficulty === 'Hard' ? 'selected' : ''}>Sulit (Hard) — Banyak pertanyaan mendalam</option>
             </select>
           </div>
         </div>
@@ -614,7 +615,7 @@ Salam hangat,
       <div class="interview-section-card">
         <div class="interview-section-header">
           <div class="interview-section-title">
-            <span>✉️</span> Follow-up & Thank-You Note Template
+            <span>${getIconSvg('mail', { size: 14 })}</span> Follow-up & Thank-You Note Template
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
             <label style="font-size: 11.5px; color: var(--text-secondary); font-weight: 600;">Status:</label>
@@ -635,11 +636,11 @@ Salam hangat,
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-          <button class="btn btn-secondary btn-sm" id="btnCopyThankYouNote" type="button">
-            📋 Salin Pesan ke Clipboard
+          <button class="btn btn-secondary btn-sm" id="btnCopyThankYouNote" type="button" style="display:inline-flex; align-items:center; gap:6px;">
+            ${getIconSvg('clipboard', { size: 13 })} Salin Pesan ke Clipboard
           </button>
-          <button class="btn btn-primary btn-sm" id="btnCreateFollowUpReminder" type="button">
-            ⏰ Buat Pengingat Follow-up di Agenda (H+1)
+          <button class="btn btn-primary btn-sm" id="btnCreateFollowUpReminder" type="button" style="display:inline-flex; align-items:center; gap:6px;">
+            ${getIconSvg('clock', { size: 13 })} Buat Pengingat Follow-up di Agenda (H+1)
           </button>
         </div>
       </div>
@@ -791,7 +792,7 @@ function attachSubTabSpecificListeners(
     card.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
         <input type="text" class="form-control q-title-input" value="" placeholder="Tuliskan pertanyaan prediksi..." style="font-weight: 600; font-size: 12.5px;" />
-        <button type="button" class="btn btn-sm btnDeletePredictedQ" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px;" title="Hapus">✕</button>
+        <button type="button" class="btn btn-sm btnDeletePredictedQ" style="background:none; border:none; color:var(--text-muted); cursor:pointer; display:inline-flex; align-items:center;" title="Hapus">${getIconSvg('x', { size: 14 })}</button>
       </div>
       <textarea class="form-control q-answer-input" style="min-height: 54px; font-size: 12px;" placeholder="Poin-poin jawaban yang ingin Anda sampaikan..."></textarea>
     `;
@@ -814,7 +815,7 @@ function attachSubTabSpecificListeners(
     card.innerHTML = `
       <div class="star-story-header">
         <input type="text" class="form-control star-title-input" value="Cerita Pengalaman #${count + 1}" placeholder="Judul Topik Cerita..." style="font-weight: 700; font-size: 13px; max-width: 80%;" />
-        <button type="button" class="btn btn-sm btnDeleteStarStory" style="background:none; border:none; color:var(--text-muted); cursor:pointer;" title="Hapus Cerita">🗑️ Hapus</button>
+        <button type="button" class="btn btn-sm btnDeleteStarStory" style="background:none; border:none; color:var(--text-muted); cursor:pointer; display:inline-flex; align-items:center; gap:4px;" title="Hapus Cerita">${getIconSvg('trash', { size: 12 })} Hapus</button>
       </div>
       <div class="star-grid">
         <div class="star-box">

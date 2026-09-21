@@ -15,6 +15,7 @@ import {
 } from '../../utils';
 import { showConfirmDialog, showAlertDialog } from '../Dialog';
 import { toast } from './shared';
+import { getIconSvg } from '../../utils/icons';
 
 let editingDocId: string | null = null;
 
@@ -27,10 +28,10 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
   const attachments: Attachment[] = item.attachments || [];
 
   const categoryIcons: Record<DocumentCategory, string> = {
-    Resume: '📄',
-    CoverLetter: '✉️',
-    Portfolio: '💼',
-    Other: '📁'
+    Resume: getIconSvg('fileText', { size: 20 }),
+    CoverLetter: getIconSvg('mail', { size: 20 }),
+    Portfolio: getIconSvg('briefcase', { size: 20 }),
+    Other: getIconSvg('folder', { size: 20 })
   };
 
   container.innerHTML = `
@@ -41,7 +42,7 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
           <div>
             <div style="font-size: 13.5px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
-              <span>📑</span> Dokumen yang Digunakan Saat Melamar (Applied Using)
+              <span>${getIconSvg('fileText', { size: 14 })}</span> Dokumen yang Digunakan Saat Melamar (Applied Using)
             </div>
             <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
               Catat dan telusuri versi master CV, Cover Letter, atau Portofolio yang Anda kirimkan ke perusahaan ini.
@@ -62,21 +63,21 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
                  </div>`
               : appliedDocs
                   .map((ad) => {
-                    const icon = categoryIcons[ad.roleType] || '📄';
+                    const icon = categoryIcons[ad.roleType] || getIconSvg('fileText', { size: 20 });
                     const isLink = ad.version.storageType === 'Link';
                     const targetUrl = isLink ? ad.version.url : (ad.version as any).fileDataUrl;
-                    let storageLabel = isLink ? 'Tautan Eksternal ↗' : 'Berkas Terunggah 📥';
+                    let storageLabel = isLink ? 'Tautan Eksternal ↗' : 'Berkas Terunggah';
                     if (isLink && ad.version.url) {
-                      const u = ad.version.url.toLowerCase();
-                      if (u.includes('drive.google.com')) storageLabel = 'Google Drive ↗';
-                      else if (u.includes('canva.com')) storageLabel = 'Canva ↗';
-                      else if (u.includes('notion.')) storageLabel = 'Notion ↗';
+                       const u = ad.version.url.toLowerCase();
+                       if (u.includes('drive.google.com')) storageLabel = 'Google Drive ↗';
+                       else if (u.includes('canva.com')) storageLabel = 'Canva ↗';
+                       else if (u.includes('notion.')) storageLabel = 'Notion ↗';
                     }
 
                     return `
                       <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background-color: var(--bg-subtle);">
                         <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                          <div style="font-size: 20px;">${icon}</div>
+                          <div style="display: flex; align-items: center;">${icon}</div>
                           <div style="min-width: 0;">
                             <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                               <strong style="font-size: 13px; color: var(--text-primary);">${escapeHtml(ad.document.title)}</strong>
@@ -95,19 +96,20 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
                         <div style="display: flex; gap: 6px; flex-shrink: 0;">
                           ${
                             targetUrl
-                              ? `<a href="${targetUrl}" ${isLink ? 'target="_blank" rel="noopener noreferrer"' : `download="${escapeHtml(ad.version.fileName || 'document.pdf')}"`} class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 0 9px;">
-                                   ${isLink ? 'Buka ↗' : 'Unduh 📥'}
-                                 </a>`
+                              ? `<a href="${targetUrl}" ${isLink ? 'target="_blank" rel="noopener noreferrer"' : `download="${escapeHtml(ad.version.fileName || 'document.pdf')}"`} class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 0 9px; display: inline-flex; align-items: center; gap: 4px;">
+                                    ${isLink ? 'Buka ↗' : `${getIconSvg('download', { size: 12 })} Unduh`}
+                                  </a>`
                               : ''
                           }
-                          <button type="button" class="btn btn-danger btn-sm" data-unlink-doc="${ad.version.id}" style="font-size: 11px; padding: 0 7px;" title="Lepas dokumen dari lamaran ini">
-                            ✕
+                          <button type="button" class="btn btn-danger btn-sm" data-unlink-doc="${ad.version.id}" style="font-size: 11px; padding: 0 7px; display: inline-flex; align-items: center;" title="Lepas dokumen dari lamaran ini" aria-label="Lepas dokumen">
+                            ${getIconSvg('x', { size: 12 })}
                           </button>
                         </div>
                       </div>
                     `;
                   })
                   .join('')
+          }                  .join('')
           }
         </div>
       </div>
@@ -116,8 +118,8 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
       <div style="background-color: var(--bg-surface); padding: 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <div>
-            <div style="font-size: 13px; font-weight: 700; color: var(--text-primary);">
-              📁 Berkas Khusus Lamaran Ini (Take-Home Test / Slip / Offering Letter)
+            <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+              <span>${getIconSvg('folder', { size: 14 })}</span> Berkas Khusus Lamaran Ini (Take-Home Test / Slip / Offering Letter)
             </div>
             <div style="font-size: 11.5px; color: var(--text-muted);">
               Berkas tersimpan khusus untuk lamaran kerja di perusahaan ini.
@@ -138,8 +140,8 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span id="attSizeHint" style="font-size: 11px; color: var(--text-muted);">Maks. ${MAX_FILE_SIZE_MB} MB (PDF, DOCX, PNG)</span>
-            <button type="submit" class="btn btn-primary btn-sm" id="btnSubmitAttachment">
-              📤 Unggah Berkas
+            <button type="submit" class="btn btn-primary btn-sm" id="btnSubmitAttachment" style="display: inline-flex; align-items: center; gap: 5px;">
+              ${getIconSvg('upload', { size: 13 })} Unggah Berkas
             </button>
           </div>
         </form>
@@ -156,7 +158,7 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
                     (att) => `
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background-color: var(--bg-subtle);">
                   <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                    <div style="font-size: 20px;">📎</div>
+                    <div style="display: flex; align-items: center;">${getIconSvg('paperclip', { size: 18 })}</div>
                     <div style="min-width: 0;">
                       <strong style="font-size: 13px; color: var(--text-primary); display: block;">${escapeHtml(att.label)}</strong>
                       <span class="mono" style="font-size: 11px; color: var(--text-muted);">
@@ -165,11 +167,11 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
                     </div>
                   </div>
                   <div style="display: flex; gap: 6px; flex-shrink: 0;">
-                    <a href="${att.dataUrl}" download="${escapeHtml(att.fileName)}" class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 0 8px;">
-                      📥 Unduh
+                    <a href="${att.dataUrl}" download="${escapeHtml(att.fileName)}" class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 0 8px; display: inline-flex; align-items: center; gap: 4px;">
+                      ${getIconSvg('download', { size: 12 })} Unduh
                     </a>
-                    <button type="button" class="btn btn-danger btn-sm" data-delete-attachment="${att.id}" style="font-size: 11px; padding: 0 7px;" title="Hapus berkas">
-                      ✕
+                    <button type="button" class="btn btn-danger btn-sm" data-delete-attachment="${att.id}" style="font-size: 11px; padding: 0 7px; display: inline-flex; align-items: center;" title="Hapus berkas" aria-label="Hapus berkas">
+                      ${getIconSvg('trash', { size: 12 })}
                     </button>
                   </div>
                 </div>
@@ -182,8 +184,8 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
 
       <!-- Section 2: External Document Links (Drive / GitHub / Notion) -->
       <div style="background-color: var(--bg-surface); padding: 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
-        <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 10px;">
-          🔗 Tautan Dokumen Eksternal Tambahan
+        <div style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+          <span>${getIconSvg('link', { size: 14 })}</span> Tautan Dokumen Eksternal Tambahan
         </div>
 
         <!-- Add Document Form -->
@@ -262,12 +264,12 @@ export async function renderDokumenTab(container: HTMLElement, item: Application
     const file = fileInputEl.files[0];
     if (file.size > MAX_FILE_SIZE_BYTES) {
       if (sizeHintEl) {
-        sizeHintEl.innerHTML = `<span style="color: #ef4444; font-weight: 600;">⚠️ File terlalu besar: ${formatBytes(file.size)} (Maks. ${MAX_FILE_SIZE_MB} MB)</span>`;
+        sizeHintEl.innerHTML = `<span style="color: #ef4444; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">${getIconSvg('alert', { size: 12 })} File terlalu besar: ${formatBytes(file.size)} (Maks. ${MAX_FILE_SIZE_MB} MB)</span>`;
       }
       if (submitBtnEl) submitBtnEl.disabled = true;
     } else {
       if (sizeHintEl) {
-        sizeHintEl.innerHTML = `<span style="color: #10b981; font-weight: 500;">✓ ${formatBytes(file.size)} / maks ${MAX_FILE_SIZE_MB} MB</span>`;
+        sizeHintEl.innerHTML = `<span style="color: #10b981; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">${getIconSvg('check', { size: 12 })} ${formatBytes(file.size)} / maks ${MAX_FILE_SIZE_MB} MB</span>`;
       }
       if (submitBtnEl) submitBtnEl.disabled = false;
     }
@@ -460,8 +462,8 @@ function renderSingleDocumentRow(d: DocumentLink): string {
       </div>
       <div style="display: flex; gap: 6px; flex-shrink: 0;">
         <a href="${d.url}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 0 8px;">Buka ↗</a>
-        <button class="btn btn-secondary btn-sm" data-edit-doc="${d.id}" title="Edit dokumen" style="font-size: 11px; padding: 0 7px;">✎</button>
-        <button class="btn btn-danger btn-sm" data-delete-doc="${d.id}" title="Hapus dokumen" style="font-size: 11px; padding: 0 7px;">✕</button>
+        <button class="btn btn-secondary btn-sm" data-edit-doc="${d.id}" title="Edit dokumen" aria-label="Edit dokumen" style="font-size: 11px; padding: 0 7px; display: inline-flex; align-items: center;">${getIconSvg('edit', { size: 12 })}</button>
+        <button class="btn btn-danger btn-sm" data-delete-doc="${d.id}" title="Hapus dokumen" aria-label="Hapus dokumen" style="font-size: 11px; padding: 0 7px; display: inline-flex; align-items: center;">${getIconSvg('trash', { size: 12 })}</button>
       </div>
     </div>
   `;
@@ -476,7 +478,7 @@ function showLinkVaultDocDialog(container: HTMLElement, item: ApplicationItem): 
   dialog.innerHTML = `
     <div class="modal-header">
       <h3 class="modal-title">Hubungkan Dokumen dari Vault ke Lamaran</h3>
-      <button class="modal-close" data-close-dialog>✕</button>
+      <button class="modal-close" data-close-dialog aria-label="Tutup">${getIconSvg('x', { size: 14 })}</button>
     </div>
     <div class="modal-body">
       <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
@@ -499,14 +501,14 @@ function showLinkVaultDocDialog(container: HTMLElement, item: ApplicationItem): 
                           <div style="display: flex; align-items: center; gap: 6px;">
                             <strong style="font-size: 13px; color: var(--text-primary);">${escapeHtml(doc.title)}</strong>
                             <span class="version-badge" style="font-size: 11px; padding: 1px 6px;">${escapeHtml(ver.versionName)}</span>
-                            ${ver.isDefault ? `<span style="font-size: 10px; color: #10b981; font-weight: 600;">⭐ Default</span>` : ''}
+                            ${ver.isDefault ? `<span style="font-size: 10px; color: #10b981; font-weight: 600; display: inline-flex; align-items: center; gap: 2px;">${getIconSvg('star', { size: 10 })} Default</span>` : ''}
                           </div>
                           ${ver.notes ? `<div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">"${escapeHtml(ver.notes)}"</div>` : ''}
                         </div>
                         <div>
                           ${
                             isAlreadyLinked
-                              ? `<span class="tag-badge" style="font-size: 11px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600;">✓ Terhubung</span>`
+                              ? `<span class="tag-badge" style="font-size: 11px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 600; display: inline-flex; align-items: center; gap: 3px;">${getIconSvg('check', { size: 11 })} Terhubung</span>`
                               : `<button type="button" class="btn btn-secondary btn-xs" data-do-link="${ver.id}">+ Hubungkan</button>`
                           }
                         </div>

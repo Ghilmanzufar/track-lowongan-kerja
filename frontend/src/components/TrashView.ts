@@ -5,6 +5,7 @@ import '../styles/components/trash.css';
 import { store } from '../services/store';
 import { showToast } from '../main';
 import type { TrashItem, TrashEntityType } from '../types';
+import { getIconSvg } from '../utils/icons';
 
 let currentTab: 'all' | TrashEntityType = 'all';
 
@@ -36,15 +37,15 @@ function formatRelativeTime(dateStr: string): string {
 function getEntityIcon(type: TrashEntityType): string {
   switch (type) {
     case 'application':
-      return '📁';
+      return getIconSvg('folder', { size: 18 });
     case 'document':
-      return '📄';
+      return getIconSvg('fileText', { size: 18 });
     case 'task':
-      return '✅';
+      return getIconSvg('checkCircle', { size: 18 });
     case 'event':
-      return '📅';
+      return getIconSvg('calendar', { size: 18 });
     default:
-      return '📌';
+      return getIconSvg('pin', { size: 18 });
   }
 }
 
@@ -109,20 +110,20 @@ export async function renderTrashView(container: HTMLElement): Promise<void> {
             Semua Item
             <span class="trash-tab-badge">${summary.total}</span>
           </button>
-          <button class="trash-tab-btn ${currentTab === 'application' ? 'active' : ''}" data-tab="application">
-            📁 Lamaran
+          <button class="trash-tab-btn ${currentTab === 'application' ? 'active' : ''}" data-tab="application" style="display:inline-flex; align-items:center; gap:6px;">
+            ${getIconSvg('folder', { size: 13 })} Lamaran
             <span class="trash-tab-badge">${summary.applications}</span>
           </button>
-          <button class="trash-tab-btn ${currentTab === 'document' ? 'active' : ''}" data-tab="document">
-            📄 Dokumen
+          <button class="trash-tab-btn ${currentTab === 'document' ? 'active' : ''}" data-tab="document" style="display:inline-flex; align-items:center; gap:6px;">
+            ${getIconSvg('fileText', { size: 13 })} Dokumen
             <span class="trash-tab-badge">${summary.documents}</span>
           </button>
-          <button class="trash-tab-btn ${currentTab === 'task' ? 'active' : ''}" data-tab="task">
-            ✅ Tugas
+          <button class="trash-tab-btn ${currentTab === 'task' ? 'active' : ''}" data-tab="task" style="display:inline-flex; align-items:center; gap:6px;">
+            ${getIconSvg('checkCircle', { size: 13 })} Tugas
             <span class="trash-tab-badge">${summary.tasks}</span>
           </button>
-          <button class="trash-tab-btn ${currentTab === 'event' ? 'active' : ''}" data-tab="event">
-            📅 Event
+          <button class="trash-tab-btn ${currentTab === 'event' ? 'active' : ''}" data-tab="event" style="display:inline-flex; align-items:center; gap:6px;">
+            ${getIconSvg('calendar', { size: 13 })} Event
             <span class="trash-tab-badge">${summary.events}</span>
           </button>
         </div>
@@ -133,7 +134,7 @@ export async function renderTrashView(container: HTMLElement): Promise<void> {
             filteredItems.length === 0
               ? `
                 <div class="trash-empty-card">
-                  <div class="trash-empty-icon">✓</div>
+                  <div class="trash-empty-icon">${getIconSvg('checkCircle', { size: 40 })}</div>
                   <h3 class="trash-empty-title">Tempat Sampah Bersih</h3>
                   <p class="trash-empty-desc">
                     ${
@@ -165,7 +166,7 @@ export async function renderTrashView(container: HTMLElement): Promise<void> {
                               : ''
                           }
                           <div class="trash-card-meta">
-                            <span>🕒 Dihapus ${formatRelativeTime(item.deletedAt)}</span>
+                            <span style="display:inline-flex; align-items:center; gap:4px;">${getIconSvg('clock', { size: 12 })} Dihapus ${formatRelativeTime(item.deletedAt)}</span>
                             <span>•</span>
                             <span>${new Date(item.deletedAt).toLocaleString('id-ID', {
                               day: 'numeric',
@@ -218,7 +219,7 @@ export async function renderTrashView(container: HTMLElement): Promise<void> {
     const btnEmptyTrash = container.querySelector<HTMLButtonElement>('#btnEmptyTrash');
     btnEmptyTrash?.addEventListener('click', async () => {
       const confirmed = window.confirm(
-        '⚠️ PERINGATAN: Apakah Anda yakin ingin mengosongkan seluruh isi tempat sampah?\n\nSemua item yang dihapus akan dibersihkan secara permanen dari server dan tidak dapat dikembalikan lagi.'
+        'PERINGATAN: Apakah Anda yakin ingin mengosongkan seluruh isi tempat sampah?\n\nSemua item yang dihapus akan dibersihkan secara permanen dari server dan tidak dapat dikembalikan lagi.'
       );
       if (!confirmed) return;
 

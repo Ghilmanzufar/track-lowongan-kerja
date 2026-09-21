@@ -1,16 +1,33 @@
-export function showConfirmDialog(message: string, title: string = 'Konfirmasi'): Promise<boolean> {
+export interface ConfirmDialogOptions {
+  confirmText?: string;
+  cancelText?: string;
+  confirmVariant?: 'primary' | 'danger' | 'success';
+}
+
+export function showConfirmDialog(
+  message: string,
+  title: string = 'Konfirmasi',
+  options?: ConfirmDialogOptions
+): Promise<boolean> {
   return new Promise((resolve) => {
     // Buat elemen dialog
     const dialog = document.createElement('dialog');
     dialog.className = 'custom-dialog confirm-dialog';
     
+    const confirmText = options?.confirmText ?? 'Ya, Lanjutkan';
+    const cancelText = options?.cancelText ?? 'Batal';
+    const confirmVariant = options?.confirmVariant ?? 'danger';
+    const variantClass = confirmVariant === 'primary' || confirmVariant === 'success'
+      ? 'btn-primary'
+      : 'btn-danger';
+
     dialog.innerHTML = `
       <div class="dialog-content">
         <h3 class="dialog-title">${title}</h3>
         <p class="dialog-message">${message}</p>
         <div class="dialog-actions">
-          <button type="button" class="btn btn-secondary btn-cancel">Batal</button>
-          <button type="button" class="btn btn-danger btn-confirm">Ya, Lanjutkan</button>
+          <button type="button" class="btn btn-secondary btn-cancel">${cancelText}</button>
+          <button type="button" class="btn ${variantClass} btn-confirm">${confirmText}</button>
         </div>
       </div>
     `;
@@ -35,12 +52,18 @@ export function showConfirmDialog(message: string, title: string = 'Konfirmasi')
       resolve(true);
     });
 
-    // Menangani escape key atau klik di backdrop jika memungkinkan, tapi dialog modal bawaan 
-    // akan menutup pada escape. Kita harus menanganinya.
+    // Menangani escape key atau klik di backdrop
     dialog.addEventListener('cancel', (e) => {
       e.preventDefault();
       cleanup();
       resolve(false);
+    });
+
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) {
+        cleanup();
+        resolve(false);
+      }
     });
 
     dialog.showModal();

@@ -19,6 +19,7 @@ import {
 import { showConfirmDialog } from '../Dialog';
 import { toast, WORK_TYPE_LABELS } from './shared';
 import { showFollowUpEditDialog, showFollowUpTemplatesDialog } from './FollowUpModal';
+import { getIconSvg } from '../../utils/icons';
 
 let isEditingOverview = false;
 
@@ -70,10 +71,11 @@ function renderRingkasanView(
   const currentStageIndex = pipelineStages.indexOf(item.application.stage);
 
   // Follow-up Tracker Data Calculation
+  const isEligibleForFollowUp = !['Saved', 'ToApply'].includes(item.application.stage);
   const followUpStatusKey = item.application.responseStatus || 'WaitingResponse';
   const followUpStatus = FOLLOW_UP_STATUS_CONFIG[followUpStatusKey] || FOLLOW_UP_STATUS_CONFIG['WaitingResponse'];
   const contactMethodKey = item.application.contactMethod || 'Email';
-  const contactMethod = CONTACT_METHOD_CONFIG[contactMethodKey] || { label: contactMethodKey, icon: '✉️' };
+  const contactMethod = CONTACT_METHOD_CONFIG[contactMethodKey] || { label: contactMethodKey, icon: getIconSvg('mail') };
 
   const lastContactedDisplay = item.application.lastContactedAt
     ? formatDateWIB(item.application.lastContactedAt)
@@ -92,15 +94,15 @@ function renderRingkasanView(
     const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
     if (followUpStatusKey === 'Replied' || followUpStatusKey === 'InterviewScheduled') {
-      dueTagHtml = '<span class="fu-due-pill due-done">✓ Selesai</span>';
+      dueTagHtml = `<span class="fu-due-pill due-done">${getIconSvg('check', { size: 12 })} Selesai</span>`;
     } else if (diffDays === 0) {
-      dueTagHtml = '<span class="fu-due-pill due-today">⚠️ Hari ini!</span>';
+      dueTagHtml = `<span class="fu-due-pill due-today">${getIconSvg('alert', { size: 12 })} Hari ini!</span>`;
     } else if (diffDays < 0) {
-      dueTagHtml = `<span class="fu-due-pill due-overdue">🔴 Terlambat ${Math.abs(diffDays)} hari</span>`;
+      dueTagHtml = `<span class="fu-due-pill due-overdue">${getIconSvg('alertCircle', { size: 12 })} Terlambat ${Math.abs(diffDays)} hari</span>`;
     } else if (diffDays === 1) {
-      dueTagHtml = '<span class="fu-due-pill due-future">📅 Besok</span>';
+      dueTagHtml = `<span class="fu-due-pill due-future">${getIconSvg('calendar', { size: 12 })} Besok</span>`;
     } else {
-      dueTagHtml = `<span class="fu-due-pill due-future">📅 ${diffDays} hari lagi</span>`;
+      dueTagHtml = `<span class="fu-due-pill due-future">${getIconSvg('calendar', { size: 12 })} ${diffDays} hari lagi</span>`;
     }
   }
 
@@ -130,7 +132,7 @@ function renderRingkasanView(
               return `
                 <div class="stepper-step ${stateClass}">
                   <div class="stepper-node">
-                    ${idx < currentStageIndex ? '✓' : idx + 1}
+                    ${idx < currentStageIndex ? getIconSvg('check', { size: 12 }) : idx + 1}
                   </div>
                   <span class="stepper-label">${STAGES_CONFIG[st].label}</span>
                 </div>
@@ -141,10 +143,13 @@ function renderRingkasanView(
       </div>
 
       <!-- Follow-up Tracker Shortcut Card -->
+      ${
+        isEligibleForFollowUp
+          ? `
       <div class="fu-tracker-card">
         <div class="fu-header">
           <div class="fu-title-wrap">
-            <div class="fu-icon-badge">📬</div>
+            <div class="fu-icon-badge">${getIconSvg('inbox', { size: 18 })}</div>
             <div>
               <h4 class="fu-title">Follow-up Tracker</h4>
               <p class="fu-subtitle">Pantau komunikasi, respon recruiter, & jadwal pengingat follow-up</p>
@@ -196,20 +201,44 @@ function renderRingkasanView(
         }
 
         <div class="fu-actions">
-          <button type="button" class="btn-fu-quick" id="btnFuContactedToday" title="Catat bahwa Anda telah menghubungi recruiter hari ini dan jadwalkan follow-up berikutnya (+7 hari)">
-            <span>✓</span> Sudah Dihubungi Hari Ini
-          </button>
           <button type="button" class="btn-fu-manage" id="btnFuManage" title="Ubah tanggal, status respon, metode atau catatan">
-            <span>⚡</span> Atur Follow-up
+            <span>${getIconSvg('zap', { size: 13 })}</span> Atur Follow-up
           </button>
           <button type="button" class="btn-fu-template" id="btnFuTemplates" title="Buka dan salin template pesan email / LinkedIn / WhatsApp siap pakai">
-            <span>📋</span> Salin Template Pesan
+            <span>${getIconSvg('clipboard', { size: 13 })}</span> Salin Template Pesan
           </button>
         </div>
       </div>
+      `
+          : `
+      <div class="fu-tracker-card" style="border-left: 3px solid var(--border-color); background: var(--bg-surface);">
+        <div class="fu-header">
+          <div class="fu-title-wrap">
+            <div class="fu-icon-badge" style="background: var(--bg-subtle); color: var(--text-muted);">${getIconSvg('inbox', { size: 18 })}</div>
+            <div>
+              <h4 class="fu-title">Follow-up Tracker</h4>
+              <p class="fu-subtitle">Pantau komunikasi, respon recruiter, & jadwal pengingat follow-up</p>
+            </div>
+          </div>
+          <span class="tag-badge" style="font-size: 11px; background: var(--bg-subtle); color: var(--text-muted); border: 1px dashed var(--border-color);">
+            Aktif di Tahap Terkirim
+          </span>
+        </div>
+
+        <div style="padding: 14px 16px; background: var(--bg-subtle); border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+          <div style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; max-width: 560px;">
+            Lamaran ini masih berada di tahap <strong>${STAGES_CONFIG[item.application.stage]?.label || item.application.stage}</strong>. Fitur <strong>Follow-up Tracker</strong> baru dapat digunakan setelah lamaran resmi dikirimkan (tahap <strong>Terkirim / Applied</strong> ke atas).
+          </div>
+          <button type="button" class="btn btn-sm btn-primary" id="btnAdvanceToApplied" style="display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
+            <span>${getIconSvg('rocket', { size: 12 })}</span> Pindahkan ke Terkirim
+          </button>
+        </div>
+      </div>
+      `
+      }
 
       <!-- Information Card Grid -->
-      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 18px; font-size: 13px; background-color: var(--bg-surface); padding: 18px; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+      <div class="app-detail-info-grid">
         <div>
           <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 3px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Perusahaan</span>
           <strong style="font-size: 14px; color: var(--text-primary);">${escapeHtml(item.company.name)}</strong>
@@ -253,7 +282,7 @@ function renderRingkasanView(
         <div>
           <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 3px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Sumber Lowongan</span>
           <span class="tag-badge" style="font-size: 11px; font-weight: 600; padding: 2px 8px; color: ${item.jobPosting.source ? JOB_SOURCES_CONFIG[item.jobPosting.source]?.color : 'var(--text-secondary)'};">
-            ${item.jobPosting.source && JOB_SOURCES_CONFIG[item.jobPosting.source] ? `${JOB_SOURCES_CONFIG[item.jobPosting.source].icon} ${JOB_SOURCES_CONFIG[item.jobPosting.source].label}` : 'Manual / Direct'}
+            ${item.jobPosting.source && JOB_SOURCES_CONFIG[item.jobPosting.source] ? `${JOB_SOURCES_CONFIG[item.jobPosting.source].icon} ${item.jobPosting.source === 'Other' && item.jobPosting.keywords ? `Lainnya (${escapeHtml(item.jobPosting.keywords)})` : JOB_SOURCES_CONFIG[item.jobPosting.source].label}` : 'Manual / Direct'}
           </span>
         </div>
         ${
@@ -261,7 +290,7 @@ function renderRingkasanView(
             ? `
             <div style="grid-column: span 2; background-color: var(--bg-subtle); padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
               <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 5px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">
-                📑 Dokumen yang Digunakan (Applied Using)
+                ${getIconSvg('fileText', { size: 13 })} Dokumen yang Digunakan (Applied Using)
               </span>
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 ${item.appliedDocuments
@@ -292,9 +321,9 @@ function renderRingkasanView(
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="color: var(--text-muted); font-size: 10.5px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Tautan Sumber Lowongan</span>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                  <span id="sourceUrlStatusBadge" class="url-status-tag status-unverified">⚪ Belum Dicek</span>
+                  <span id="sourceUrlStatusBadge" class="url-status-tag status-unverified">${getIconSvg('helpCircle', { size: 12 })} Belum Dicek</span>
                   <button type="button" class="btn btn-secondary btn-xs" id="btnCheckSourceUrl" style="font-size: 11px; padding: 3px 8px; border-radius: var(--radius-xs);">
-                    🔍 Cek Status
+                    ${getIconSvg('search', { size: 12 })} Cek Status
                   </button>
                 </div>
               </div>
@@ -320,7 +349,7 @@ function renderRingkasanView(
       <div class="job-snapshot-card" style="padding: 14px 16px; background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 15px;">📸</span>
+            <span style="font-size: 15px;">${getIconSvg('camera', { size: 15 })}</span>
             <div>
               <span style="color: var(--text-primary); font-size: 13px; font-weight: 700; letter-spacing: 0.2px;">
                 Snapshot Lowongan Pekerjaan (Job Snapshot)
@@ -335,7 +364,7 @@ function renderRingkasanView(
         ${
           !item.jobPosting.description && !item.jobPosting.responsibilities && !item.jobPosting.requirements
             ? `<div style="font-size: 12px; color: var(--text-muted); font-style: italic; background: var(--bg-subtle); padding: 12px 14px; border-radius: var(--radius-sm); border: 1px dashed var(--border-color); line-height: 1.5;">
-                ℹ️ Belum ada arsip deskripsi lowongan ini. Klik <strong>Edit Informasi</strong> di bawah untuk menyimpan rangkuman deskripsi, tanggung jawab, dan kualifikasi saat lowongan masih aktif.
+                ${getIconSvg('info', { size: 14 })} Belum ada arsip deskripsi lowongan ini. Klik <strong>Edit Informasi</strong> di bawah untuk menyimpan rangkuman deskripsi, tanggung jawab, dan kualifikasi saat lowongan masih aktif.
                </div>`
             : `
               <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -385,34 +414,34 @@ function renderRingkasanView(
       <!-- Bottom Actions -->
       <div style="border-top: 1px solid var(--border-color); padding-top: 16px; display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
         <button class="btn btn-secondary btn-sm" id="btnToggleEditOverview" type="button" style="gap: 5px;">
-          <span>✎</span> Edit Informasi
+          <span>${getIconSvg('edit', { size: 13 })}</span> Edit Informasi
         </button>
         <button class="btn btn-danger btn-sm" id="btnDeleteApp" type="button" style="gap: 5px;">
-          <span>🗑</span> Hapus Lamaran
+          <span>${getIconSvg('trash', { size: 13 })}</span> Hapus Lamaran
         </button>
       </div>
     </div>
   `;
 
   // Follow-up Tracker Action Listeners
-  container.querySelector('#btnFuContactedToday')?.addEventListener('click', async () => {
-    const todayStr = new Date().toISOString().substring(0, 10);
-    const nextDate = new Date();
-    nextDate.setDate(nextDate.getDate() + 7);
-    const nextDateStr = nextDate.toISOString().substring(0, 10);
+  container.querySelector('#btnAdvanceToApplied')?.addEventListener('click', async () => {
+    const confirmed = await showConfirmDialog(
+      `Apakah Anda yakin ingin memindahkan lamaran "${item.jobPosting.title}" di ${item.company.name} ke tahap Terkirim (Applied)? Fitur Follow-up Tracker akan langsung aktif setelah status dipindahkan.`,
+      'Konfirmasi Pindah ke Terkirim',
+      {
+        confirmText: 'Ya, Pindahkan',
+        cancelText: 'Batal',
+        confirmVariant: 'primary'
+      }
+    );
+    if (!confirmed) return;
 
     try {
-      await store.updateFollowUp(item.application.id, {
-        lastContactedAt: todayStr,
-        nextFollowUpAt: nextDateStr,
-        contactMethod: item.application.contactMethod || 'Email',
-        responseStatus: 'WaitingResponse',
-        syncTask: true
-      });
-      toast(`Follow-up tercatat: Dihubungi hari ini, pengingat berikutnya ${formatDateWIB(nextDateStr)}`, 'success');
+      await store.updateApplicationStage(item.application.id, 'Applied');
+      toast('Status lamaran diubah ke Terkirim (Applied). Follow-up Tracker kini aktif!', 'success');
       await onRerender();
     } catch {
-      toast('Gagal memperbarui follow-up', 'error');
+      toast('Gagal memperbarui tahap lamaran', 'error');
     }
   });
 
@@ -445,11 +474,11 @@ function renderRingkasanView(
         const data = await res.json();
         if (data.active) {
           badge.className = 'url-status-tag status-active';
-          badge.textContent = '🟢 Tautan Aktif (200 OK)';
+          badge.innerHTML = `${getIconSvg('checkCircle', { size: 12 })} Tautan Aktif (200 OK)`;
           toast('Tautan lowongan aktif dan dapat diakses', 'success');
         } else {
           badge.className = 'url-status-tag status-expired';
-          badge.textContent = `🔴 Tidak Aktif / Tutup (${data.statusText || '404'})`;
+          badge.innerHTML = `${getIconSvg('alertCircle', { size: 12 })} Tidak Aktif / Tutup (${data.statusText || '404'})`;
           toast('Tautan lowongan mungkin sudah ditutup atau tidak tersedia', 'error');
         }
       } else {
@@ -457,7 +486,7 @@ function renderRingkasanView(
       }
     } catch {
       badge.className = 'url-status-tag status-unverified';
-      badge.textContent = '⚪ Gagal Periksa (Offline)';
+      badge.innerHTML = `${getIconSvg('helpCircle', { size: 12 })} Gagal Periksa (Offline)`;
     } finally {
       btn.disabled = false;
     }
@@ -499,6 +528,7 @@ function renderRingkasanEditForm(
   const dateAppliedVal = item.application.dateApplied
     ? item.application.dateApplied.substring(0, 10)
     : '';
+  const isEligibleForFollowUp = !['Saved', 'ToApply'].includes(item.application.stage);
 
   container.innerHTML = `
     <form id="formEditOverview" style="display: flex; flex-direction: column; gap: 14px;">
@@ -579,16 +609,19 @@ function renderRingkasanEditForm(
           <label class="form-label" for="editSource">Sumber Lowongan</label>
           <select id="editSource" class="form-select">
             <option value="">Otomatis / Pilih...</option>
-            <option value="LinkedIn" ${item.jobPosting.source === 'LinkedIn' ? 'selected' : ''}>💼 LinkedIn</option>
-            <option value="JobStreet" ${item.jobPosting.source === 'JobStreet' ? 'selected' : ''}>🔍 JobStreet</option>
-            <option value="Glints" ${item.jobPosting.source === 'Glints' ? 'selected' : ''}>🚀 Glints</option>
-            <option value="Kalibrr" ${item.jobPosting.source === 'Kalibrr' ? 'selected' : ''}>🎯 Kalibrr</option>
-            <option value="CompanyWebsite" ${item.jobPosting.source === 'CompanyWebsite' ? 'selected' : ''}>🌐 Website Perusahaan</option>
-            <option value="Indeed" ${item.jobPosting.source === 'Indeed' ? 'selected' : ''}>📋 Indeed</option>
-            <option value="Referral" ${item.jobPosting.source === 'Referral' ? 'selected' : ''}>🤝 Referral</option>
-            <option value="Other" ${item.jobPosting.source === 'Other' ? 'selected' : ''}>📌 Lainnya</option>
+            <option value="LinkedIn" ${item.jobPosting.source === 'LinkedIn' ? 'selected' : ''}>LinkedIn</option>
+            <option value="JobStreet" ${item.jobPosting.source === 'JobStreet' ? 'selected' : ''}>JobStreet</option>
+            <option value="Glints" ${item.jobPosting.source === 'Glints' ? 'selected' : ''}>Glints</option>
+            <option value="Kalibrr" ${item.jobPosting.source === 'Kalibrr' ? 'selected' : ''}>Kalibrr</option>
+            <option value="CompanyWebsite" ${item.jobPosting.source === 'CompanyWebsite' ? 'selected' : ''}>Website Perusahaan</option>
+            <option value="Other" ${item.jobPosting.source === 'Other' ? 'selected' : ''}>Lainnya</option>
           </select>
         </div>
+      </div>
+
+      <div class="form-group" id="editOtherSourceGroup" style="${item.jobPosting.source === 'Other' ? 'display: block;' : 'display: none;'} margin-top: -6px;">
+        <label class="form-label" for="editOtherSource">Nama Sumber Lainnya</label>
+        <input type="text" id="editOtherSource" class="form-input" value="${escapeHtml(item.jobPosting.keywords || '')}" placeholder="contoh: Telegram, Instagram, Job Fair, Kampus, Teman..." />
       </div>
 
       <div class="form-group">
@@ -597,9 +630,12 @@ function renderRingkasanEditForm(
       </div>
 
       <!-- Follow-up Section in Edit Form -->
+      ${
+        isEligibleForFollowUp
+          ? `
       <div style="background: var(--bg-subtle); padding: 12px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 10px;">
         <div style="font-size: 12.5px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
-          <span>📬</span> Status & Jadwal Follow-up
+          <span>${getIconSvg('inbox', { size: 15 })}</span> Status & Jadwal Follow-up
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -618,7 +654,7 @@ function renderRingkasanEditForm(
               ${Object.entries(CONTACT_METHOD_CONFIG)
                 .map(
                   ([key, val]) =>
-                    `<option value="${key}" ${item.application.contactMethod === key ? 'selected' : ''}>${val.icon} ${val.label}</option>`
+                    `<option value="${key}" ${item.application.contactMethod === key ? 'selected' : ''}>${val.label}</option>`
                 )
                 .join('')}
             </select>
@@ -629,7 +665,7 @@ function renderRingkasanEditForm(
               ${Object.entries(FOLLOW_UP_STATUS_CONFIG)
                 .map(
                   ([key, val]) =>
-                    `<option value="${key}" ${(item.application.responseStatus || 'WaitingResponse') === key ? 'selected' : ''}>${val.icon} ${val.label}</option>`
+                    `<option value="${key}" ${(item.application.responseStatus || 'WaitingResponse') === key ? 'selected' : ''}>${val.label}</option>`
                 )
                 .join('')}
             </select>
@@ -640,11 +676,23 @@ function renderRingkasanEditForm(
           <input type="text" id="editFollowUpNotes" class="form-input" value="${escapeHtml(item.application.followUpNotes || '')}" placeholder="Contoh: Menunggu kabar dari recruiter via email..." />
         </div>
       </div>
+      `
+          : `
+      <div style="background: var(--bg-subtle); padding: 12px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-size: 12.5px; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+          <span>${getIconSvg('inbox', { size: 15 })}</span> Status & Jadwal Follow-up
+        </div>
+        <p style="font-size: 12px; color: var(--text-muted); margin: 0;">
+          Pengaturan Follow-up hanya tersedia ketika tahap lamaran sudah mencapai <strong>Terkirim (Applied)</strong> atau seterusnya.
+        </p>
+      </div>
+      `
+      }
 
       <!-- Snapshot Fields in Edit Form -->
       <div style="background: var(--bg-subtle); padding: 12px 14px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 10px;">
         <div style="font-size: 12.5px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
-          <span>📸</span> Snapshot Informasi Lowongan (Job Description Snapshot)
+          <span>${getIconSvg('camera', { size: 15 })}</span> Snapshot Informasi Lowongan (Job Description Snapshot)
         </div>
         <div class="form-group">
           <label class="form-label" for="editDescription">Ringkasan Pekerjaan (Job Description)</label>
@@ -667,6 +715,20 @@ function renderRingkasanEditForm(
     </form>
   `;
 
+  const editSourceSelect = container.querySelector<HTMLSelectElement>('#editSource');
+  const editOtherGroup = container.querySelector<HTMLElement>('#editOtherSourceGroup');
+  const editOtherInput = container.querySelector<HTMLInputElement>('#editOtherSource');
+
+  editSourceSelect?.addEventListener('change', () => {
+    if (editSourceSelect.value === 'Other') {
+      if (editOtherGroup) editOtherGroup.style.display = 'block';
+      editOtherInput?.focus();
+    } else {
+      if (editOtherGroup) editOtherGroup.style.display = 'none';
+      if (editOtherInput) editOtherInput.value = '';
+    }
+  });
+
   container.querySelector('#btnCancelEditOverview')?.addEventListener('click', async () => {
     isEditingOverview = false;
     await onRerender();
@@ -687,11 +749,21 @@ function renderRingkasanEditForm(
     const applyDeadline = (container.querySelector('#editApplyDeadline') as HTMLInputElement).value;
     const sourceUrl = (container.querySelector('#editSourceUrl') as HTMLInputElement).value.trim();
     const tagsStr = (container.querySelector('#editTags') as HTMLInputElement).value;
-    const lastContactedAt = (container.querySelector('#editLastContactedAt') as HTMLInputElement)?.value || null;
-    const nextFollowUpAt = (container.querySelector('#editNextFollowUpAt') as HTMLInputElement)?.value || null;
-    const contactMethod = (container.querySelector('#editContactMethod') as HTMLSelectElement)?.value || null;
-    const responseStatus = (container.querySelector('#editResponseStatus') as HTMLSelectElement)?.value || null;
-    const followUpNotes = (container.querySelector('#editFollowUpNotes') as HTMLInputElement)?.value.trim() || null;
+    const lastContactedAt = isEligibleForFollowUp
+      ? (container.querySelector('#editLastContactedAt') as HTMLInputElement)?.value || null
+      : item.application.lastContactedAt;
+    const nextFollowUpAt = isEligibleForFollowUp
+      ? (container.querySelector('#editNextFollowUpAt') as HTMLInputElement)?.value || null
+      : item.application.nextFollowUpAt;
+    const contactMethod = isEligibleForFollowUp
+      ? (container.querySelector('#editContactMethod') as HTMLSelectElement)?.value || null
+      : item.application.contactMethod;
+    const responseStatus = isEligibleForFollowUp
+      ? (container.querySelector('#editResponseStatus') as HTMLSelectElement)?.value || null
+      : item.application.responseStatus;
+    const followUpNotes = isEligibleForFollowUp
+      ? (container.querySelector('#editFollowUpNotes') as HTMLInputElement)?.value.trim() || null
+      : item.application.followUpNotes;
     const description = (container.querySelector('#editDescription') as HTMLTextAreaElement)?.value.trim();
     const responsibilities = (container.querySelector('#editResponsibilities') as HTMLTextAreaElement)?.value.trim();
     const requirements = (container.querySelector('#editRequirements') as HTMLTextAreaElement)?.value.trim();
@@ -720,6 +792,7 @@ function renderRingkasanEditForm(
         responseStatus,
         followUpNotes,
         source: ((container.querySelector('#editSource') as HTMLSelectElement)?.value || undefined) as JobSource | undefined,
+        keywords: editSourceSelect?.value === 'Other' ? editOtherInput?.value.trim() || undefined : undefined,
         sourceUrl: sourceUrl || undefined,
         description: description || undefined,
         responsibilities: responsibilities || undefined,

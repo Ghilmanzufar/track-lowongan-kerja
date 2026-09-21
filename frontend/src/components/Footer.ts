@@ -32,24 +32,26 @@ export function renderFooter(container: HTMLElement): void {
         <!-- Quick Nav Links -->
         <nav class="footer-nav-links" aria-label="Footer Navigasi">
           <button class="footer-nav-link" data-view-target="dashboard">Dashboard</button>
-          <button class="footer-nav-link" data-view-target="board">Kanban</button>
+          <button class="footer-nav-link" data-view-target="board">Kanban Lamaran</button>
           <button class="footer-nav-link" data-view-target="list">Daftar Lamaran</button>
           <button class="footer-nav-link" data-view-target="agenda">Agenda</button>
           <button class="footer-nav-link" data-view-target="analytics">Analitik</button>
+          <button class="footer-nav-link" data-view-target="documents">Vault Dokumen</button>
+          <button class="footer-nav-link" data-view-target="career-links">Direktori Karir</button>
         </nav>
 
         <!-- Quick Action Buttons -->
         <div class="footer-actions">
-          <button class="btn btn-primary btn-sm footer-btn-add" id="footerBtnAdd" title="Tambah lowongan baru">
+          <button class="btn btn-primary btn-sm footer-btn-add" id="footerBtnAdd" title="Tambah lamaran baru">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"/>
               <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
-            <span>Lowongan</span>
+            <span>Lamaran</span>
           </button>
 
-          <button class="btn btn-secondary btn-sm" id="footerBtnBoard" title="Buka Papan Kanban">
-            <span>Kanban</span>
+          <button class="btn btn-secondary btn-sm" id="footerBtnBoard" title="Buka Kanban Lamaran">
+            <span>Kanban Lamaran</span>
           </button>
 
           <button class="btn btn-secondary btn-icon btn-sm" id="footerBtnToggleTheme" title="Ganti Mode Gelap / Terang">
@@ -60,20 +62,10 @@ export function renderFooter(container: HTMLElement): void {
         </div>
       </div>
 
-      <!-- Bottom Row: Copyright, Status & Shortcuts -->
+      <!-- Bottom Row: Copyright -->
       <div class="footer-sub-row">
         <div class="footer-meta-text">
           <span>&copy; 2026 JobTrack</span>
-        </div>
-
-        <div class="footer-meta-actions">
-          <button class="footer-text-action" id="footerBtnFocusSearch">
-            <kbd>/</kbd> Cari Lowongan
-          </button>
-          <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="footer-text-link">
-            GitHub
-          </a>
-          <span class="footer-version-tag">v1.0</span>
         </div>
       </div>
 
@@ -104,16 +96,6 @@ export function renderFooter(container: HTMLElement): void {
     store.setView('board');
     window.location.hash = 'board';
     container.scrollTo({ top: 0, behavior: 'smooth' });
-  });
-
-  // 3. Focus Search
-  footer.querySelector('#footerBtnFocusSearch')?.addEventListener('click', () => {
-    container.scrollTo({ top: 0, behavior: 'smooth' });
-    const searchInput = document.getElementById('globalSearchInput') as HTMLInputElement;
-    if (searchInput) {
-      searchInput.focus();
-      searchInput.select();
-    }
   });
 
   // 4. Toggle Theme

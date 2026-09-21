@@ -10,6 +10,7 @@ import {
   formatSalary
 } from '../utils';
 import { OfferComparisonModal } from './OfferComparisonModal';
+import { getIconSvg } from '../utils/icons';
 
 type SortField = 'company' | 'title' | 'stage' | 'deadline' | 'updated';
 type SortOrder = 'asc' | 'desc';
@@ -55,7 +56,7 @@ export function renderListView(container: HTMLElement): void {
         </div>
         <div style="display: flex; gap: 8px;">
           <button class="btn btn-secondary btn-sm" id="btnListOfferCompare" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;">
-            <span>⚖️</span>
+            <span>${getIconSvg('scale', { size: 14 })}</span>
             <span>Bandingkan Penawaran</span>
           </button>
         </div>

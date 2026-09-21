@@ -3,6 +3,7 @@
 
 import type { CareerLink, CareerLinkCategory, UserCareerLink, CareerVerificationStatus } from '../types';
 import { INDUSTRY_SECTORS } from '../types';
+import { getIconSvg } from '../utils/icons';
 import {
   fetchCareerLinks,
   fetchUserCareerLinks,
@@ -23,11 +24,11 @@ const CATEGORY_LABELS: Record<CareerLinkCategory, string> = {
 };
 
 const CATEGORY_ICONS: Record<CareerLinkCategory, string> = {
-  Swasta:        '🏢',
-  BUMN:          '🏛️',
-  Kementerian:   '🏛️',
-  Multinasional: '🌍',
-  JobBoard:      '🎯',
+  Swasta:        getIconSvg('building', { size: 16 }),
+  BUMN:          getIconSvg('landmark', { size: 16 }),
+  Kementerian:   getIconSvg('landmark', { size: 16 }),
+  Multinasional: getIconSvg('globe', { size: 16 }),
+  JobBoard:      getIconSvg('target', { size: 16 }),
 };
 
 const CATEGORY_ORDER: CareerLinkCategory[] = [
@@ -436,7 +437,7 @@ function renderView(container: HTMLElement) {
           <!-- Custom in-DOM Sector Dropdown (eliminates native select OS styling bugs) -->
           <div class="cl-sector-dropdown ${isSectorDropdownOpen ? 'open' : ''}" id="clSectorDropdown">
             <button type="button" class="cl-sector-trigger" id="clSectorTrigger" aria-haspopup="listbox" aria-expanded="${isSectorDropdownOpen}">
-              <span class="cl-trigger-icon">${activeSectorDef ? activeSectorDef.icon : '🌐'}</span>
+              <span class="cl-trigger-icon">${activeSectorDef ? activeSectorDef.icon : getIconSvg('globe', { size: 15 })}</span>
               <span class="cl-trigger-label">${activeSectorDef ? activeSectorDef.shortName : 'Semua Sektor Industri'}</span>
               <span class="cl-trigger-count">(${activeSectorCount})</span>
               <svg class="cl-trigger-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -456,7 +457,7 @@ function renderView(container: HTMLElement) {
               </div>
               <div class="cl-sector-options" role="listbox">
                 <div class="cl-sector-opt ${activeSector === 'all' ? 'selected' : ''}" data-sector-val="all">
-                  <span class="cl-opt-icon">🌐</span>
+                  <span class="cl-opt-icon">${getIconSvg('globe', { size: 15 })}</span>
                   <div class="cl-opt-info">
                     <span class="cl-opt-name">Semua Sektor Industri</span>
                     <span class="cl-opt-desc">Tampilkan seluruh perusahaan tanpa filter sektor</span>
@@ -535,14 +536,14 @@ function renderView(container: HTMLElement) {
               <span class="cl-indicator-pill">
                 <span>${activeSectorDef.icon}</span>
                 <strong>${activeSectorDef.name}</strong>
-                <button class="cl-indicator-close" id="clIndicatorClose" title="Hapus filter sektor">✕</button>
+                <button class="cl-indicator-close" id="clIndicatorClose" title="Hapus filter sektor">${getIconSvg('x', { size: 12 })}</button>
               </span>
             ` : ''}
             ${activeVerificationFilter !== 'all' ? `
               <span class="cl-indicator-pill cl-indicator-pill-vstatus">
                 <span class="cl-vstatus-dot-mini ${activeVerificationFilter === 'verified_recently' ? 'verified' : activeVerificationFilter === 'needs_verification' ? 'needs' : 'broken'}"></span>
                 <strong>${activeVerificationFilter === 'verified_recently' ? 'Terverifikasi Baru (≤30 hari)' : activeVerificationFilter === 'needs_verification' ? 'Perlu Verifikasi (>30 hari)' : 'Link Rusak'}</strong>
-                <button class="cl-indicator-close" id="clVstatusIndicatorClose" title="Hapus filter status verifikasi">✕</button>
+                <button class="cl-indicator-close" id="clVstatusIndicatorClose" title="Hapus filter status verifikasi">${getIconSvg('x', { size: 12 })}</button>
               </span>
             ` : ''}
           </div>

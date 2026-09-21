@@ -10,6 +10,7 @@ dialog {
   padding: 0;
   margin: auto;
   max-height: 88vh;
+  max-height: 88dvh;
   width: 92%;
   max-width: 640px;
   overflow: hidden;
@@ -27,6 +28,79 @@ dialog::backdrop {
   -webkit-backdrop-filter: blur(3px);
 }
 
+/* Ensure form inside dialog stretches and scrolls modal-body properly */
+dialog > form,
+#quickAddForm {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+/* Quick Add Dialog minimum height so select dropdowns (e.g. Sumber Lowongan) never get covered */
+#quickAddDialog {
+  min-height: 480px;
+}
+
+#quickAddDialog .modal-body {
+  min-height: 340px;
+  padding-bottom: 40px;
+}
+
+/* Dynamic Document Picker inside Quick Add Modal */
+.quick-add-doc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg-surface);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  animation: fadeIn 0.15s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.quick-add-doc-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.quick-add-doc-select {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.quick-add-doc-preview {
+  font-size: 11px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-xs);
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  word-break: break-word;
+  animation: fadeIn 0.15s ease;
+}
+
+.quick-add-doc-empty {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 6px 2px;
+}
+
 .modal-header {
   padding: 14px 18px;
   border-bottom: 1px solid var(--border-color);
@@ -42,31 +116,45 @@ dialog::backdrop {
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .modal-close {
-  background: none;
-  border: none;
-  font-size: 15px;
-  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: var(--radius-xs);
-  transition: all var(--transition-fast);
-  display: flex;
+  padding: 0;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .modal-close:hover {
-  color: var(--text-primary);
-  background-color: var(--bg-subtle);
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.25);
+  transform: scale(1.08);
+}
+
+.modal-close:active {
+  transform: scale(0.95);
 }
 
 .modal-body {
   padding: 18px;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-footer {
@@ -82,33 +170,38 @@ dialog::backdrop {
 
 /* Custom Dialog Styles */
 .custom-dialog {
-  border: none;
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   background: var(--bg-surface);
   color: var(--text-primary);
-  padding: 24px;
-  max-width: 400px;
-  width: 90vw;
+  padding: 22px 24px;
+  max-width: 420px;
+  width: min(420px, calc(100vw - 32px));
+  margin: auto;
   box-shadow: var(--shadow-lg);
 }
 .custom-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(2px);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
 }
 .dialog-title {
   margin-bottom: 12px;
-  font-size: 18px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 .dialog-message {
-  margin-bottom: 24px;
-  font-size: 14px;
+  margin-bottom: 22px;
+  font-size: 13.5px;
   color: var(--text-secondary);
   line-height: 1.5;
 }
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

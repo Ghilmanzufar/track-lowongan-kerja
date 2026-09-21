@@ -611,20 +611,21 @@
 .footer-sub-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   border-top: 1px solid var(--border-color);
   padding-top: 8px;
   gap: 12px;
   font-size: 11.5px;
   color: var(--text-muted);
-  flex-wrap: wrap;
+  text-align: center;
 }
 
 .footer-meta-text {
   display: flex;
   align-items: center;
+  justify-content: center;
+  text-align: center;
   gap: 8px;
-  flex-wrap: wrap;
 }
 
 .footer-dot-sep {

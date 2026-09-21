@@ -2,6 +2,7 @@ import { ApplicationItem } from '../../types';
 import { store } from '../../services/store';
 import { escapeHtml } from '../../utils';
 import { toast } from './shared';
+import { getIconSvg } from '../../utils/icons';
 
 export const DEFAULT_PREP_CHECKLIST = [
   'Pelajari profil, visi, dan model bisnis perusahaan',
@@ -78,17 +79,21 @@ export function renderInterviewPrepTab(container: HTMLElement, item: Application
       <!-- Top banner -->
       <div style="background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 14px; display: flex; justify-content: space-between; align-items: center;">
         <div>
-          <h3 style="font-size: 14px; font-weight: 700; margin: 0 0 2px 0;">🎯 Persiapan Wawancara — ${escapeHtml(item.company.name)}</h3>
+          <h3 style="font-size: 14px; font-weight: 700; margin: 0 0 2px 0; display: flex; align-items: center; gap: 6px;">
+            <span>${getIconSvg('target', { size: 16 })}</span> Persiapan Wawancara — ${escapeHtml(item.company.name)}
+          </h3>
           <p style="font-size: 12px; color: var(--text-secondary); margin: 0;">Latih jawaban STAR dan lengkapi riset perusahaan sebelum sesi wawancara dimulai (tersimpan ke database).</p>
         </div>
-        <button class="btn btn-primary btn-sm" id="btnSaveInterviewPrep" type="button">💾 Simpan Persiapan</button>
+        <button class="btn btn-primary btn-sm" id="btnSaveInterviewPrep" type="button" style="display: inline-flex; align-items: center; gap: 6px;">
+          ${getIconSvg('save', { size: 13 })} Simpan Persiapan
+        </button>
       </div>
 
       <!-- Checklist Riset -->
       <div class="prep-card">
         <div class="prep-card-header">
-          <div class="prep-card-title">
-            <span>📋</span> Checklist Kesiapan Wawancara
+          <div class="prep-card-title" style="display: flex; align-items: center; gap: 6px;">
+            <span>${getIconSvg('clipboard', { size: 14 })}</span> Checklist Kesiapan Wawancara
           </div>
           <span style="font-size: 11.5px; color: var(--text-muted); font-weight: 600;" id="prepCheckCount">
             ${prep.completedChecklist.length} / ${DEFAULT_PREP_CHECKLIST.length} Selesai
@@ -110,8 +115,8 @@ export function renderInterviewPrepTab(container: HTMLElement, item: Application
       <!-- STAR Method Grid -->
       <div class="prep-card">
         <div class="prep-card-header">
-          <div class="prep-card-title">
-            <span>⭐</span> Lembar Kerja Metode STAR (Situation, Task, Action, Result)
+          <div class="prep-card-title" style="display: flex; align-items: center; gap: 6px;">
+            <span>${getIconSvg('star', { size: 14 })}</span> Lembar Kerja Metode STAR (Situation, Task, Action, Result)
           </div>
         </div>
         <div style="margin-bottom: 10px;">
@@ -140,14 +145,14 @@ export function renderInterviewPrepTab(container: HTMLElement, item: Application
       <!-- Riset & Pertanyaan untuk Pewawancara -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
         <div class="prep-card">
-          <div class="prep-card-title" style="margin-bottom: 8px;">
-            <span>🏢</span> Catatan Riset Perusahaan
+          <div class="prep-card-title" style="margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+            <span>${getIconSvg('building', { size: 14 })}</span> Catatan Riset Perusahaan
           </div>
           <textarea id="prepCompanyNotes" class="form-control" style="width: 100%; min-height: 100px; font-size: 12px; resize: vertical;" placeholder="Catatan produk, tech stack, berita terbaru perusahaan...">${escapeHtml(prep.companyNotes || '')}</textarea>
         </div>
         <div class="prep-card">
-          <div class="prep-card-title" style="margin-bottom: 8px;">
-            <span>❓</span> Pertanyaan untuk Interviewer
+          <div class="prep-card-title" style="margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+            <span>${getIconSvg('helpCircle', { size: 14 })}</span> Pertanyaan untuk Interviewer
           </div>
           <textarea id="prepQuestionsToAsk" class="form-control" style="width: 100%; min-height: 100px; font-size: 12px; resize: vertical;" placeholder="Pertanyaan yang ingin diajukan ke user/HR...">${escapeHtml(prep.questionsToAsk || '')}</textarea>
         </div>

@@ -62,7 +62,7 @@
             <path d="M16 8v6"/>
             <rect width="18" height="18" x="3" y="3" rx="2"/>
           </svg>
-          <span>Kanban Board</span>
+          <span>Kanban Lamaran</span>
           <span class="tab-count nav-badge" id="tabCountBoard">0</span>
         </button>
 
@@ -220,7 +220,7 @@
       <aside id="filterDrawer" class="filter-drawer" style="display: none;">
         <div class="drawer-header">
           <h3 style="font-size: 13.5px; font-weight: 600;">Filter Lamaran</h3>
-          <button class="modal-close" id="btnCloseFilter">✕</button>
+          <button class="modal-close" id="btnCloseFilter" title="Tutup" aria-label="Tutup"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ui-icon"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
         <div class="drawer-body">
           <div class="form-group">
@@ -263,7 +263,7 @@
   <dialog id="quickAddDialog">
     <div class="modal-header">
       <h3 class="modal-title">Simpan Lowongan Pekerjaan Baru</h3>
-      <button class="modal-close" id="quickAddCloseBtn">✕</button>
+      <button class="modal-close" id="quickAddCloseBtn" title="Tutup" aria-label="Tutup"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ui-icon"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
     <form id="quickAddForm">
       <div class="modal-body">
@@ -292,16 +292,19 @@
             <label class="form-label" for="quickAddSource">Sumber Lowongan</label>
             <select id="quickAddSource" class="form-select">
               <option value="">Otomatis / Deteksi</option>
-              <option value="LinkedIn">💼 LinkedIn</option>
-              <option value="JobStreet">🔍 JobStreet</option>
-              <option value="Glints">🚀 Glints</option>
-              <option value="Kalibrr">🎯 Kalibrr</option>
-              <option value="CompanyWebsite">🌐 Website Perusahaan</option>
-              <option value="Indeed">📋 Indeed</option>
-              <option value="Referral">🤝 Referral</option>
-              <option value="Other">📌 Lainnya</option>
+              <option value="LinkedIn">LinkedIn</option>
+              <option value="JobStreet">JobStreet</option>
+              <option value="Glints">Glints</option>
+              <option value="Kalibrr">Kalibrr</option>
+              <option value="CompanyWebsite">Website Perusahaan</option>
+              <option value="Other">Lainnya</option>
             </select>
           </div>
+        </div>
+
+        <div class="form-group" id="quickAddOtherSourceGroup" style="display: none;">
+          <label class="form-label" for="quickAddOtherSource">Nama Sumber Lainnya</label>
+          <input type="text" id="quickAddOtherSource" class="form-input" placeholder="contoh: Telegram, Instagram, Job Fair, Kampus, Teman..." />
         </div>
 
         <!-- Duplicate Warning Banner Container -->
@@ -314,30 +317,23 @@
         </div>
 
         <div id="quickAddAdvancedFields" style="display: none; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 8px;">
-          <!-- Applied Using Document Selectors -->
+          <!-- Applied Using Document Selectors (Dynamic Document Picker) -->
           <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 12px;">
-            <div style="font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-              <span>📑</span> Dokumen yang Digunakan Saat Melamar (Applied Using)
-            </div>
-            <div class="form-row" style="gap: 8px; margin-bottom: 6px;">
-              <div class="form-group" style="flex: 1;">
-                <label class="form-label" for="quickAddSelectResume" style="font-size: 11px;">Versi Resume / CV</label>
-                <select id="quickAddSelectResume" class="form-select" style="font-size: 12px;">
-                  <option value="">-- Tanpa Resume --</option>
-                </select>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ui-icon"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>
+                <span>Dokumen yang Digunakan (Applied Using)</span>
               </div>
-              <div class="form-group" style="flex: 1;">
-                <label class="form-label" for="quickAddSelectCoverLetter" style="font-size: 11px;">Versi Cover Letter</label>
-                <select id="quickAddSelectCoverLetter" class="form-select" style="font-size: 12px;">
-                  <option value="">-- Tanpa Cover Letter --</option>
-                </select>
-              </div>
+              <button type="button" class="btn btn-secondary btn-xs" id="quickAddBtnAddDoc" style="font-size: 11px; padding: 3px 8px; display: inline-flex; align-items: center; gap: 4px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Tambah Dokumen
+              </button>
             </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label class="form-label" for="quickAddSelectPortfolio" style="font-size: 11px;">Versi Portofolio</label>
-              <select id="quickAddSelectPortfolio" class="form-select" style="font-size: 12px;">
-                <option value="">-- Tanpa Portofolio --</option>
-              </select>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 0 0 8px 0; line-height: 1.4;">
+              Pilih dokumen dari Vault Dokumen yang Anda gunakan saat melamar (opsional). Anda dapat memilih dan menambah dokumen secara bebas.
+            </p>
+            <div id="quickAddDocsList" style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- Populated dynamically via JS -->
             </div>
           </div>
           <div class="form-row">
@@ -404,10 +400,30 @@
   <!-- Application Detail Dialog -->
   <dialog id="detailDialog" style="max-width: 720px;">
     <div class="modal-header">
-      <div id="detailHeaderTitle" style="display: flex; flex-direction: column; gap: 2px;"></div>
+      <div id="detailHeaderTitle" style="display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; padding-right: 12px;"></div>
+      <button class="modal-close" id="detailCloseBtn" title="Tutup (Esc)" aria-label="Tutup"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="ui-icon"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+
+    <!-- Sub-header Bar: Stage Action & Quick Links -->
+    <div class="detail-modal-subbar">
+      <div class="detail-modal-subbar-stage">
+        <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Tahap Lamaran:
+        </span>
+        <select id="detailHeaderStage" class="form-select"></select>
+      </div>
+
       <div style="display: flex; align-items: center; gap: 8px;">
-        <select id="detailHeaderStage" class="form-select" style="font-size: 12px; font-weight: 600;"></select>
-        <button class="modal-close" id="detailCloseBtn" title="Tutup (Esc)">✕</button>
+        <button type="button" class="btn btn-secondary btn-xs" id="detailBtnOpenFullPage" style="display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; padding: 4px 10px;" title="Buka detail lengkap dalam satu layar penuh">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <polyline points="9 21 3 21 3 15"></polyline>
+            <line x1="21" y1="3" x2="14" y2="10"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+          </svg>
+          <span>Layar Penuh ↗</span>
+        </button>
       </div>
     </div>
     <div class="modal-body" id="detailBody"></div>

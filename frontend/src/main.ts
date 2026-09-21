@@ -6,7 +6,7 @@ import { store } from './services/store';
 import { authStore } from './services/authStore';
 import { logout, refreshSession } from './services/auth';
 import { AuthPage } from './components/AuthPage';
-import { renderDashboardView } from './components/DashboardView';
+import { renderDashboardView } from './components/dashboard';
 import { renderBoardView } from './components/BoardView';
 import { renderListView } from './components/ListView';
 import { renderAgendaView } from './components/AgendaView';
@@ -21,9 +21,11 @@ import { setupCommandPalette } from './components/CommandPalette';
 import { initGlobalSearch } from './components/GlobalSearchDropdown';
 import { renderFooter } from './components/Footer';
 import { renderApplicationDetailView } from './components/ApplicationDetailView';
+import { renderStageDetailView } from './components/StageDetailView';
 import { TabKey } from './components/DetailModal';
 import { notificationService } from './services/notification';
-import { AppView, User } from './types';
+import { AppView, ApplicationStage, User } from './types';
+import { getIconSvg } from './utils/icons';
 
 // Toast helper
 export function showToast(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
@@ -33,7 +35,7 @@ export function showToast(message: string, type: 'success' | 'error' | 'info' = 
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
   toast.innerHTML = `
-    <span>${type === 'success' ? '✓' : type === 'error' ? '!' : 'ℹ'}</span>
+    <span style="display: inline-flex; align-items: center; flex-shrink: 0;">${type === 'success' ? getIconSvg('checkCircle', { size: 16 }) : type === 'error' ? getIconSvg('alertCircle', { size: 16 }) : getIconSvg('info', { size: 16 })}</span>
     <span>${message}</span>
   `;
 
@@ -256,7 +258,7 @@ function setupWorkspaceEvents(): void {
       subtitle: 'Ringkasan aktivitas pelacakan karir dan perkembangan terkini'
     },
     board: {
-      title: 'Kanban Board',
+      title: 'Kanban Lamaran',
       subtitle: 'Visualisasi alur tahapan pipeline lamaran'
     },
     list: {
@@ -286,12 +288,17 @@ function setupWorkspaceEvents(): void {
     application: {
       title: 'Workspace Lamaran',
       subtitle: 'Detail komprehensif, persiapan wawancara, catatan, dan dokumen lamaran'
+    },
+    stage: {
+      title: 'Tahap Lamaran',
+      subtitle: 'Daftar lengkap lowongan pekerjaan pada tahap pipeline'
     }
   };
 
   // Tab navigation & View rendering
   const renderCurrentView = () => {
     const currentView = store.getView();
+    document.body.setAttribute('data-current-view', currentView);
 
     // Update topbar title & subtitle
     const titleEl = document.getElementById('topbarViewTitle');
@@ -373,6 +380,15 @@ function setupWorkspaceEvents(): void {
         }
         break;
       }
+      case 'stage': {
+        const rawHash = window.location.hash.slice(1);
+        let stageKey: ApplicationStage = 'Applied';
+        if (rawHash.startsWith('stage/')) {
+          stageKey = rawHash.slice('stage/'.length).split('?')[0] as ApplicationStage;
+        }
+        renderStageDetailView(viewContainer, stageKey);
+        break;
+      }
     }
 
     // Always render subtle footer at the bottom of views
@@ -384,6 +400,10 @@ function setupWorkspaceEvents(): void {
     const rawHash = window.location.hash.slice(1);
     if (rawHash.startsWith('application/')) {
       store.setView('application');
+      return;
+    }
+    if (rawHash.startsWith('stage/')) {
+      store.setView('stage');
       return;
     }
     const hash = rawHash as AppView;
@@ -404,6 +424,7 @@ function setupWorkspaceEvents(): void {
     if (!btn) return;
     const view = btn.getAttribute('data-view') as AppView;
     if (view) {
+      store.setView(view);
       window.location.hash = view;
       if (isMobile()) {
         closeSidebar();

@@ -3,6 +3,7 @@ import { store } from '../../services/store';
 import { escapeHtml } from '../../utils';
 import { showConfirmDialog } from '../Dialog';
 import { toast } from './shared';
+import { getIconSvg } from '../../utils/icons';
 
 let editingContactId: string | null = null;
 
@@ -202,8 +203,8 @@ function renderSingleContactCard(c: Contact): string {
           ${c.role ? `<span style="font-size: 12px; color: var(--text-secondary); margin-left: 6px;">• ${escapeHtml(c.role)}</span>` : ''}
         </div>
         <div style="display: flex; gap: 6px;">
-          <button class="btn btn-secondary btn-sm" data-edit-contact="${c.id}" title="Edit kontak" style="font-size: 11px; padding: 0 7px; height: 24px;">✎</button>
-          <button class="btn btn-danger btn-sm" data-delete-contact="${c.id}" title="Hapus kontak" style="font-size: 11px; padding: 0 7px; height: 24px;">✕</button>
+          <button class="btn btn-secondary btn-sm" data-edit-contact="${c.id}" title="Edit kontak" aria-label="Edit kontak" style="font-size: 11px; padding: 0 7px; height: 24px; display: inline-flex; align-items: center;">${getIconSvg('edit', { size: 12 })}</button>
+          <button class="btn btn-danger btn-sm" data-delete-contact="${c.id}" title="Hapus kontak" aria-label="Hapus kontak" style="font-size: 11px; padding: 0 7px; height: 24px; display: inline-flex; align-items: center;">${getIconSvg('trash', { size: 12 })}</button>
         </div>
       </div>
 
@@ -228,7 +229,7 @@ function renderSingleContactCard(c: Contact): string {
           c.phone
             ? `<div style="display: flex; align-items: center; gap: 4px;">
                 <span style="color: var(--text-muted);">WA:</span>
-                <a href="${waLink || `tel:${c.phone}`}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-green); font-weight: 500; text-decoration: underline;">${escapeHtml(c.phone)} 💬</a>
+                <a href="${waLink || `tel:${c.phone}`}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-green); font-weight: 500; text-decoration: underline; display: inline-flex; align-items: center; gap: 4px;">${escapeHtml(c.phone)} ${getIconSvg('message', { size: 12 })}</a>
                </div>`
             : ''
         }

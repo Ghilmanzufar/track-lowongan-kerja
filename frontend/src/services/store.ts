@@ -272,6 +272,7 @@ class JobTrackStore {
     tags?: string[];
     appliedDocumentVersionIds?: string[];
     allowDuplicate?: boolean;
+    keywords?: string;
   }): Promise<string> {
     const newItem = await apiCreateApplication(data);
     this.items.unshift(newItem);
@@ -363,6 +364,7 @@ class JobTrackStore {
       contactMethod?: string | null;
       responseStatus?: string | null;
       followUpNotes?: string | null;
+      keywords?: string | null;
     }
   ): Promise<void> {
     const updatedItem = await apiUpdateApplicationDetails(applicationId, data);

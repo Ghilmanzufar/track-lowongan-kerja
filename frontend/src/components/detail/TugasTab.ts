@@ -4,6 +4,7 @@ import { formatDateTimeWIB, escapeHtml } from '../../utils';
 import { showConfirmDialog } from '../Dialog';
 import { generateGoogleCalendarUrl, downloadIcsFile } from '../../utils/calendar';
 import { toast, TASK_TYPE_LABELS, PRIORITY_LABELS } from './shared';
+import { getIconSvg } from '../../utils/icons';
 
 let editingTaskId: string | null = null;
 
@@ -143,7 +144,7 @@ export function renderTugasTab(container: HTMLElement, item: ApplicationItem): v
       if (taskId) {
         const isDone = cb.checked;
         await store.updateTask(taskId, { status: isDone ? 'Done' : 'Open' });
-        toast(isDone ? 'Tugas ditandai selesai ✓' : 'Tugas dibuka kembali', 'info');
+        toast(isDone ? 'Tugas ditandai selesai' : 'Tugas dibuka kembali', 'info');
       }
     });
   });
@@ -225,28 +226,30 @@ function renderSingleTaskRow(t: Task, nowIso: string, item: ApplicationItem): st
   if (isEditing) {
     const dueFormatted = t.dueDate ? t.dueDate.substring(0, 16) : '';
     return `
-      <form data-form-edit-task="${t.id}" style="padding: 10px; border: 1px solid var(--accent-blue); border-radius: var(--radius-sm); background-color: var(--bg-surface); display: flex; flex-direction: column; gap: 8px;">
+      <form data-form-edit-task="${t.id}" class="task-item-edit-form">
         <input type="text" data-edit-task-title class="form-input" value="${escapeHtml(t.title)}" required style="font-size: 13px;" />
-        <div style="display: flex; gap: 8px;">
-          <input type="datetime-local" data-edit-task-due class="form-input" value="${dueFormatted}" style="flex: 1; font-size: 12px;" />
-          <select data-edit-task-priority class="form-select" style="flex: 1; font-size: 12px;">
+        <div class="task-item-edit-row">
+          <input type="datetime-local" data-edit-task-due class="form-input task-edit-input-due" value="${dueFormatted}" style="font-size: 12px;" />
+          <select data-edit-task-priority class="form-select task-edit-select-priority" style="font-size: 12px;">
             <option value="High" ${t.priority === 'High' ? 'selected' : ''}>Tinggi</option>
             <option value="Med" ${t.priority === 'Med' ? 'selected' : ''}>Sedang</option>
             <option value="Low" ${t.priority === 'Low' ? 'selected' : ''}>Rendah</option>
           </select>
-          <button type="submit" class="btn btn-primary btn-sm">Simpan</button>
-          <button type="button" class="btn btn-secondary btn-sm" data-cancel-edit-task>Batal</button>
+          <div class="task-edit-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Simpan</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-cancel-edit-task>Batal</button>
+          </div>
         </div>
       </form>
     `;
   }
 
   return `
-    <div style="display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background-color: var(--bg-surface); ${isOverdue ? 'border-left: 3px solid var(--accent-red);' : ''}">
-      <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
-        <input type="checkbox" ${t.status === 'Done' ? 'checked' : ''} data-task-check="${t.id}" style="cursor: pointer; width: 16px; height: 16px;" title="Tandai Selesai" />
-        <div style="flex: 1;">
-          <span style="font-weight: 500; font-size: 13px; color: var(--text-primary); ${t.status === 'Done' ? 'text-decoration: line-through; opacity: 0.55;' : ''}">
+    <div class="task-item-card ${isOverdue ? 'is-overdue' : ''}">
+      <div class="task-item-card-left">
+        <input type="checkbox" ${t.status === 'Done' ? 'checked' : ''} data-task-check="${t.id}" style="cursor: pointer; width: 16px; height: 16px; margin-top: 2px;" title="Tandai Selesai" />
+        <div class="task-item-card-text">
+          <span class="task-item-card-title" style="${t.status === 'Done' ? 'text-decoration: line-through; opacity: 0.55;' : ''}">
             ${escapeHtml(t.title)}
           </span>
           <div style="display: flex; gap: 6px; align-items: center; font-size: 11px; margin-top: 3px; flex-wrap: wrap;">
@@ -255,24 +258,24 @@ function renderSingleTaskRow(t: Task, nowIso: string, item: ApplicationItem): st
             ${
               t.dueDate
                 ? `<span class="mono" style="${isOverdue ? 'color: var(--accent-red); font-weight: 600;' : 'color: var(--text-secondary);'}">
-                    ${isOverdue ? '⚠ Terlambat: ' : 'Jadwal: '}${formatDateTimeWIB(t.dueDate)}
+                    ${isOverdue ? `${getIconSvg('alert', { size: 11 })} Terlambat: ` : 'Jadwal: '}${formatDateTimeWIB(t.dueDate)}
                    </span>`
                 : ''
             }
           </div>
         </div>
       </div>
-      <div style="display: flex; gap: 5px; align-items: center;">
-        <a href="${gCalUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs btn-icon" title="Tambah ke Google Calendar" style="font-size: 11px; padding: 0 6px; height: 24px;">📅</a>
-        <button type="button" class="btn btn-secondary btn-xs btn-icon" data-task-ics="${t.id}" title="Unduh File .ics" style="font-size: 11px; padding: 0 6px; height: 24px;">📥</button>
+      <div class="task-item-card-actions">
+        <a href="${gCalUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs btn-icon" title="Tambah ke Google Calendar" style="font-size: 11px; padding: 0 6px; height: 24px; display: inline-flex; align-items: center;">${getIconSvg('calendar', { size: 12 })}</a>
+        <button type="button" class="btn btn-secondary btn-xs btn-icon" data-task-ics="${t.id}" title="Unduh File .ics" style="font-size: 11px; padding: 0 6px; height: 24px; display: inline-flex; align-items: center;">${getIconSvg('download', { size: 12 })}</button>
         ${
           t.status !== 'Done'
             ? `<button class="btn btn-secondary btn-sm" data-snooze-task="${t.id}" data-snooze-days="1" title="Tunda 1 hari" style="font-size: 10.5px; padding: 0 6px; height: 24px;">+1d</button>
                <button class="btn btn-secondary btn-sm" data-snooze-task="${t.id}" data-snooze-days="3" title="Tunda 3 hari" style="font-size: 10.5px; padding: 0 6px; height: 24px;">+3d</button>`
             : ''
         }
-        <button class="btn btn-secondary btn-sm" data-edit-task="${t.id}" title="Edit tugas" style="font-size: 11px; padding: 0 7px; height: 24px;">✎</button>
-        <button class="btn btn-danger btn-sm" data-delete-task="${t.id}" title="Hapus tugas" style="font-size: 11px; padding: 0 7px; height: 24px;">✕</button>
+        <button class="btn btn-secondary btn-sm" data-edit-task="${t.id}" title="Edit tugas" aria-label="Edit tugas" style="font-size: 11px; padding: 0 7px; height: 24px; display: inline-flex; align-items: center;">${getIconSvg('edit', { size: 12 })}</button>
+        <button class="btn btn-danger btn-sm" data-delete-task="${t.id}" title="Hapus tugas" aria-label="Hapus tugas" style="font-size: 11px; padding: 0 7px; height: 24px; display: inline-flex; align-items: center;">${getIconSvg('trash', { size: 12 })}</button>
       </div>
     </div>
   `;

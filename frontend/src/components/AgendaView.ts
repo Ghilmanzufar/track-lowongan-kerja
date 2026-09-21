@@ -13,6 +13,7 @@ import {
   downloadCalendarEventIcs
 } from '../utils/calendar';
 import { notificationService } from '../services/notification';
+import { getIconSvg } from '../utils/icons';
 
 const TASK_TYPE_LABELS: Record<TaskType, string> = {
   Apply: 'Kirim Lamaran',
@@ -94,8 +95,8 @@ export function renderAgendaView(container: HTMLElement): void {
         </div>
 
         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-          <button type="button" class="btn btn-primary btn-sm" id="btnOpenNewEventDialog" style="gap: 5px;">
-            <span>📅</span> + Buat Event Baru
+          <button type="button" class="btn btn-primary btn-sm" id="btnOpenNewEventDialog" style="gap: 5px; display:inline-flex; align-items:center;">
+            <span>${getIconSvg('calendar', { size: 14 })}</span> + Buat Event Baru
           </button>
           <button type="button" class="btn ${isNotifGranted ? 'btn-secondary' : 'btn-primary'} btn-sm" id="btnEnableNotif" title="Aktifkan Notifikasi Desktop">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -118,15 +119,15 @@ export function renderAgendaView(container: HTMLElement): void {
               <span class="tab-count-badge">${filteredEvents.length + filteredTasks.length + filteredReminders.length}</span>
             </button>
             <button type="button" class="agenda-tab-btn ${activeCategoryTab === 'events' ? 'active' : ''}" data-category="events">
-              <span>📅 Event Kalender</span>
+              <span style="display:inline-flex; align-items:center; gap:6px;">${getIconSvg('calendar', { size: 13 })} Event Kalender</span>
               <span class="tab-count-badge">${filteredEvents.length}</span>
             </button>
             <button type="button" class="agenda-tab-btn ${activeCategoryTab === 'tasks' ? 'active' : ''}" data-category="tasks">
-              <span>✅ Tugas & Deadline</span>
+              <span style="display:inline-flex; align-items:center; gap:6px;">${getIconSvg('checkCircle', { size: 13 })} Tugas & Deadline</span>
               <span class="tab-count-badge">${filteredTasks.length}</span>
             </button>
             <button type="button" class="agenda-tab-btn ${activeCategoryTab === 'reminders' ? 'active' : ''}" data-category="reminders">
-              <span>🔔 Pengingat</span>
+              <span style="display:inline-flex; align-items:center; gap:6px;">${getIconSvg('bell', { size: 13 })} Pengingat</span>
               <span class="tab-count-badge">${filteredReminders.length}</span>
             </button>
           </div>
@@ -151,8 +152,8 @@ export function renderAgendaView(container: HTMLElement): void {
     <dialog id="newEventDialog" class="modal-dialog" style="max-width: 520px;">
       <div class="modal-content" style="padding: 20px;">
         <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-          <h3 style="font-size: 15px; font-weight: 700; margin: 0;">📅 Jadwalkan Event Baru</h3>
-          <button type="button" class="modal-close-btn" id="btnCloseNewEventDialog" style="background: none; border: none; font-size: 18px; cursor: pointer;">✕</button>
+          <h3 style="font-size: 15px; font-weight: 700; margin: 0; display:flex; align-items:center; gap:6px;">${getIconSvg('calendar', { size: 16 })} Jadwalkan Event Baru</h3>
+          <button type="button" class="modal-close-btn" id="btnCloseNewEventDialog" style="background: none; border: none; cursor: pointer; display:flex; align-items:center; justify-content:center;">${getIconSvg('x', { size: 16 })}</button>
         </div>
 
         <form id="newEventForm" style="display: flex; flex-direction: column; gap: 10px;">
@@ -257,7 +258,7 @@ function renderFeedSections(
         <div class="agenda-group">
           <div class="agenda-group-title" style="color: var(--primary);">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <span>📅 Event Kalender (${events.length})</span>
+            <span>Event Kalender (${events.length})</span>
           </div>
           ${events.map(ev => renderEventCard(ev, now, items)).join('')}
         </div>
@@ -274,7 +275,7 @@ function renderFeedSections(
         <div class="agenda-group">
           <div class="agenda-group-title" style="color: var(--text-secondary);">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-            <span>✅ Tugas & Batas Waktu (${tasks.length})</span>
+            <span>Tugas & Batas Waktu (${tasks.length})</span>
           </div>
           ${tasks.map(({ task, item }) => renderTaskItem(task, item, now)).join('')}
         </div>
@@ -291,7 +292,7 @@ function renderFeedSections(
         <div class="agenda-group">
           <div class="agenda-group-title" style="color: #d97706;">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            <span>🔔 Pengingat (${reminders.length})</span>
+            <span>Pengingat (${reminders.length})</span>
           </div>
           ${reminders.map(rem => renderReminderItem(rem)).join('')}
         </div>
@@ -323,8 +324,8 @@ function renderEventCard(ev: CalendarEvent, now: Date, items: ApplicationItem[])
     <div class="agenda-event-card ${isPast ? 'past' : ''}" data-event-id="${ev.id}">
       <div class="agenda-event-left">
         <div class="agenda-event-title-row">
-          <span class="agenda-time-pill">
-            🕒 ${timeWindow}
+          <span class="agenda-time-pill" style="display:inline-flex; align-items:center; gap:4px;">
+            ${getIconSvg('clock', { size: 12 })} ${timeWindow}
           </span>
           <span class="badge-interview-type ${ev.eventType}">
             ${EVENT_TYPE_LABELS[ev.eventType] || ev.eventType}
@@ -336,35 +337,35 @@ function renderEventCard(ev: CalendarEvent, now: Date, items: ApplicationItem[])
 
         <div class="agenda-event-meta">
           ${companyName ? `<strong>${escapeHtml(companyName)}</strong>` : ''}
-          ${ev.interviewer ? `<span>👤 ${escapeHtml(ev.interviewer)}</span>` : ''}
-          ${ev.location ? `<span>📍 ${escapeHtml(ev.location)}</span>` : ''}
-          <span>📅 ${formatDateTimeWIB(ev.startTime)}</span>
+          ${ev.interviewer ? `<span style="display:inline-flex; align-items:center; gap:4px;">${getIconSvg('user', { size: 12 })} ${escapeHtml(ev.interviewer)}</span>` : ''}
+          ${ev.location ? `<span style="display:inline-flex; align-items:center; gap:4px;">${getIconSvg('mapPin', { size: 12 })} ${escapeHtml(ev.location)}</span>` : ''}
+          <span style="display:inline-flex; align-items:center; gap:4px;">${getIconSvg('calendar', { size: 12 })} ${formatDateTimeWIB(ev.startTime)}</span>
         </div>
       </div>
 
       <div class="agenda-actions-group" style="display: flex; align-items: center; gap: 6px;">
         ${ev.meetingUrl ? `
-          <a href="${escapeHtml(ev.meetingUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="font-size: 11px; padding: 4px 8px; font-weight: 600;">
-            🚀 Buka Meeting
+          <a href="${escapeHtml(ev.meetingUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" style="font-size: 11px; padding: 4px 8px; font-weight: 600; display:inline-flex; align-items:center; gap:4px;">
+            ${getIconSvg('rocket', { size: 12 })} Buka Meeting
           </a>
         ` : ''}
 
-        <a href="${gCalUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs btn-icon" title="Tambah ke Google Calendar">
-          📅
+        <a href="${gCalUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs btn-icon" title="Tambah ke Google Calendar" style="display:inline-flex; align-items:center; justify-content:center;">
+          ${getIconSvg('calendar', { size: 12 })}
         </a>
 
-        <button type="button" class="btn btn-secondary btn-xs btn-icon" data-download-event-ics="${ev.id}" title="Unduh file kalender .ics">
-          📥
+        <button type="button" class="btn btn-secondary btn-xs btn-icon" data-download-event-ics="${ev.id}" title="Unduh file kalender .ics" style="display:inline-flex; align-items:center; justify-content:center;">
+          ${getIconSvg('download', { size: 12 })}
         </button>
 
         ${ev.applicationId ? `
-          <button type="button" class="btn btn-secondary btn-sm" data-open-interview="${ev.applicationId}" title="Buka Modul Wawancara" style="color: var(--primary); font-weight: 600; font-size: 11px;">
-            🎯 Wawancara
+          <button type="button" class="btn btn-secondary btn-sm" data-open-interview="${ev.applicationId}" title="Buka Modul Wawancara" style="color: var(--primary); font-weight: 600; font-size: 11px; display:inline-flex; align-items:center; gap:4px;">
+            ${getIconSvg('target', { size: 12 })} Wawancara
           </button>
         ` : ''}
 
-        <button type="button" class="btn btn-danger btn-sm" data-delete-event="${ev.id}" title="Hapus event" style="padding: 3px 6px;">
-          ✕
+        <button type="button" class="btn btn-danger btn-sm" data-delete-event="${ev.id}" title="Hapus event" style="padding: 3px 6px; display:inline-flex; align-items:center; justify-content:center;">
+          ${getIconSvg('trash', { size: 12 })}
         </button>
       </div>
     </div>
@@ -402,25 +403,25 @@ function renderTaskItem(task: Task, item: ApplicationItem, now: Date): string {
       </div>
 
       <div class="agenda-actions-group">
-        <a href="${gCalUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs btn-icon" title="Tambah ke Google Calendar">
-          📅
+        <a href="${gCalUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs btn-icon" title="Tambah ke Google Calendar" style="display:inline-flex; align-items:center; justify-content:center;">
+          ${getIconSvg('calendar', { size: 12 })}
         </a>
-        <button type="button" class="btn btn-secondary btn-xs btn-icon" data-download-ics="${task.id}" title="Unduh file kalender .ics">
-          📥
+        <button type="button" class="btn btn-secondary btn-xs btn-icon" data-download-ics="${task.id}" title="Unduh file kalender .ics" style="display:inline-flex; align-items:center; justify-content:center;">
+          ${getIconSvg('download', { size: 12 })}
         </button>
         ${task.status !== 'Done' ? `
           <button class="btn btn-secondary btn-sm" data-snooze="${task.id}" title="Tunda 1 hari">+1 Hari</button>
         ` : ''}
         ${task.interviewId || task.type === 'Interview' ? `
-          <button class="btn btn-secondary btn-sm" data-open-interview="${item.application.id}" title="Buka Modul Wawancara" style="color: var(--primary); font-weight: 600; font-size: 11px;">
-            🎯 Wawancara
+          <button class="btn btn-secondary btn-sm" data-open-interview="${item.application.id}" title="Buka Modul Wawancara" style="color: var(--primary); font-weight: 600; font-size: 11px; display:inline-flex; align-items:center; gap:4px;">
+            ${getIconSvg('target', { size: 12 })} Wawancara
           </button>
         ` : ''}
         <button class="btn btn-secondary btn-sm" data-open-app="${item.application.id}" title="Lihat detail lamaran">
           Buka
         </button>
-        <button class="btn btn-danger btn-sm" data-delete-task="${task.id}" title="Hapus tugas">
-          ✕
+        <button class="btn btn-danger btn-sm" data-delete-task="${task.id}" title="Hapus tugas" style="padding: 3px 6px; display:inline-flex; align-items:center; justify-content:center;">
+          ${getIconSvg('trash', { size: 12 })}
         </button>
       </div>
     </div>
@@ -432,7 +433,7 @@ function renderReminderItem(rem: ReminderItem): string {
   return `
     <div class="agenda-reminder-item" data-reminder-id="${rem.id}">
       <div style="display: flex; align-items: center; gap: 8px;">
-        <span style="font-size: 16px;">🔔</span>
+        <span style="display: flex; align-items: center; color: #d97706;">${getIconSvg('bell', { size: 16 })}</span>
         <div>
           <div style="font-size: 12.5px; font-weight: 600; color: var(--text-primary);">${escapeHtml(rem.title)}</div>
           <div style="font-size: 11px; color: var(--text-secondary);">
@@ -440,8 +441,8 @@ function renderReminderItem(rem: ReminderItem): string {
           </div>
         </div>
       </div>
-      <button type="button" class="btn btn-danger btn-sm" data-delete-reminder="${rem.id}" title="Hapus pengingat" style="padding: 2px 6px;">
-        ✕
+      <button type="button" class="btn btn-danger btn-sm" data-delete-reminder="${rem.id}" title="Hapus pengingat" style="padding: 2px 6px; display:inline-flex; align-items:center; justify-content:center;">
+        ${getIconSvg('trash', { size: 12 })}
       </button>
     </div>
   `;
@@ -559,11 +560,13 @@ function attachAgendaListeners(
     });
   });
 
-  // Task actions: Open App
+  // Task actions: Open App Task Tab
   container.querySelectorAll<HTMLButtonElement>('[data-open-app]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const appId = btn.getAttribute('data-open-app');
-      if (appId) store.setSelectedApplicationId(appId);
+      if (appId) {
+        window.location.hash = `application/${appId}?tab=tugas`;
+      }
     });
   });
 

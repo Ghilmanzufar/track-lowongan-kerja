@@ -10,6 +10,7 @@ import {
   NoteRevision,
   NoteAuditEntry
 } from './shared';
+import { getIconSvg } from '../../utils/icons';
 
 let editingNoteId: string | null = null;
 let notesActiveSubView: 'notes' | 'history' = 'notes';
@@ -339,8 +340,8 @@ function renderSingleNoteCard(note: NoteItem): string {
   if (isEditing) {
     return `
       <form data-form-edit-note="${note.id}" style="padding: 12px 14px; border: 1px solid var(--accent-blue); border-radius: var(--radius-sm); background-color: var(--bg-surface); display: flex; flex-direction: column; gap: 10px;">
-        <div style="font-size: 12px; font-weight: 600; color: var(--accent-blue);">
-          ✎ Edit Catatan (Versi saat ini akan otomatis diarsipkan ke riwayat revisi)
+        <div style="font-size: 12px; font-weight: 600; color: var(--accent-blue); display: flex; align-items: center; gap: 5px;">
+          ${getIconSvg('edit', { size: 13 })} Edit Catatan (Versi saat ini akan otomatis diarsipkan ke riwayat revisi)
         </div>
         <textarea class="form-textarea" rows="4" required style="font-size: 13px; line-height: 1.45;">${escapeHtml(note.content)}</textarea>
         <div style="display: flex; gap: 8px; justify-content: flex-end;">
@@ -365,8 +366,12 @@ function renderSingleNoteCard(note: NoteItem): string {
           }
         </div>
         <div style="display: flex; gap: 6px;">
-          <button class="btn btn-secondary btn-sm" data-edit-note="${note.id}" title="Edit catatan" style="font-size: 11px; padding: 0 7px; height: 24px;">✎ Edit</button>
-          <button class="btn btn-danger btn-sm" data-delete-note="${note.id}" title="Hapus catatan" style="font-size: 11px; padding: 0 7px; height: 24px;">🗑</button>
+          <button class="btn btn-secondary btn-sm" data-edit-note="${note.id}" title="Edit catatan" style="font-size: 11px; padding: 0 7px; height: 24px; display: inline-flex; align-items: center; gap: 4px;">
+            ${getIconSvg('edit', { size: 12 })} Edit
+          </button>
+          <button class="btn btn-danger btn-sm" data-delete-note="${note.id}" title="Hapus catatan" aria-label="Hapus catatan" style="font-size: 11px; padding: 0 7px; height: 24px; display: inline-flex; align-items: center;">
+            ${getIconSvg('trash', { size: 12 })}
+          </button>
         </div>
       </div>
 
@@ -435,15 +440,15 @@ function renderSingleNoteAuditItem(log: NoteAuditEntry): string {
 
   if (log.action === 'created') {
     badgeColor = 'var(--accent-green)';
-    badgeText = '+ Dibuat';
+    badgeText = `<span style="display: inline-flex; align-items: center; gap: 3px;">${getIconSvg('plus', { size: 10 })} Dibuat</span>`;
     markerClass = 'done';
   } else if (log.action === 'edited') {
     badgeColor = 'var(--accent-amber)';
-    badgeText = '✎ Diedit';
+    badgeText = `<span style="display: inline-flex; align-items: center; gap: 3px;">${getIconSvg('edit', { size: 10 })} Diedit</span>`;
     markerClass = 'task';
   } else if (log.action === 'deleted') {
     badgeColor = 'var(--accent-red)';
-    badgeText = '✕ Dihapus';
+    badgeText = `<span style="display: inline-flex; align-items: center; gap: 3px;">${getIconSvg('trash', { size: 10 })} Dihapus</span>`;
     markerClass = '';
   }
 

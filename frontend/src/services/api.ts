@@ -110,6 +110,7 @@ export function createApplication(data: {
   tags?: string[];
   appliedDocumentVersionIds?: string[];
   allowDuplicate?: boolean;
+  keywords?: string;
 }): Promise<ApplicationItem> {
   return request<ApplicationItem>('/applications', {
     method: 'POST',
@@ -167,6 +168,7 @@ export function updateApplicationDetails(
     contactMethod?: string | null;
     responseStatus?: string | null;
     followUpNotes?: string | null;
+    keywords?: string | null;
   }
 ): Promise<ApplicationItem> {
   return request<ApplicationItem>(`/applications/${id}`, {

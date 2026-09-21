@@ -4,6 +4,7 @@
 import { ApplicationItem } from '../types';
 import { EMAIL_TEMPLATES, compileTemplate, TemplateVariables, EmailTemplate } from '../data/emailTemplates';
 import { showAlertDialog } from './Dialog';
+import { getIconSvg } from '../utils/icons';
 
 export class TemplateMessageModal {
   private static dialog: HTMLDialogElement | null = null;
@@ -109,7 +110,7 @@ export class TemplateMessageModal {
               <p style="margin: 0; font-size: 12px; color: var(--text-muted);">${this.currentItem.company.name} — ${this.currentItem.jobPosting.title}</p>
             </div>
           </div>
-          <button type="button" class="modal-close btn-close-template-modal" title="Tutup" style="background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text-muted);">✕</button>
+          <button type="button" class="modal-close btn-close-template-modal" title="Tutup" style="background: none; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center;">${getIconSvg('x', { size: 16 })}</button>
         </div>
 
         <div class="modal-body template-modal-body" style="padding: 18px; overflow-y: auto;">

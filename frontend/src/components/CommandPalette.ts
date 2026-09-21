@@ -3,6 +3,7 @@ import { store } from '../services/store';
 import { STAGES_CONFIG, ApplicationStage } from '../types';
 import { escapeHtml } from '../utils';
 import { searchGlobal } from '../services/api';
+import { getIconSvg } from '../utils/icons';
 
 interface CommandItem {
   id: string;
@@ -27,7 +28,7 @@ function getStaticCommands(): CommandItem[] {
   return [
     {
       id: 'add-application',
-      icon: '＋',
+      icon: getIconSvg('plus', { size: 16 }),
       iconClass: 'action',
       title: 'Tambah Lamaran Baru',
       description: 'Simpan lowongan pekerjaan baru ke tracker',
@@ -40,7 +41,7 @@ function getStaticCommands(): CommandItem[] {
     },
     {
       id: 'add-task',
-      icon: '☑',
+      icon: getIconSvg('checkSquare', { size: 16 }),
       iconClass: 'action',
       title: 'Tambah Tugas Baru',
       description: 'Buat tugas follow-up, interview, atau assignment',
@@ -52,7 +53,7 @@ function getStaticCommands(): CommandItem[] {
     },
     {
       id: 'add-document',
-      icon: '📄',
+      icon: getIconSvg('fileText', { size: 16 }),
       iconClass: 'action',
       title: 'Tambah Dokumen Baru',
       description: 'Upload CV, cover letter, atau portofolio ke vault',
@@ -64,7 +65,7 @@ function getStaticCommands(): CommandItem[] {
     },
     {
       id: 'nav-dashboard',
-      icon: '⊞',
+      icon: getIconSvg('home', { size: 16 }),
       iconClass: 'nav',
       title: 'Buka Dashboard',
       description: 'Ringkasan statistik dan aktivitas terkini',
@@ -73,16 +74,16 @@ function getStaticCommands(): CommandItem[] {
     },
     {
       id: 'nav-board',
-      icon: '▦',
+      icon: getIconSvg('target', { size: 16 }),
       iconClass: 'nav',
-      title: 'Buka Kanban Board',
+      title: 'Buka Kanban Lamaran',
       description: 'Visualisasi pipeline lamaran per tahap',
       group: 'navigate',
       action: () => { close(); window.location.hash = 'board'; }
     },
     {
       id: 'nav-list',
-      icon: '☰',
+      icon: getIconSvg('menu', { size: 16 }),
       iconClass: 'nav',
       title: 'Buka Daftar Lamaran',
       description: 'Tabel ringkas seluruh lamaran tersimpan',
@@ -91,7 +92,7 @@ function getStaticCommands(): CommandItem[] {
     },
     {
       id: 'nav-agenda',
-      icon: '📅',
+      icon: getIconSvg('calendar', { size: 16 }),
       iconClass: 'nav',
       title: 'Buka Agenda & Tugas',
       description: 'Jadwal wawancara, tenggat, dan pengingat',
@@ -100,7 +101,7 @@ function getStaticCommands(): CommandItem[] {
     },
     {
       id: 'nav-analytics',
-      icon: '📊',
+      icon: getIconSvg('barChart', { size: 16 }),
       iconClass: 'nav',
       title: 'Buka Analitik & Funnel',
       description: 'Statistik konversi dan rasio efektivitas',
@@ -109,7 +110,7 @@ function getStaticCommands(): CommandItem[] {
     },
     {
       id: 'nav-documents',
-      icon: '🗂',
+      icon: getIconSvg('folder', { size: 16 }),
       iconClass: 'nav',
       title: 'Buka Vault Dokumen',
       description: 'Kelola CV, cover letter, dan portofolio',
@@ -118,7 +119,7 @@ function getStaticCommands(): CommandItem[] {
     },
     {
       id: 'nav-career-links',
-      icon: '🔗',
+      icon: getIconSvg('link', { size: 16 }),
       iconClass: 'nav',
       title: 'Buka Direktori Karir',
       description: 'Link karir perusahaan swasta, BUMN, multinasional',
@@ -127,7 +128,7 @@ function getStaticCommands(): CommandItem[] {
     },
     {
       id: 'nav-trash',
-      icon: '🗑',
+      icon: getIconSvg('trash', { size: 16 }),
       iconClass: 'nav',
       title: 'Buka Tempat Sampah',
       description: 'Pulihkan item yang terhapus',
@@ -136,7 +137,7 @@ function getStaticCommands(): CommandItem[] {
     },
     {
       id: 'toggle-theme',
-      icon: '◑',
+      icon: getIconSvg('sparkle', { size: 16 }),
       iconClass: 'action',
       title: 'Ganti Mode Gelap / Terang',
       description: 'Toggle tema tampilan aplikasi',
@@ -148,7 +149,7 @@ function getStaticCommands(): CommandItem[] {
     },
     {
       id: 'open-filter',
-      icon: '⫶',
+      icon: getIconSvg('tools', { size: 16 }),
       iconClass: 'action',
       title: 'Buka Filter Lamaran',
       description: 'Filter berdasarkan status, tipe kerja, dan tugas',
@@ -177,7 +178,7 @@ function buildLocalSearchResults(query: string): CommandItem[] {
       const stageConf = STAGES_CONFIG[item.application.stage as ApplicationStage];
       matched.push({
         id: `app-${item.application.id}`,
-        icon: '📋',
+        icon: getIconSvg('clipboard', { size: 16 }),
         iconClass: 'search',
         title: `${item.company.name} — ${item.jobPosting.title}`,
         description: `Lamaran • Tahap: ${stageConf?.label || item.application.stage}`,
@@ -227,7 +228,7 @@ function renderResults(container: HTMLElement, query: string): void {
   if (filteredItems.length === 0) {
     container.innerHTML = `
       <div class="cmd-empty">
-        <div class="cmd-empty-icon">🔍</div>
+        <div class="cmd-empty-icon">${getIconSvg('search', { size: 36 })}</div>
         <div class="cmd-empty-text">Tidak ditemukan perintah atau lamaran untuk "<strong>${escapeHtml(query)}</strong>"</div>
       </div>
     `;
@@ -246,9 +247,9 @@ function renderResults(container: HTMLElement, query: string): void {
   }
 
   const groupLabels: Record<string, string> = {
-    search: '🔎 Hasil Pencarian Lamaran',
-    action: '⚡ Aksi Cepat',
-    navigate: '🧭 Navigasi'
+    search: `${getIconSvg('search', { size: 13 })} Hasil Pencarian Lamaran`,
+    action: `${getIconSvg('zap', { size: 13 })} Aksi Cepat`,
+    navigate: `${getIconSvg('compass', { size: 13 })} Navigasi`
   };
 
   const groupOrder = ['search', 'action', 'navigate'];
@@ -381,7 +382,7 @@ function open(): void {
         for (const c of res.categories.companies) {
           serverItems.push({
             id: `cmd-comp-${c.id}`,
-            icon: '🏢',
+            icon: getIconSvg('building', { size: 16 }),
             iconClass: 'search',
             title: c.name,
             description: `Perusahaan • ${[c.industry, c.location].filter(Boolean).join(' • ') || 'Profil perusahaan'}`,
@@ -398,7 +399,7 @@ function open(): void {
         for (const j of res.categories.jobs) {
           serverItems.push({
             id: `cmd-job-${j.id}`,
-            icon: '💼',
+            icon: getIconSvg('briefcase', { size: 16 }),
             iconClass: 'search',
             title: j.title,
             description: `Lowongan • ${j.company.name}${j.location ? ` • ${j.location}` : ''}`,
@@ -420,7 +421,7 @@ function open(): void {
         for (const a of res.categories.applications) {
           serverItems.push({
             id: `cmd-app-${a.id}`,
-            icon: '📋',
+            icon: getIconSvg('clipboard', { size: 16 }),
             iconClass: 'search',
             title: `${a.jobPosting.company.name} — ${a.jobPosting.title}`,
             description: `Lamaran • Tahap: ${a.stage}`,
@@ -436,7 +437,7 @@ function open(): void {
         for (const ct of res.categories.contacts) {
           serverItems.push({
             id: `cmd-ct-${ct.id}`,
-            icon: '👤',
+            icon: getIconSvg('user', { size: 16 }),
             iconClass: 'search',
             title: ct.name,
             description: `Kontak • ${[ct.role, ct.company?.name || ct.application?.jobPosting?.company?.name].filter(Boolean).join(' • ') || 'Recruiter'}`,
@@ -456,7 +457,7 @@ function open(): void {
         for (const t of res.categories.tasks) {
           serverItems.push({
             id: `cmd-task-${t.id}`,
-            icon: '☑️',
+            icon: getIconSvg('checkSquare', { size: 16 }),
             iconClass: 'search',
             title: t.title,
             description: `Tugas • ${t.type} (${t.status})`,
@@ -472,7 +473,7 @@ function open(): void {
         for (const d of res.categories.documents) {
           serverItems.push({
             id: `cmd-doc-${d.id}`,
-            icon: '📄',
+            icon: getIconSvg('fileText', { size: 16 }),
             iconClass: 'search',
             title: d.title,
             description: `Dokumen Vault • ${d.category}`,
@@ -488,7 +489,7 @@ function open(): void {
         for (const cl of res.categories.careerLinks) {
           serverItems.push({
             id: `cmd-cl-${cl.id}`,
-            icon: '🔗',
+            icon: getIconSvg('link', { size: 16 }),
             iconClass: 'search',
             title: cl.name,
             description: `Direktori Karir • ${cl.sector || cl.category}`,

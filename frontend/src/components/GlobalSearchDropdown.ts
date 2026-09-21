@@ -3,6 +3,7 @@ import { searchGlobal } from '../services/api';
 import type { GlobalSearchResults } from '../types';
 import { STAGES_CONFIG, ApplicationStage } from '../types';
 import { escapeHtml } from '../utils';
+import { getIconSvg } from '../utils/icons';
 
 interface SearchActionItem {
   id: string;
@@ -37,13 +38,13 @@ function convertResultsToActionItems(results: GlobalSearchResults): {
 } {
   const items: SearchActionItem[] = [];
   const grouped: Record<string, { label: string; icon: string; items: SearchActionItem[] }> = {
-    company: { label: 'Perusahaan (Company)', icon: '🏢', items: [] },
-    job: { label: 'Lowongan (Job)', icon: '💼', items: [] },
-    application: { label: 'Lamaran Terdaftar (Applications)', icon: '📋', items: [] },
-    contact: { label: 'Kontak Rekrutmen (Contact)', icon: '👤', items: [] },
-    task: { label: 'Tugas & Agenda (Task)', icon: '☑️', items: [] },
-    document: { label: 'Vault Dokumen (Document)', icon: '📄', items: [] },
-    careerLink: { label: 'Direktori Karir (Career Link)', icon: '🔗', items: [] },
+    company: { label: 'Perusahaan (Company)', icon: getIconSvg('building', { size: 14 }), items: [] },
+    job: { label: 'Lowongan (Job)', icon: getIconSvg('briefcase', { size: 14 }), items: [] },
+    application: { label: 'Lamaran Terdaftar (Applications)', icon: getIconSvg('clipboard', { size: 14 }), items: [] },
+    contact: { label: 'Kontak Rekrutmen (Contact)', icon: getIconSvg('user', { size: 14 }), items: [] },
+    task: { label: 'Tugas & Agenda (Task)', icon: getIconSvg('checkSquare', { size: 14 }), items: [] },
+    document: { label: 'Vault Dokumen (Document)', icon: getIconSvg('fileText', { size: 14 }), items: [] },
+    careerLink: { label: 'Direktori Karir (Career Link)', icon: getIconSvg('link', { size: 14 }), items: [] },
   };
 
   // 1. Companies
@@ -54,7 +55,7 @@ function convertResultsToActionItems(results: GlobalSearchResults): {
       title: c.name,
       subtitle: [c.industry, c.location].filter(Boolean).join(' • ') || 'Profil perusahaan tersimpan',
       metaBadge: c._count?.jobPostings ? `${c._count.jobPostings} Lowongan` : undefined,
-      icon: '🏢',
+      icon: getIconSvg('building', { size: 15 }),
       iconClass: 'company',
       action: () => {
         closeDropdown();
@@ -75,7 +76,7 @@ function convertResultsToActionItems(results: GlobalSearchResults): {
       title: j.title,
       subtitle: `${j.company.name}${j.location ? ` • ${j.location}` : ''}`,
       metaBadge: j.workType || undefined,
-      icon: '💼',
+      icon: getIconSvg('briefcase', { size: 15 }),
       iconClass: 'job',
       action: () => {
         closeDropdown();
@@ -102,7 +103,7 @@ function convertResultsToActionItems(results: GlobalSearchResults): {
       subtitle: `${a.jobPosting.company.name}${a.jobPosting.location ? ` • ${a.jobPosting.location}` : ''}`,
       metaBadge: stageConf?.label || a.stage,
       metaClass: `stage-${a.stage.toLowerCase()}`,
-      icon: '📋',
+      icon: getIconSvg('clipboard', { size: 15 }),
       iconClass: 'application',
       action: () => {
         closeDropdown();
@@ -121,7 +122,7 @@ function convertResultsToActionItems(results: GlobalSearchResults): {
       category: 'contact',
       title: ct.name,
       subtitle: [ct.role, companyOrApp, ct.email].filter(Boolean).join(' • ') || 'Kontak rekrutmen',
-      icon: '👤',
+      icon: getIconSvg('user', { size: 15 }),
       iconClass: 'contact',
       action: () => {
         closeDropdown();
@@ -145,7 +146,7 @@ function convertResultsToActionItems(results: GlobalSearchResults): {
       title: t.title,
       subtitle: [t.type, appInfo].filter(Boolean).join(' • ') || 'Tugas lamaran',
       metaBadge: t.status,
-      icon: '☑️',
+      icon: getIconSvg('checkSquare', { size: 15 }),
       iconClass: 'task',
       action: () => {
         closeDropdown();
@@ -164,7 +165,7 @@ function convertResultsToActionItems(results: GlobalSearchResults): {
       category: 'document',
       title: d.title,
       subtitle: [d.category, versionInfo, d.description].filter(Boolean).join(' • ') || 'Dokumen vault',
-      icon: '📄',
+      icon: getIconSvg('fileText', { size: 15 }),
       iconClass: 'document',
       action: () => {
         closeDropdown();
@@ -183,7 +184,7 @@ function convertResultsToActionItems(results: GlobalSearchResults): {
       title: cl.name,
       subtitle: [cl.sector || cl.category, cl.url].filter(Boolean).join(' • '),
       metaBadge: cl.isVerified ? 'Terverifikasi' : 'Perlu Cek',
-      icon: '🔗',
+      icon: getIconSvg('link', { size: 15 }),
       iconClass: 'careerLink',
       action: () => {
         closeDropdown();
@@ -265,7 +266,7 @@ function triggerSearch(inputEl: HTMLInputElement, query: string): void {
       if (currentQuery !== query) return;
       dropdown.innerHTML = `
         <div class="gs-empty">
-          <div class="gs-empty-icon">⚠️</div>
+          <div class="gs-empty-icon">${getIconSvg('alert', { size: 36 })}</div>
           <div class="gs-empty-text">Gagal memuat hasil pencarian</div>
           <div class="gs-empty-sub">${escapeHtml(err.message || 'Koneksi terputus')}</div>
         </div>
@@ -285,7 +286,7 @@ function renderDropdownContent(
   if (total === 0) {
     dropdown.innerHTML = `
       <div class="gs-empty">
-        <div class="gs-empty-icon">🔍</div>
+        <div class="gs-empty-icon">${getIconSvg('search', { size: 36 })}</div>
         <div class="gs-empty-text">Tidak ada hasil untuk "<strong>${escapeHtml(query)}</strong>"</div>
         <div class="gs-empty-sub">Coba periksa ejaan atau gunakan kata kunci yang lebih umum.</div>
       </div>

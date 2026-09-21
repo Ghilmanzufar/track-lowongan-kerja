@@ -315,6 +315,10 @@
   color: #f59e0b;
 }
 
+.star-rating-btn.active svg {
+  fill: #f59e0b;
+}
+
 /* --- Thank you note box --- */
 .thankyou-preview {
   background-color: var(--bg-subtle);
