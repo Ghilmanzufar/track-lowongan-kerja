@@ -24,12 +24,24 @@ model User {
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
+  // ─── Profile fields (previously stored in localStorage) ───────────────────
+  avatarUrl               String?  @db.Text
+  phone                   String?
+  location                String?
+  bio                     String?  @db.Text
+  notifInterviewReminder  Boolean  @default(true)
+  notifFollowUpReminder   Boolean  @default(true)
+  notifDeadlineReminder   Boolean  @default(false)
+
   companies       Company[]
   applications    Application[]
   userCareerLinks UserCareerLink[]
   documents       UserDocument[]
   calendarEvents  CalendarEvent[]
   reminders       Reminder[]
+  passwordResetTokens PasswordResetToken[]
+  refreshTokens       RefreshToken[]
+  starredCareerLinks  StarredCareerLink[]
 }
 
 // ─────────────────────────────────────────────
@@ -581,5 +593,65 @@ model Reminder {
 
   @@index([userId])
   @@index([remindAt])
+}
+
+// ─────────────────────────────────────────────
+// PASSWORD RESET TOKEN
+// ─────────────────────────────────────────────
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique // SHA-256 hash dari token mentah
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// REFRESH TOKEN (Sesi Aktif & Revocation)
+// ─────────────────────────────────────────────
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique // SHA-256 hash dari refresh token
+  expiresAt DateTime
+  revokedAt DateTime? // Diisi waktu saat logout / di-revoke
+  userAgent String?
+  ipAddress String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([token])
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// STARRED CAREER LINK (Tautan Favorit per User)
+// ─────────────────────────────────────────────
+
+model StarredCareerLink {
+  id             String             @id @default(cuid())
+  userId         String
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name           String
+  url            String
+  category       CareerLinkCategory @default(Swasta)
+  sector         String?
+  logoUrl        String?
+  careerLinkId   String?
+  userLinkId     String?
+
+  createdAt      DateTime           @default(now())
+
+  @@unique([userId, url])
+  @@index([userId])
 }
 

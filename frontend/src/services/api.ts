@@ -314,7 +314,7 @@ export function saveInterviewPrep(applicationId: string, data: unknown): Promise
 
 // ─── Career Links (Global) ────────────────────────────────────────────────────
 
-import type { CareerLink, CareerLinkCategory, UserCareerLink } from '../types';
+import type { CareerLink, CareerLinkCategory, UserCareerLink, StarredCareerLink } from '../types';
 
 export function fetchCareerLinks(params?: {
   category?: CareerLinkCategory | 'all';
@@ -376,6 +376,25 @@ export function deleteUserCareerLink(id: string): Promise<{ success: boolean }> 
 export function verifyCareerLink(id: string, isUserLink = false): Promise<CareerLink | UserCareerLink> {
   const endpoint = isUserLink ? `/career-links/user/${id}/verify` : `/career-links/${id}/verify`;
   return request<CareerLink | UserCareerLink>(endpoint, { method: 'POST' });
+}
+
+export function fetchStarredCareerLinks(): Promise<StarredCareerLink[]> {
+  return request<StarredCareerLink[]>('/career-links/starred');
+}
+
+export function toggleStarCareerLink(data: {
+  name?: string;
+  url: string;
+  category?: CareerLinkCategory;
+  sector?: string | null;
+  logoUrl?: string | null;
+  careerLinkId?: string | null;
+  userLinkId?: string | null;
+}): Promise<{ starred: boolean; item?: StarredCareerLink; message?: string }> {
+  return request<{ starred: boolean; item?: StarredCareerLink; message?: string }>('/career-links/star', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
 }
 
 // ─── Companies ────────────────────────────────────────────────────────────────

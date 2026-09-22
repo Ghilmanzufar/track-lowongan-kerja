@@ -62,23 +62,22 @@ async function initApp(): Promise<void> {
   let isAppInitialized = false;
 
   const getProfileData = (user: User | null): { name: string; avatarUrl?: string } => {
-    let savedProfileName = '';
-    let savedAvatarUrl = '';
-    try {
-      const saved = localStorage.getItem('jobtrack-profile');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.displayName && parsed.displayName.trim()) {
-          savedProfileName = parsed.displayName.trim();
-        }
-        if (parsed.avatarUrl) {
-          savedAvatarUrl = parsed.avatarUrl;
-        }
-      }
-    } catch {}
+    // Sumber utama: data dari database via authStore
+    const name = user?.displayName?.trim() || user?.email?.split('@')[0] || 'Pengguna';
+    let avatarUrl = user?.avatarUrl || '';
 
-    const name = savedProfileName || user?.displayName?.trim() || user?.email?.split('@')[0] || 'Pengguna';
-    return { name, avatarUrl: savedAvatarUrl };
+    // Fallback ke localStorage hanya jika data DB belum ada (migrasi akun lama)
+    if (!avatarUrl) {
+      try {
+        const saved = localStorage.getItem('jobtrack-profile');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.avatarUrl) avatarUrl = parsed.avatarUrl;
+        }
+      } catch {}
+    }
+
+    return { name, avatarUrl };
   };
 
   const updateUserUI = (user: User | null) => {
@@ -157,16 +156,24 @@ async function initApp(): Promise<void> {
     }
   });
 
-  // Check initial session via refresh token cookie
-  try {
-    const token = await refreshSession();
-    if (token && authStore.isAuthenticated()) {
-      await bootstrapWorkspace(authStore.getUser());
-    } else {
+  // Check initial URL hash: jika user membuka tautan reset kata sandi atau forgot password, tampilkan auth screen
+  const initialHash = window.location.hash.toLowerCase();
+  const isResetOrForgotFlow = initialHash.includes('reset-password') || initialHash.includes('#forgot');
+
+  if (isResetOrForgotFlow) {
+    showAuthScreen();
+  } else {
+    // Check initial session via refresh token cookie
+    try {
+      const token = await refreshSession();
+      if (token && authStore.isAuthenticated()) {
+        await bootstrapWorkspace(authStore.getUser());
+      } else {
+        showAuthScreen();
+      }
+    } catch {
       showAuthScreen();
     }
-  } catch {
-    showAuthScreen();
   }
 }
 

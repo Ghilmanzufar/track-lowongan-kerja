@@ -585,6 +585,19 @@ export interface UserCareerLink {
   updatedAt: string;
 }
 
+export interface StarredCareerLink {
+  id: string;
+  userId: string;
+  name: string;
+  url: string;
+  category: CareerLinkCategory;
+  sector?: string | null;
+  logoUrl?: string | null;
+  careerLinkId?: string | null;
+  userLinkId?: string | null;
+  createdAt: string;
+}
+
 export interface IndustrySectorDef {
   key: string;
   name: string;
@@ -730,6 +743,14 @@ export interface User {
   lastLoginAt?: string;
   createdAt: string;
   updatedAt?: string;
+  // Profile fields
+  avatarUrl?: string | null;
+  phone?: string | null;
+  location?: string | null;
+  bio?: string | null;
+  notifInterviewReminder?: boolean;
+  notifFollowUpReminder?: boolean;
+  notifDeadlineReminder?: boolean;
 }
 
 export interface AuthResponse {

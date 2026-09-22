@@ -296,3 +296,79 @@ careerLinksRouter.post('/:id/verify', async (req, res) => {
   }
 });
 
+// ─── GET /api/v1/career-links/starred ─────────────────────────────────────────
+// Ambil semua tautan karir yang dibintangi (favorit) oleh pengguna aktif
+careerLinksRouter.get('/starred', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const starred = await prisma.starredCareerLink.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json(starred);
+  } catch (err: any) {
+    console.error('[GET /career-links/starred]', err);
+    res.status(500).json({ error: 'Gagal mengambil tautan favorit.' });
+  }
+});
+
+// ─── POST /api/v1/career-links/star ───────────────────────────────────────────
+// Toggle bintang (favorit) tautan karir untuk pengguna aktif
+careerLinksRouter.post('/star', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { name, url, category, sector, logoUrl, careerLinkId, userLinkId } = req.body as {
+      name?: string;
+      url?: string;
+      category?: CareerLinkCategory;
+      sector?: string | null;
+      logoUrl?: string | null;
+      careerLinkId?: string | null;
+      userLinkId?: string | null;
+    };
+
+    if (!url || typeof url !== 'string') {
+      return res.status(400).json({ error: 'URL tautan wajib diisi.' });
+    }
+
+    const trimmedUrl = url.trim();
+
+    // Cek apakah sudah pernah dibintangi oleh user
+    const existing = await prisma.starredCareerLink.findUnique({
+      where: {
+        userId_url: {
+          userId,
+          url: trimmedUrl,
+        },
+      },
+    });
+
+    if (existing) {
+      // Un-star: Hapus dari daftar favorit
+      await prisma.starredCareerLink.delete({
+        where: { id: existing.id },
+      });
+      return res.json({ starred: false, url: trimmedUrl, message: 'Tautan dihapus dari favorit.' });
+    }
+
+    // Star: Tambahkan ke daftar favorit
+    const newItem = await prisma.starredCareerLink.create({
+      data: {
+        userId,
+        name: (name || trimmedUrl).trim(),
+        url: trimmedUrl,
+        category: category || 'Swasta',
+        sector: sector || null,
+        logoUrl: logoUrl || null,
+        careerLinkId: careerLinkId || null,
+        userLinkId: userLinkId || null,
+      },
+    });
+
+    return res.status(201).json({ starred: true, item: newItem, message: 'Tautan ditambahkan ke favorit.' });
+  } catch (err: any) {
+    console.error('[POST /career-links/star]', err);
+    res.status(500).json({ error: 'Gagal memperbarui status bintang tautan.' });
+  }
+});
+

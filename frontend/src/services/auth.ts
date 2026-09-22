@@ -24,11 +24,27 @@ async function authFetch<T>(path: string, options: RequestInit = {}): Promise<T>
   return data as T;
 }
 
-export async function login(email: string, password: string): Promise<AuthResponse> {
+export function getRememberedEmail(): string {
+  try {
+    return localStorage.getItem('jobtrack_remembered_email') || '';
+  } catch {
+    return '';
+  }
+}
+
+export async function login(email: string, password: string, rememberMe: boolean = false): Promise<AuthResponse> {
   const result = await authFetch<AuthResponse>('/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ email, password, rememberMe })
   });
+
+  try {
+    if (rememberMe) {
+      localStorage.setItem('jobtrack_remembered_email', email.trim());
+    } else {
+      localStorage.removeItem('jobtrack_remembered_email');
+    }
+  } catch {}
 
   authStore.setAuth(result.accessToken, result.user);
   return result;
@@ -90,7 +106,18 @@ export async function fetchCurrentUser(): Promise<User | null> {
   }
 }
 
-export async function updateProfile(displayName: string): Promise<User> {
+export interface UpdateProfileInput {
+  displayName?: string;
+  avatarUrl?: string | null;
+  phone?: string | null;
+  location?: string | null;
+  bio?: string | null;
+  notifInterviewReminder?: boolean;
+  notifFollowUpReminder?: boolean;
+  notifDeadlineReminder?: boolean;
+}
+
+export async function updateProfile(input: UpdateProfileInput): Promise<User> {
   const token = authStore.getAccessToken();
   if (!token) throw new Error('Unauthorized');
 
@@ -99,7 +126,7 @@ export async function updateProfile(displayName: string): Promise<User> {
     headers: {
       Authorization: `Bearer ${token}`
     },
-    body: JSON.stringify({ displayName })
+    body: JSON.stringify(input)
   });
 
   authStore.setUser(updated);
@@ -117,4 +144,36 @@ export async function changePassword(currentPassword: string, newPassword: strin
     },
     body: JSON.stringify({ currentPassword, newPassword })
   });
+}
+
+export async function forgotPassword(email: string): Promise<{ message: string; devResetUrl?: string }> {
+  return authFetch<{ message: string; devResetUrl?: string }>('/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email })
+  });
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+  return authFetch<{ message: string }>('/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, newPassword })
+  });
+}
+
+export async function logoutAll(): Promise<void> {
+  const token = authStore.getAccessToken();
+  try {
+    if (token) {
+      await authFetch('/logout-all', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Logout-all error on server:', err);
+  } finally {
+    authStore.clearAuth();
+  }
 }

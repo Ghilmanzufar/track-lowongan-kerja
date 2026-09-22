@@ -1,7 +1,7 @@
 // CareerLinksView — Direktori Karir
 // Global read-only links + Personal user-managed links + KBLI Industry Sectors + Verification Engine
 
-import type { CareerLink, CareerLinkCategory, UserCareerLink, CareerVerificationStatus } from '../types';
+import type { CareerLink, CareerLinkCategory, UserCareerLink, CareerVerificationStatus, StarredCareerLink } from '../types';
 import { INDUSTRY_SECTORS } from '../types';
 import { getIconSvg } from '../utils/icons';
 import {
@@ -10,10 +10,12 @@ import {
   createUserCareerLink,
   updateUserCareerLink,
   deleteUserCareerLink,
-  verifyCareerLink
+  verifyCareerLink,
+  fetchStarredCareerLinks,
+  toggleStarCareerLink
 } from '../services/api';
 
-type FilterTab = 'all' | CareerLinkCategory;
+type FilterTab = 'all' | 'starred' | CareerLinkCategory;
 
 const CATEGORY_LABELS: Record<CareerLinkCategory, string> = {
   Swasta:       'Perusahaan Swasta',
@@ -40,6 +42,8 @@ const SECTOR_MAP = new Map(INDUSTRY_SECTORS.map(s => [s.key, s]));
 // ─── State ────────────────────────────────────────────────────────────
 let globalLinks: CareerLink[] = [];
 let userLinks: UserCareerLink[] = [];
+let starredItems: StarredCareerLink[] = [];
+let starredUrls = new Set<string>();
 let activeFilter: FilterTab = 'all';
 let activeSector: string = 'all';
 let activeVerificationFilter: CareerVerificationStatus = 'all';
@@ -132,10 +136,15 @@ async function loadData(container: HTMLElement) {
   isLoading = true;
   renderView(container);
   try {
-    [globalLinks, userLinks] = await Promise.all([
+    const [fetchedGlobal, fetchedUser, fetchedStarred] = await Promise.all([
       fetchCareerLinks(),
       fetchUserCareerLinks(),
+      fetchStarredCareerLinks(),
     ]);
+    globalLinks = fetchedGlobal;
+    userLinks = fetchedUser;
+    starredItems = fetchedStarred;
+    starredUrls = new Set(fetchedStarred.map(s => s.url));
   } catch (e) {
     console.error('Failed to load career links', e);
   } finally {
@@ -145,9 +154,15 @@ async function loadData(container: HTMLElement) {
 }
 
 // ─── Filter helpers ──────────────────────────────────────────────────
-function applyFilters<T extends { name: string; category: CareerLinkCategory; sector?: string; isVerified: boolean; lastVerifiedAt?: string | null }>(items: T[]): T[] {
+function applyFilters<T extends { url: string; name: string; category: CareerLinkCategory; sector?: string; isVerified: boolean; lastVerifiedAt?: string | null }>(items: T[]): T[] {
   return items.filter(item => {
-    const matchCat = activeFilter === 'all' || item.category === activeFilter;
+    let matchCat = true;
+    if (activeFilter === 'starred') {
+      matchCat = starredUrls.has(item.url);
+    } else if (activeFilter !== 'all') {
+      matchCat = item.category === activeFilter;
+    }
+
     const matchSector = activeSector === 'all' || item.sector === activeSector;
     const matchSearch = !searchQuery ||
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -171,6 +186,7 @@ function renderGlobalCard(link: CareerLink): string {
   })();
 
   const sectorDef = link.sector ? SECTOR_MAP.get(link.sector) : null;
+  const isStarred = starredUrls.has(link.url);
 
   return `
     <div class="cl-card cl-card-global" data-global-link-id="${link.id}">
@@ -186,20 +202,37 @@ function renderGlobalCard(link: CareerLink): string {
             ${link.name.charAt(0).toUpperCase()}
           </span>
         </div>
-        <a
-          href="${link.url}"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="cl-card-action"
-          title="Kunjungi website karir ${link.name}"
-        >
-          <span>Buka</span>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-            <polyline points="15 3 21 3 21 9"/>
-            <line x1="10" y1="14" x2="21" y2="3"/>
-          </svg>
-        </a>
+        <div class="cl-card-top-actions">
+          <button
+            type="button"
+            class="cl-btn-star ${isStarred ? 'is-starred' : ''}"
+            data-star-btn
+            data-star-url="${link.url}"
+            data-star-name="${encodeURIComponent(link.name)}"
+            data-star-cat="${link.category}"
+            data-star-sec="${link.sector || ''}"
+            data-star-gid="${link.id}"
+            title="${isStarred ? 'Hapus dari favorit' : 'Simpan ke favorit'}"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="${isStarred ? '#f59e0b' : 'none'}" stroke="${isStarred ? '#f59e0b' : 'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </button>
+          <a
+            href="${link.url}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="cl-card-action"
+            title="Kunjungi website karir ${link.name}"
+          >
+            <span>Buka</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          </a>
+        </div>
       </div>
       <div class="cl-card-info">
         <a
@@ -231,6 +264,7 @@ function renderUserCard(link: UserCareerLink): string {
   })();
 
   const sectorDef = link.sector ? SECTOR_MAP.get(link.sector) : null;
+  const isStarred = starredUrls.has(link.url);
 
   return `
     <div class="cl-card cl-card-user" data-user-link-id="${link.id}">
@@ -247,6 +281,21 @@ function renderUserCard(link: UserCareerLink): string {
           </span>
         </div>
         <div class="cl-card-user-actions">
+          <button
+            type="button"
+            class="cl-icon-btn cl-btn-star ${isStarred ? 'is-starred' : ''}"
+            data-star-btn
+            data-star-url="${link.url}"
+            data-star-name="${encodeURIComponent(link.name)}"
+            data-star-cat="${link.category}"
+            data-star-sec="${link.sector || ''}"
+            data-star-uid="${link.id}"
+            title="${isStarred ? 'Hapus dari favorit' : 'Simpan ke favorit'}"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="${isStarred ? '#f59e0b' : 'none'}" stroke="${isStarred ? '#f59e0b' : 'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </button>
           <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="cl-icon-btn" title="Buka">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
@@ -488,11 +537,16 @@ function renderView(container: HTMLElement) {
           </div>
         </div>
 
-        <!-- Filter tabs for Company Type -->
+        <!-- Filter tabs for Company Type & Favorites -->
         <div class="cl-filter-tabs" id="clFilterTabs">
           <button class="cl-filter-tab ${activeFilter === 'all' ? 'active' : ''}" data-filter="all">
             Semua Kategori
             <span class="cl-tab-count">${globalLinks.length + userLinks.length}</span>
+          </button>
+          <button class="cl-filter-tab cl-tab-starred ${activeFilter === 'starred' ? 'active' : ''}" data-filter="starred" title="Tampilkan portal karir yang Anda tandai ⭐">
+            <span style="color:#f59e0b; display:inline-flex; align-items:center;">⭐</span>
+            <span>Favorit</span>
+            <span class="cl-tab-count">${starredUrls.size}</span>
           </button>
           ${CATEGORY_ORDER.map(cat => {
             const count = globalLinks.filter(l => l.category === cat).length
@@ -550,8 +604,61 @@ function renderView(container: HTMLElement) {
         ` : ''}
       </div>
 
-      <!-- Global Links sections grouped by category -->
+      <!-- Main content -->
       <div class="cl-content">
+        <!-- Pinned Quick Access (Favorites) when viewing All without filters -->
+        ${activeFilter === 'all' && activeSector === 'all' && !searchQuery && activeVerificationFilter === 'all' && starredItems.length > 0 ? `
+          <div class="cl-starred-pinned">
+            <div class="cl-starred-pinned-header">
+              <div class="cl-starred-pinned-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                <span>Akses Cepat Favorit (${starredItems.length})</span>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="clFilterStarredBtn" style="padding: 2px 8px; font-size: 11px;">
+                Lihat Semua Favorit
+              </button>
+            </div>
+            <div class="cl-starred-pinned-grid">
+              ${starredItems.map(item => {
+                const domain = (() => {
+                  try { return new URL(item.url).hostname.replace('www.', ''); } catch { return item.url; }
+                })();
+                return `
+                  <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="cl-starred-chip" title="Kunjungi ${item.name} (${domain})">
+                    <img
+                      src="https://www.google.com/s2/favicons?domain=${domain}&sz=32"
+                      alt="${item.name}"
+                      class="cl-starred-chip-logo"
+                      loading="lazy"
+                      onerror="this.style.display='none'"
+                    />
+                    <span class="cl-starred-chip-name">${item.name}</span>
+                    <span class="cl-starred-chip-arrow">↗</span>
+                  </a>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        ${activeFilter === 'starred' && filteredGlobal.length === 0 && filteredUser.length === 0 ? `
+          <div class="cl-empty cl-empty-starred">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            <p style="font-weight:600; color:var(--text-primary); margin-top:8px;">Belum Ada Tautan Karir Favorit</p>
+            <p style="font-size:12.5px; color:var(--text-muted); max-width:420px; line-height:1.5;">
+              Tandai link atau portal perusahaan dengan mengklik ikon bintang (⭐) pada kartu direktori agar tersimpan di sini untuk akses instan.
+            </p>
+            <button class="btn btn-secondary btn-sm" id="clResetToAllTab" style="margin-top: 12px;">
+              Jelajahi Semua Direktori Karir
+            </button>
+          </div>
+        ` : ''}
+
+        <!-- Global Links sections grouped by category -->
         ${Object.entries(globalByCategory).map(([cat, items]) => `
           <section class="cl-section">
             <div class="cl-section-header">
@@ -567,7 +674,7 @@ function renderView(container: HTMLElement) {
           </section>
         `).join('')}
 
-        ${filteredGlobal.length === 0 && (searchQuery || activeFilter !== 'all' || activeSector !== 'all' || activeVerificationFilter !== 'all') ? `
+        ${filteredGlobal.length === 0 && activeFilter !== 'starred' && (searchQuery || activeFilter !== 'all' || activeSector !== 'all' || activeVerificationFilter !== 'all') ? `
           <div class="cl-empty">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.3">
               <circle cx="11" cy="11" r="8"/>
@@ -586,7 +693,7 @@ function renderView(container: HTMLElement) {
         <section class="cl-section cl-section-personal">
           <div class="cl-section-header">
             <h3 class="cl-section-title">
-              ⭐ Tambahan Saya
+              📌 Tambahan Saya
             </h3>
             <div style="display:flex;align-items:center;gap:8px;">
               <span class="cl-section-count">${totalUser} link</span>
@@ -876,6 +983,82 @@ function attachEvents(container: HTMLElement) {
         renderView(container);
       }
     });
+  });
+  // Star toggle event
+  container.querySelectorAll<HTMLButtonElement>('[data-star-btn]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const url = btn.dataset.starUrl!;
+      const name = decodeURIComponent(btn.dataset.starName || '');
+      const category = (btn.dataset.starCat as CareerLinkCategory) || 'Swasta';
+      const sector = btn.dataset.starSec || undefined;
+      const careerLinkId = btn.dataset.starGid || undefined;
+      const userLinkId = btn.dataset.starUid || undefined;
+
+      const willBeStarred = !starredUrls.has(url);
+
+      // Optimistic update
+      if (willBeStarred) {
+        starredUrls.add(url);
+        starredItems.push({
+          id: 'temp-' + Date.now(),
+          userId: '',
+          name,
+          url,
+          category,
+          sector,
+          careerLinkId,
+          userLinkId,
+          createdAt: new Date().toISOString()
+        });
+      } else {
+        starredUrls.delete(url);
+        starredItems = starredItems.filter(s => s.url !== url);
+      }
+
+      renderView(container);
+
+      try {
+        const res = await toggleStarCareerLink({
+          url,
+          name,
+          category,
+          sector,
+          careerLinkId,
+          userLinkId
+        });
+
+        if (res.starred) {
+          (window as any).showToast?.(`"${name}" ditambahkan ke Favorit ⭐`, 'success');
+        } else {
+          (window as any).showToast?.(`"${name}" dihapus dari Favorit`, 'info');
+        }
+      } catch (err: any) {
+        // Rollback on error
+        if (willBeStarred) {
+          starredUrls.delete(url);
+          starredItems = starredItems.filter(s => s.url !== url);
+        } else {
+          starredUrls.add(url);
+        }
+        renderView(container);
+        (window as any).showToast?.(err.message ?? 'Gagal memperbarui favorit.', 'error');
+      }
+    });
+  });
+
+  // Shortcut to view all starred
+  container.querySelector('#clFilterStarredBtn')?.addEventListener('click', () => {
+    activeFilter = 'starred';
+    renderView(container);
+  });
+
+  // Reset to all tab from empty starred view
+  container.querySelector('#clResetToAllTab')?.addEventListener('click', () => {
+    activeFilter = 'all';
+    renderView(container);
   });
 }
 
