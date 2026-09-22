@@ -82,23 +82,15 @@ export function renderTrashView(container: HTMLElement): void {
         <div class="trash-header-bar">
           <div class="trash-header-info">
             <h2>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                <line x1="10" y1="11" x2="10" y2="17"></line>
-                <line x1="14" y1="11" x2="14" y2="17"></line>
-              </svg>
-              Tempat Sampah / Recently Deleted
+              ${getIconSvg('trash', { size: 22 })}
+              Tempat Sampah
             </h2>
             <p>Item yang dihapus dapat dipulihkan kapan saja ke posisi semula atau dihapus secara permanen untuk menghemat ruang.</p>
           </div>
 
           <div class="trash-header-actions">
             <button class="btn-empty-trash" id="btnEmptyTrash" ${allItems.length === 0 ? 'disabled' : ''} title="Kosongkan semua item di tempat sampah">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              </svg>
+              ${getIconSvg('trash', { size: 15 })}
               Kosongkan Sampah
             </button>
           </div>
@@ -107,23 +99,28 @@ export function renderTrashView(container: HTMLElement): void {
         <!-- Filter Tabs -->
         <div class="trash-tabs-nav">
           <button class="trash-tab-btn ${currentTab === 'all' ? 'active' : ''}" data-tab="all">
-            Semua Item
+            ${getIconSvg('inbox', { size: 14 })}
+            <span>Semua Item</span>
             <span class="trash-tab-badge">${summary.total}</span>
           </button>
-          <button class="trash-tab-btn ${currentTab === 'application' ? 'active' : ''}" data-tab="application" style="display:inline-flex; align-items:center; gap:6px;">
-            ${getIconSvg('folder', { size: 13 })} Lamaran
+          <button class="trash-tab-btn ${currentTab === 'application' ? 'active' : ''}" data-tab="application">
+            ${getIconSvg('folder', { size: 14 })}
+            <span>Lamaran</span>
             <span class="trash-tab-badge">${summary.applications}</span>
           </button>
-          <button class="trash-tab-btn ${currentTab === 'document' ? 'active' : ''}" data-tab="document" style="display:inline-flex; align-items:center; gap:6px;">
-            ${getIconSvg('fileText', { size: 13 })} Dokumen
+          <button class="trash-tab-btn ${currentTab === 'document' ? 'active' : ''}" data-tab="document">
+            ${getIconSvg('fileText', { size: 14 })}
+            <span>Dokumen</span>
             <span class="trash-tab-badge">${summary.documents}</span>
           </button>
-          <button class="trash-tab-btn ${currentTab === 'task' ? 'active' : ''}" data-tab="task" style="display:inline-flex; align-items:center; gap:6px;">
-            ${getIconSvg('checkCircle', { size: 13 })} Tugas
+          <button class="trash-tab-btn ${currentTab === 'task' ? 'active' : ''}" data-tab="task">
+            ${getIconSvg('checkCircle', { size: 14 })}
+            <span>Tugas</span>
             <span class="trash-tab-badge">${summary.tasks}</span>
           </button>
-          <button class="trash-tab-btn ${currentTab === 'event' ? 'active' : ''}" data-tab="event" style="display:inline-flex; align-items:center; gap:6px;">
-            ${getIconSvg('calendar', { size: 13 })} Event
+          <button class="trash-tab-btn ${currentTab === 'event' ? 'active' : ''}" data-tab="event">
+            ${getIconSvg('calendar', { size: 14 })}
+            <span>Event</span>
             <span class="trash-tab-badge">${summary.events}</span>
           </button>
         </div>

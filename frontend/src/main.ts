@@ -61,24 +61,50 @@ async function initApp(): Promise<void> {
   const appEl = document.getElementById('app')!;
   let isAppInitialized = false;
 
+  const getProfileData = (user: User | null): { name: string; avatarUrl?: string } => {
+    let savedProfileName = '';
+    let savedAvatarUrl = '';
+    try {
+      const saved = localStorage.getItem('jobtrack-profile');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.displayName && parsed.displayName.trim()) {
+          savedProfileName = parsed.displayName.trim();
+        }
+        if (parsed.avatarUrl) {
+          savedAvatarUrl = parsed.avatarUrl;
+        }
+      }
+    } catch {}
+
+    const name = savedProfileName || user?.displayName?.trim() || user?.email?.split('@')[0] || 'Pengguna';
+    return { name, avatarUrl: savedAvatarUrl };
+  };
+
   const updateUserUI = (user: User | null) => {
     if (!user) return;
-    const name = user.displayName || user.email;
-    const initial = (user.displayName || user.email).charAt(0).toUpperCase();
+    const { name, avatarUrl } = getProfileData(user);
+    const initial = name.charAt(0).toUpperCase() || 'U';
 
     const navUserName = document.getElementById('navUserName');
     const navUserAvatar = document.getElementById('navUserAvatar');
     const sidebarUserName = document.getElementById('sidebarUserName');
-    const sidebarUserEmail = document.getElementById('sidebarUserEmail');
     const sidebarUserAvatar = document.getElementById('sidebarUserAvatar');
 
     if (navUserName) navUserName.textContent = name;
-    if (navUserAvatar) navUserAvatar.textContent = initial;
     if (sidebarUserName) sidebarUserName.textContent = name;
-    if (sidebarUserEmail) sidebarUserEmail.textContent = user.email;
-    if (sidebarUserAvatar) {
-      sidebarUserAvatar.innerHTML = `<span style="font-weight:700;font-size:12px;color:var(--accent-blue);">${initial}</span>`;
-    }
+
+    const setAvatar = (el: HTMLElement | null) => {
+      if (!el) return;
+      if (avatarUrl) {
+        el.innerHTML = `<img src="${avatarUrl}" alt="${name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;" />`;
+      } else {
+        el.textContent = initial;
+      }
+    };
+
+    setAvatar(navUserAvatar);
+    setAvatar(sidebarUserAvatar);
   };
 
   const showAuthScreen = () => {
@@ -150,7 +176,7 @@ function setupWorkspaceEvents(): void {
   const searchInput = document.getElementById('globalSearchInput') as HTMLInputElement;
   const sidebarProfileBtn = document.getElementById('sidebarProfileBtn');
   const mobileFabAdd = document.getElementById('mobileFabAdd');
-  const btnLogout = document.getElementById('btnLogout');
+  const topbarUserProfile = document.getElementById('topbarUserProfile');
 
   // Sidebar elements & burger toggle
   const appEl = document.getElementById('app');
@@ -204,32 +230,35 @@ function setupWorkspaceEvents(): void {
     window.dispatchEvent(new CustomEvent('open-quick-add'));
   };
 
-  // Logout Trigger
-  btnLogout?.addEventListener('click', async () => {
-    const confirmed = await showConfirmDialog(
-      'Apakah Anda yakin ingin keluar dari akun?',
-      'Konfirmasi Keluar',
-      {
-        confirmText: 'Ya, Keluar',
-        cancelText: 'Batal',
-        confirmVariant: 'danger'
-      }
-    );
-    if (!confirmed) return;
+  // Topbar profile click -> Navigate directly to profile page
+  const navigateToProfile = () => {
+    store.setView('profile');
+    window.location.hash = 'profile';
+  };
 
-    try {
-      await logout();
-      showToast('Berhasil keluar (logout).', 'info');
-    } catch (err) {
-      console.error('Error during logout:', err);
+  topbarUserProfile?.addEventListener('click', navigateToProfile);
+  topbarUserProfile?.addEventListener('keydown', (e: Event) => {
+    const keyEvent = e as KeyboardEvent;
+    if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+      e.preventDefault();
+      navigateToProfile();
     }
   });
 
   sidebarProfileBtn?.addEventListener('click', () => {
-    store.setView('profile');
-    window.location.hash = 'profile';
+    navigateToProfile();
     if (isMobile()) {
       closeSidebar();
+    }
+  });
+  sidebarProfileBtn?.addEventListener('keydown', (e: Event) => {
+    const keyEvent = e as KeyboardEvent;
+    if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+      e.preventDefault();
+      navigateToProfile();
+      if (isMobile()) {
+        closeSidebar();
+      }
     }
   });
 

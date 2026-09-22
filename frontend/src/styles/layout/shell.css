@@ -247,35 +247,39 @@
 }
 
 .sidebar-profile-avatar {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  background-color: var(--accent-blue);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--accent-blue);
+  font-weight: 700;
+  font-size: 11.5px;
   flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.sidebar-profile-card:hover .sidebar-profile-avatar {
+  transform: scale(1.06);
 }
 
 .sidebar-profile-info {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  flex: 1;
 }
 
 .sidebar-profile-name {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
-  line-height: 1.2;
-}
-
-.sidebar-profile-sub {
-  font-size: 11px;
-  color: var(--text-muted);
-  line-height: 1.2;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ========================================= */

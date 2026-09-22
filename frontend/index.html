@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/icon-logo.svg" />
   <link rel="stylesheet" href="/src/styles/main.css" />
 </head>
 <body>
@@ -23,10 +24,7 @@
       <div class="sidebar-top">
         <div class="sidebar-brand">
           <div class="brand-logo">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
-              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-            </svg>
+            <img src="/icon-logo.svg" alt="JobTrack Logo" width="24" height="24" style="display:block; object-fit:contain;" />
           </div>
           <div class="brand-info">
             <span class="brand-name">JobTrack</span>
@@ -139,16 +137,10 @@
 
       <!-- Sidebar Footer -->
       <div class="sidebar-footer">
-        <div class="sidebar-profile-card" id="sidebarProfileBtn" title="Profil Pengguna" role="button" tabindex="0">
-          <div class="sidebar-profile-avatar">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          </div>
+        <div class="sidebar-profile-card" id="sidebarProfileBtn" title="Buka Profil Saya" role="button" tabindex="0">
+          <div class="sidebar-profile-avatar" id="sidebarUserAvatar">U</div>
           <div class="sidebar-profile-info">
-            <span class="sidebar-profile-name">Profile</span>
-            <span class="sidebar-profile-sub">Akun Saya</span>
+            <span class="sidebar-profile-name" id="sidebarUserName">Pengguna</span>
           </div>
         </div>
       </div>
@@ -195,19 +187,11 @@
             </svg>
           </button>
 
-          <div id="topbarUserProfile" class="nav-user-profile" style="display: flex;">
+          <div id="topbarUserProfile" class="nav-user-profile" role="button" tabindex="0" title="Buka Profil Saya" style="display: flex;">
             <div class="nav-user-avatar" id="navUserAvatar">U</div>
             <div class="nav-user-info">
               <span class="nav-user-name" id="navUserName">Pengguna</span>
             </div>
-            <button type="button" class="nav-logout-btn" id="btnLogout" title="Keluar dari akun">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-              </svg>
-              <span>Keluar</span>
-            </button>
           </div>
         </div>
       </header>

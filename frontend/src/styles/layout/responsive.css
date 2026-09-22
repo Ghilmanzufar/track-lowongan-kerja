@@ -148,33 +148,20 @@
   }
 
   .nav-user-profile {
-    padding: 3px 6px;
-    gap: 6px;
-    border-radius: var(--radius-sm);
+    padding: 3px;
+    gap: 0;
+    border-radius: 50%;
+    cursor: pointer;
   }
 
   .nav-user-avatar {
-    width: 26px;
-    height: 26px;
-    font-size: 11px;
+    width: 28px;
+    height: 28px;
+    font-size: 11.5px;
   }
 
   .nav-user-info {
-    display: none; /* Sembunyikan teks nama panjang di mobile agar tidak overflow */
-  }
-
-  .nav-logout-btn {
-    padding: 6px 8px;
-    gap: 0;
-  }
-
-  .nav-logout-btn span {
-    display: none; /* Sembunyikan teks 'Keluar', tampilkan icon saja di mobile */
-  }
-
-  .nav-logout-btn svg {
-    width: 14px;
-    height: 14px;
+    display: none; /* Sembunyikan teks nama di mobile agar fokus pada avatar profile */
   }
 
   .topbar-account-btn {

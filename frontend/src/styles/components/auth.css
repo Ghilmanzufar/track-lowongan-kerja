@@ -285,11 +285,24 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: var(--radius-md);
   background: var(--bg-subtle);
   border: 1px solid var(--border-color);
   font-size: 12.5px;
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast, 0.15s ease);
+}
+
+.nav-user-profile:hover {
+  background: var(--bg-hover, rgba(255, 255, 255, 0.08));
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.nav-user-profile:active {
+  transform: scale(0.97);
 }
 
 .nav-user-avatar {
@@ -303,6 +316,12 @@
   justify-content: center;
   font-weight: 600;
   font-size: 11px;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.nav-user-profile:hover .nav-user-avatar {
+  transform: scale(1.08);
 }
 
 .nav-user-info {

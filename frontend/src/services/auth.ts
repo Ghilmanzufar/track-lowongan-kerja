@@ -105,3 +105,16 @@ export async function updateProfile(displayName: string): Promise<User> {
   authStore.setUser(updated);
   return updated;
 }
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+  const token = authStore.getAccessToken();
+  if (!token) throw new Error('Unauthorized');
+
+  return authFetch<{ success: boolean; message: string }>('/change-password', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ currentPassword, newPassword })
+  });
+}

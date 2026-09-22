@@ -204,6 +204,51 @@ authRouter.post('/logout', (_req: Request, res: Response) => {
   res.json({ success: true, message: 'Berhasil keluar (logout).' });
 });
 
+// ─── POST /api/v1/auth/change-password ────────────────────────────────────────
+authRouter.post('/change-password', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { currentPassword, newPassword } = req.body as {
+      currentPassword?: string;
+      newPassword?: string;
+    };
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Kata sandi saat ini dan kata sandi baru wajib diisi.' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Kata sandi baru minimal terdiri dari 6 karakter.' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, passwordHash: true }
+    });
+
+    if (!user || !user.passwordHash) {
+      return res.status(404).json({ error: 'Pengguna tidak ditemukan.' });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Kata sandi saat ini tidak sesuai.' });
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: newHash }
+    });
+
+    res.json({ success: true, message: 'Kata sandi berhasil diubah.' });
+  } catch (err) {
+    console.error('[POST /auth/change-password]', err);
+    res.status(500).json({ error: 'Gagal mengubah kata sandi.' });
+  }
+});
+
 // ─── GET /api/v1/auth/me ──────────────────────────────────────────────────────
 authRouter.get('/me', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   try {
