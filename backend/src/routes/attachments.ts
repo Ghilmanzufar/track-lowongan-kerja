@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { prisma } from '../index.js';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
-import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '../constants.js';
+import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, ALLOWED_MIME_TYPES } from '../constants.js';
 
 export const attachmentsRouter = Router();
 
@@ -23,6 +23,12 @@ attachmentsRouter.post('/', async (req: AuthenticatedRequest, res: Response) => 
     if (!body.applicationId || !body.fileName || !body.dataUrl || !body.label) {
       return res.status(400).json({
         error: 'applicationId, fileName, dataUrl, and label are required'
+      });
+    }
+
+    if (!ALLOWED_MIME_TYPES.has(body.mimeType)) {
+      return res.status(400).json({
+        error: `Tipe berkas '${body.mimeType}' tidak diizinkan. Tipe yang diterima: PDF, Word, Excel, gambar (JPG/PNG/GIF/WebP), dan teks.`
       });
     }
 

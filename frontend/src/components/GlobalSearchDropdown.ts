@@ -22,7 +22,6 @@ let currentQuery = '';
 let currentResults: SearchActionItem[] = [];
 let selectedIndex = -1;
 let debounceTimer: any = null;
-let isSearching = false;
 
 function highlightMatch(text: string, query: string): string {
   if (!query || !text) return escapeHtml(text || '');
@@ -224,7 +223,6 @@ export function closeDropdown(): void {
   }
   currentResults = [];
   selectedIndex = -1;
-  isSearching = false;
 }
 
 export function openDropdown(inputEl: HTMLInputElement): void {
@@ -250,8 +248,6 @@ function triggerSearch(inputEl: HTMLInputElement, query: string): void {
     </div>
   `;
 
-  isSearching = true;
-
   debounceTimer = setTimeout(async () => {
     try {
       const results = await searchGlobal(query);
@@ -271,8 +267,6 @@ function triggerSearch(inputEl: HTMLInputElement, query: string): void {
           <div class="gs-empty-sub">${escapeHtml(err.message || 'Koneksi terputus')}</div>
         </div>
       `;
-    } finally {
-      isSearching = false;
     }
   }, 180);
 }
@@ -303,7 +297,7 @@ function renderDropdownContent(
   let html = '';
   let itemIndex = 0;
 
-  for (const [key, group] of Object.entries(grouped)) {
+  for (const [, group] of Object.entries(grouped)) {
     if (group.items.length === 0) continue;
 
     html += `

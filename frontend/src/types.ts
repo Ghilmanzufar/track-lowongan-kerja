@@ -35,9 +35,6 @@ export function isClosed(stage: ApplicationStage): boolean {
   return TERMINAL_STAGES.includes(stage);
 }
 
-export function isSuccessful(stage: ApplicationStage): boolean {
-  return stage === 'Accepted';
-}
 
 export type JobSource =
   | 'LinkedIn'

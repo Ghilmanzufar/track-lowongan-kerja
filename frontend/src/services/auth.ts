@@ -177,3 +177,21 @@ export async function logoutAll(): Promise<void> {
     authStore.clearAuth();
   }
 }
+
+export async function verifyEmail(token: string): Promise<{ success: boolean; message: string }> {
+  const res = await fetch(`/api/v1/auth/verify-email?token=${encodeURIComponent(token)}`, {
+    credentials: 'include',
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `HTTP error ${res.status}`);
+  return data;
+}
+
+export async function resendVerification(): Promise<{ message: string }> {
+  const token = authStore.getAccessToken();
+  if (!token) throw new Error('Unauthorized');
+  return authFetch<{ message: string }>('/resend-verification', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}

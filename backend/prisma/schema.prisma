@@ -39,9 +39,10 @@ model User {
   documents       UserDocument[]
   calendarEvents  CalendarEvent[]
   reminders       Reminder[]
-  passwordResetTokens PasswordResetToken[]
-  refreshTokens       RefreshToken[]
-  starredCareerLinks  StarredCareerLink[]
+  passwordResetTokens      PasswordResetToken[]
+  emailVerificationTokens  EmailVerificationToken[]
+  refreshTokens            RefreshToken[]
+  starredCareerLinks       StarredCareerLink[]
 }
 
 // ─────────────────────────────────────────────
@@ -600,6 +601,23 @@ model Reminder {
 // ─────────────────────────────────────────────
 
 model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique // SHA-256 hash dari token mentah
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────
+// EMAIL VERIFICATION TOKEN
+// ─────────────────────────────────────────────
+
+model EmailVerificationToken {
   id        String    @id @default(cuid())
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)

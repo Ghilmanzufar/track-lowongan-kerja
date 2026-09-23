@@ -1,7 +1,7 @@
 // List (Dense Table & Responsive Mobile Cards) View Component
 // Based on wireframes.md & anti-slop.md
 
-import { ApplicationItem, ApplicationStage, STAGES_CONFIG } from '../types';
+import { STAGES_CONFIG } from '../types';
 import { store } from '../services/store';
 import {
   formatRelativeTime,

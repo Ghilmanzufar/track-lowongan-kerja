@@ -1,7 +1,6 @@
 // JobTrack — Trash / Recently Deleted View Component
 // Allows viewing, restoring, and permanently deleting soft-deleted items
 
-import '../styles/components/trash.css';
 import { store } from '../services/store';
 import { showToast } from '../main';
 import type { TrashItem, TrashEntityType } from '../types';

@@ -1,14 +1,10 @@
 // Reactive Store for JobTrack — data layer via REST API (backend)
 
 import {
-  Application,
-  JobPosting,
-  Company,
   Task,
   Contact,
   DocumentLink,
   Attachment,
-  ActivityEvent,
   ApplicationItem,
   ApplicationStage,
   FilterCriteria,
@@ -153,10 +149,6 @@ class JobTrackStore {
     this.trashSummary = { total: 0, applications: 0, documents: 0, tasks: 0, events: 0 };
     this.initialized = false;
     this.notify();
-  }
-
-  public isReady(): boolean {
-    return this.initialized;
   }
 
   public getItems(): ApplicationItem[] {

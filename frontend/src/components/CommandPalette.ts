@@ -1,4 +1,3 @@
-import '../styles/components/command-palette.css';
 import { store } from '../services/store';
 import { STAGES_CONFIG, ApplicationStage } from '../types';
 import { escapeHtml } from '../utils';
@@ -22,7 +21,6 @@ let filteredItems: CommandItem[] = [];
 let backdropEl: HTMLDivElement | null = null;
 let paletteEl: HTMLDivElement | null = null;
 let serverSearchResults: CommandItem[] = [];
-let lastSearchQuery = '';
 
 function getStaticCommands(): CommandItem[] {
   return [
@@ -372,7 +370,6 @@ function open(): void {
 
     debounce = setTimeout(async () => {
       try {
-        lastSearchQuery = q;
         const res = await searchGlobal(q);
         if (input.value.trim() !== q) return;
 

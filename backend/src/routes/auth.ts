@@ -4,15 +4,15 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { prisma } from '../index.js';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
-import { sendPasswordResetEmail } from '../utils/email.js';
+import { sendPasswordResetEmail, sendVerificationEmail } from '../utils/email.js';
 import { authLimiter, passwordResetLimiter } from '../middleware/rateLimiter.js';
+import { auditLog, getClientIp } from '../middleware/auditLogger.js';
 
 export const authRouter = Router();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'jobtrack_jwt_secret_key_super_secure_development_2026';
+const JWT_SECRET = process.env.JWT_SECRET!;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'jobtrack_jwt_refresh_secret_key_super_secure_development_2026';
-const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET!;
 
 // ─── Select fields for user profile ─────────────────────────────────────────
 const USER_PROFILE_SELECT = {
@@ -88,7 +88,6 @@ function clearAuthCookies(res: Response) {
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
   });
-  res.clearCookie('accessToken');
 }
 
 // ─── POST /api/v1/auth/register (Rate-Limited: 10/15min) ──────────────────────
@@ -110,8 +109,8 @@ authRouter.post('/register', authLimiter, async (req: Request, res: Response) =>
       return res.status(400).json({ error: 'Format email tidak valid.' });
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password minimal terdiri dari 6 karakter.' });
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Password minimal terdiri dari 8 karakter.' });
     }
 
     // Cek apakah email sudah terdaftar
@@ -144,6 +143,20 @@ authRouter.post('/register', authLimiter, async (req: Request, res: Response) =>
       select: USER_PROFILE_SELECT
     });
 
+    auditLog({ event: 'REGISTER_SUCCESS', userId: user.id, email: trimmedEmail, ip: getClientIp(req), ua: req.headers['user-agent'] });
+
+    // Kirim email verifikasi secara async (fire-and-forget) — gagal kirim tidak blokir registrasi
+    const rawVerifToken = crypto.randomBytes(32).toString('hex');
+    const hashedVerifToken = crypto.createHash('sha256').update(rawVerifToken).digest('hex');
+    const verifExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 jam
+    prisma.emailVerificationToken.create({
+      data: { userId: user.id, token: hashedVerifToken, expiresAt: verifExpiresAt },
+    }).then(() => {
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+      const verifyUrl = `${clientUrl}/#verify-email?token=${rawVerifToken}`;
+      return sendVerificationEmail(user.email, verifyUrl, user.displayName);
+    }).catch((e) => console.error('[Register] Gagal mengirim email verifikasi:', e));
+
     res.status(201).json({ user: fullUser, accessToken });
   } catch (err) {
     console.error('[POST /auth/register]', err);
@@ -170,11 +183,13 @@ authRouter.post('/login', authLimiter, async (req: Request, res: Response) => {
     });
 
     if (!user || !user.passwordHash) {
+      auditLog({ event: 'LOGIN_FAILED', email: trimmedEmail, ip: getClientIp(req), reason: 'user_not_found' });
       return res.status(401).json({ error: 'Email atau password salah.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
+      auditLog({ event: 'LOGIN_FAILED', email: trimmedEmail, ip: getClientIp(req), reason: 'wrong_password' });
       return res.status(401).json({ error: 'Email atau password salah.' });
     }
 
@@ -193,6 +208,7 @@ authRouter.post('/login', authLimiter, async (req: Request, res: Response) => {
       select: USER_PROFILE_SELECT
     });
 
+    auditLog({ event: 'LOGIN_SUCCESS', userId: user.id, email: trimmedEmail, ip: getClientIp(req), ua: req.headers['user-agent'] });
     res.json({ user: fullUser, accessToken });
   } catch (err) {
     console.error('[POST /auth/login]', err);
@@ -209,9 +225,8 @@ authRouter.post('/refresh', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Refresh token tidak ditemukan.', code: 'NO_REFRESH_TOKEN' });
     }
 
-    let decoded: { userId: string; email: string };
     try {
-      decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as { userId: string; email: string };
+      jwt.verify(refreshToken, JWT_REFRESH_SECRET);
     } catch {
       clearAuthCookies(res);
       return res.status(401).json({ error: 'Refresh token tidak valid atau telah kadaluarsa.', code: 'INVALID_REFRESH_TOKEN' });
@@ -293,6 +308,16 @@ authRouter.post('/logout', async (req: Request, res: Response) => {
     }
 
     clearAuthCookies(res);
+    // Ekstrak userId dari token untuk keperluan audit log (decode tanpa validasi ketat)
+    let loggedUserId: string | undefined;
+    try {
+      const rawToken = req.cookies?.refreshToken || req.body?.refreshToken;
+      if (rawToken) {
+        const decoded = jwt.decode(rawToken) as { userId?: string } | null;
+        loggedUserId = decoded?.userId;
+      }
+    } catch { /* abaikan — hanya untuk logging */ }
+    auditLog({ event: 'LOGOUT', userId: loggedUserId, ip: getClientIp(req) });
     res.json({ success: true, message: 'Berhasil keluar (logout sejati).' });
   } catch (err) {
     console.error('[POST /auth/logout]', err);
@@ -312,6 +337,7 @@ authRouter.post('/logout-all', requireAuth, async (req: AuthenticatedRequest, re
     });
 
     clearAuthCookies(res);
+    auditLog({ event: 'LOGOUT_ALL', userId, ip: getClientIp(req) });
     res.json({ success: true, message: 'Semua sesi di seluruh perangkat telah berhasil dicabut.' });
   } catch (err) {
     console.error('[POST /auth/logout-all]', err);
@@ -332,8 +358,8 @@ authRouter.post('/change-password', requireAuth, async (req: AuthenticatedReques
       return res.status(400).json({ error: 'Kata sandi saat ini dan kata sandi baru wajib diisi.' });
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ error: 'Kata sandi baru minimal terdiri dari 6 karakter.' });
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: 'Kata sandi baru minimal terdiri dari 8 karakter.' });
     }
 
     const user = await prisma.user.findUnique({
@@ -368,6 +394,7 @@ authRouter.post('/change-password', requireAuth, async (req: AuthenticatedReques
     const { accessToken, refreshToken } = await createSession(user.id, user.email, req);
     setRefreshTokenCookie(res, refreshToken);
 
+    auditLog({ event: 'PASSWORD_CHANGED', userId, ip: getClientIp(req) });
     res.json({ success: true, message: 'Kata sandi berhasil diubah.', accessToken });
   } catch (err) {
     console.error('[POST /auth/change-password]', err);
@@ -491,9 +518,10 @@ authRouter.post('/forgot-password', passwordResetLimiter, async (req: Request, r
     // Kirim email lewat Nodemailer (Gmail SMTP)
     await sendPasswordResetEmail(user.email, resetUrl, user.displayName);
 
+    auditLog({ event: 'PASSWORD_RESET_REQUESTED', email: normalizedEmail, ip: getClientIp(req) });
     return res.json({
       ...successResponse,
-      ...(process.env.NODE_ENV !== 'production' ? { devResetUrl: resetUrl } : {}),
+      ...(process.env.NODE_ENV !== 'production' && !process.env.SMTP_USER ? { devResetUrl: resetUrl } : {}),
     });
   } catch (err: any) {
     console.error('[POST /auth/forgot-password]', err);
@@ -510,8 +538,8 @@ authRouter.post('/reset-password', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Token reset kata sandi tidak ditemukan atau tidak valid.' });
     }
 
-    if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 6) {
-      return res.status(400).json({ error: 'Kata sandi baru minimal harus 6 karakter.' });
+    if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
+      return res.status(400).json({ error: 'Kata sandi baru minimal harus 8 karakter.' });
     }
 
     const hashedToken = hashToken(token);
@@ -552,6 +580,7 @@ authRouter.post('/reset-password', async (req: Request, res: Response) => {
       }),
     ]);
 
+    auditLog({ event: 'PASSWORD_RESET_SUCCESS', userId: tokenRecord.userId, ip: getClientIp(req) });
     return res.json({
       message: 'Kata sandi berhasil diatur ulang. Silakan masuk menggunakan kata sandi baru Anda.',
     });

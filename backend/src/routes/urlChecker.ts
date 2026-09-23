@@ -1,6 +1,10 @@
 import { Router } from 'express';
+import { requireAuth } from '../middleware/auth.js';
 
 export const urlCheckerRouter = Router();
+
+// Hanya pengguna terautentikasi yang boleh menggunakan fitur URL checker
+urlCheckerRouter.use(requireAuth);
 
 function isPrivateOrReservedHost(hostname: string): boolean {
   const host = hostname.toLowerCase().trim().replace(/^\[|\]$/g, '');

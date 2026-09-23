@@ -1,7 +1,6 @@
 // Quick Add Modal Component using Native HTML5 <dialog>
 // Conforming to anti-slop.md (Section 2.1) & wireframes.md (Section 7)
 
-import '../styles/components/duplicate.css';
 import { ApplicationStage, WorkType, JobSource, STAGES_CONFIG, DuplicateCheckResult } from '../types';
 import { store } from '../services/store';
 import { showAlertDialog } from './Dialog';

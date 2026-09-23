@@ -59,8 +59,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (response.workType) selectWorkType.value = response.workType;
         if (response.notes && !inputNotes.value) inputNotes.value = response.notes;
       });
-    } catch (err) {
-      console.error('Extraction error:', err);
+    } catch {
+      // Ignored extraction failure fallback
     }
   }
 
@@ -115,8 +115,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(payload)
       });
+
+      if (res.status === 401) {
+        showNotice('⚠️ Sesi login berakhir atau belum login. Buka web JobTrack dan login terlebih dahulu.', 'error');
+        return;
+      }
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
@@ -129,8 +135,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.close();
       }, 1500);
     } catch (err) {
-      console.error('Save error:', err);
-      showNotice(`⚠️ Gagal menyimpan: ${err.message}. Pastikan backend JobTrack aktif di localhost:3000.`, 'error');
+      const isOnline = await checkBackend();
+      if (!isOnline) {
+        showNotice('⚠️ Backend JobTrack offline. Pastikan server backend berjalan di localhost:3000.', 'error');
+      } else {
+        showNotice(`⚠️ Gagal menyimpan: ${err.message || 'Terjadi kesalahan'}.`, 'error');
+      }
     } finally {
       btnSubmit.disabled = false;
       btnSubmit.textContent = '💾 Simpan ke JobTrack';

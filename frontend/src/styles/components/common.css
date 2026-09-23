@@ -278,3 +278,109 @@
   stroke: currentColor;
 }
 
+/* ========================================= */
+/* EMAIL VERIFICATION BANNER                 */
+/* ========================================= */
+.email-verify-banner {
+  width: 100%;
+  background: linear-gradient(90deg, #854d0e 0%, #92400e 100%);
+  border-bottom: 1px solid #a16207;
+  flex-shrink: 0;
+  animation: bannerSlideDown 0.25s ease;
+}
+
+[data-theme="light"] .email-verify-banner {
+  background: linear-gradient(90deg, #fef3c7 0%, #fde68a 100%);
+  border-bottom: 1px solid #f59e0b;
+}
+
+@keyframes bannerSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+.email-verify-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px;
+  max-width: 100%;
+  color: #fef3c7;
+}
+
+[data-theme="light"] .email-verify-banner-content {
+  color: #78350f;
+}
+
+.email-verify-banner-content > svg {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.email-verify-banner-text {
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.email-verify-banner-btn {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1.5px solid #fbbf24;
+  background: transparent;
+  color: #fef3c7;
+  font-family: var(--font-sans);
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.email-verify-banner-btn:hover {
+  background: #fbbf24;
+  color: #78350f;
+}
+
+.email-verify-banner-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+[data-theme="light"] .email-verify-banner-btn {
+  border-color: #d97706;
+  color: #78350f;
+}
+
+[data-theme="light"] .email-verify-banner-btn:hover {
+  background: #d97706;
+  color: #fff;
+}
+
+.email-verify-banner-dismiss {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: #fef3c7;
+  opacity: 0.7;
+  transition: opacity 0.15s, background 0.15s;
+  padding: 0;
+}
+
+.email-verify-banner-dismiss:hover {
+  opacity: 1;
+  background: rgba(255,255,255,0.15);
+}
+
+[data-theme="light"] .email-verify-banner-dismiss {
+  color: #78350f;
+}

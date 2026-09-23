@@ -10,7 +10,13 @@ export interface AuthenticatedRequest extends Request {
   user?: AuthUser;
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'jobtrack_jwt_secret_key_super_secure_development_2026';
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('[FATAL] JWT_SECRET tidak di-set di environment variables.');
+  }
+  return secret;
+}
 
 export function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
   try {
@@ -33,7 +39,7 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
     }
 
     // Verifikasi Token
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
+    const decoded = jwt.verify(token, getJwtSecret()) as { userId: string; email: string };
     if (!decoded || !decoded.userId) {
       res.status(401).json({ error: 'Sesi tidak valid.', code: 'INVALID_TOKEN' });
       return;

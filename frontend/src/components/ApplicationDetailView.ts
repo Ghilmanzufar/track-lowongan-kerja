@@ -3,7 +3,6 @@
 // Reuses all 7 existing tab renderers intact without modifying their internal logic.
 
 import {
-  ApplicationItem,
   ApplicationStage,
   STAGES_CONFIG,
   JOB_SOURCES_CONFIG

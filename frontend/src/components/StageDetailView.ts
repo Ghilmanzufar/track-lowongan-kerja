@@ -6,7 +6,6 @@ import { store } from '../services/store';
 import {
   escapeHtml,
   formatRelativeTime,
-  formatDateWIB,
   formatSalary
 } from '../utils';
 import { WORK_TYPE_LABELS } from './detail/shared';
@@ -240,7 +239,7 @@ export function renderStageDetailView(container: HTMLElement, stageKey: Applicat
   });
 }
 
-function renderStageAppCard(item: ApplicationItem, currentStage: ApplicationStage): string {
+function renderStageAppCard(item: ApplicationItem, _currentStage: ApplicationStage): string {
   const salary = formatSalary(item.jobPosting.salaryMin, item.jobPosting.salaryMax);
   const workType = item.jobPosting.workType
     ? WORK_TYPE_LABELS[item.jobPosting.workType] || item.jobPosting.workType

@@ -2,7 +2,7 @@ import { Router, Response } from 'express';
 import { prisma } from '../index.js';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
 import { DocumentCategory, DocumentStorageType } from '@prisma/client';
-import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from '../constants.js';
+import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, ALLOWED_MIME_TYPES } from '../constants.js';
 
 export const userDocumentsRouter = Router();
 
@@ -116,6 +116,14 @@ userDocumentsRouter.post('/', async (req: AuthenticatedRequest, res: Response) =
     if (numericFileSize && numericFileSize > MAX_FILE_SIZE_BYTES) {
       res.status(400).json({
         error: `Ukuran berkas (${(numericFileSize / (1024 * 1024)).toFixed(1)} MB) melebihi batas maksimal ${MAX_FILE_SIZE_MB} MB.`
+      });
+      return;
+    }
+
+    // Validasi MIME type hanya untuk unggahan berkas langsung
+    if (storageType === 'File' && mimeType && !ALLOWED_MIME_TYPES.has(mimeType)) {
+      res.status(400).json({
+        error: `Tipe berkas '${mimeType}' tidak diizinkan. Tipe yang diterima: PDF, Word, Excel, gambar (JPG/PNG/GIF/WebP), dan teks.`
       });
       return;
     }
@@ -242,6 +250,14 @@ userDocumentsRouter.post('/:id/versions', async (req: AuthenticatedRequest, res:
     if (numericVerFileSize && numericVerFileSize > MAX_FILE_SIZE_BYTES) {
       res.status(400).json({
         error: `Ukuran berkas (${(numericVerFileSize / (1024 * 1024)).toFixed(1)} MB) melebihi batas maksimal ${MAX_FILE_SIZE_MB} MB.`
+      });
+      return;
+    }
+
+    // Validasi MIME type hanya untuk unggahan berkas langsung
+    if (storageType === 'File' && mimeType && !ALLOWED_MIME_TYPES.has(mimeType)) {
+      res.status(400).json({
+        error: `Tipe berkas '${mimeType}' tidak diizinkan. Tipe yang diterima: PDF, Word, Excel, gambar (JPG/PNG/GIF/WebP), dan teks.`
       });
       return;
     }
