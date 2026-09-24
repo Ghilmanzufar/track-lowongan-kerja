@@ -32,6 +32,8 @@ async function initApp(): Promise<void> {
   const showAuthScreen = () => {
     appEl.style.display = 'none';
     authContainer.style.display = 'block';
+    const fabEl = document.getElementById('mobileFabAdd');
+    if (fabEl) fabEl.style.display = 'none';
 
     const authPage = new AuthPage(authContainer, async () => {
       showToast('Berhasil masuk! Memuat data...', 'success');
@@ -44,6 +46,8 @@ async function initApp(): Promise<void> {
   const bootstrapWorkspace = async (user: User | null) => {
     authContainer.style.display = 'none';
     appEl.style.display = '';
+    const fabEl = document.getElementById('mobileFabAdd');
+    if (fabEl) fabEl.style.display = '';
 
     updateUserUI(user);
 

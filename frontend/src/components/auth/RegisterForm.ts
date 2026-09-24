@@ -4,29 +4,41 @@ export function renderRegisterForm(loading: boolean): string {
   return `
     <form id="auth-form" class="auth-form">
       <div class="auth-field-group">
-        <label for="auth-display-name" class="auth-label">Nama Lengkap / Panggilan</label>
-        <input 
-          type="text" 
-          id="auth-display-name" 
-          name="displayName"
-          class="auth-input" 
-          placeholder="Contoh: Budi Santoso"
-          autocomplete="name"
-          required
-        />
+        <label for="auth-display-name" class="auth-label">Nama Lengkap</label>
+        <div class="auth-input-wrapper">
+          <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <input 
+            type="text" 
+            id="auth-display-name" 
+            name="displayName"
+            class="auth-input" 
+            placeholder="Contoh: Budi Santoso"
+            autocomplete="name"
+            required
+          />
+        </div>
       </div>
 
       <div class="auth-field-group">
         <label for="auth-email" class="auth-label">Alamat Email</label>
-        <input 
-          type="email" 
-          id="auth-email" 
-          name="email"
-          class="auth-input" 
-          placeholder="nama@email.com"
-          autocomplete="email"
-          required
-        />
+        <div class="auth-input-wrapper">
+          <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+          <input 
+            type="email" 
+            id="auth-email" 
+            name="email"
+            class="auth-input" 
+            placeholder="nama@email.com"
+            autocomplete="email"
+            required
+          />
+        </div>
       </div>
 
       <div class="auth-field-group">
@@ -34,7 +46,11 @@ export function renderRegisterForm(loading: boolean): string {
           <label for="auth-password" class="auth-label">Kata Sandi</label>
           <span class="auth-helper-note">Minimal 6 karakter</span>
         </div>
-        <div class="auth-password-wrapper">
+        <div class="auth-input-wrapper auth-password-wrapper">
+          <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
           <input 
             type="password" 
             id="auth-password" 
@@ -55,7 +71,11 @@ export function renderRegisterForm(loading: boolean): string {
 
       <div class="auth-field-group">
         <label for="auth-password-confirm" class="auth-label">Konfirmasi Kata Sandi</label>
-        <div class="auth-password-wrapper">
+        <div class="auth-input-wrapper auth-password-wrapper">
+          <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
           <input 
             type="password" 
             id="auth-password-confirm" 
@@ -75,7 +95,7 @@ export function renderRegisterForm(loading: boolean): string {
       </div>
 
       <button type="submit" class="auth-submit-btn" id="auth-submit-btn" ${loading ? 'disabled' : ''}>
-        ${loading ? `<span class="auth-spinner"></span> Memproses...` : 'Daftar Akun Baru'}
+        ${loading ? `<span class="auth-spinner"></span> Memproses Pendaftaran...` : 'Buat Akun Gratis →'}
       </button>
     </form>
 

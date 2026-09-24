@@ -12,5 +12,13 @@
     "dev": "npm run dev:fe",
     "build:fe": "npm run build --workspace=frontend",
     "build:be": "npm run build --workspace=backend"
+  },
+  "devDependencies": {
+    "cheerio": "^1.2.0",
+    "csv-parse": "^7.0.2",
+    "playwright": "^1.63.0",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "xlsx": "^0.18.5"
   }
 }

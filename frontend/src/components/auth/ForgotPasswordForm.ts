@@ -19,7 +19,7 @@ export function renderForgotPasswordForm(
             devResetUrl
               ? `
             <div class="auth-dev-badge">
-              <span class="auth-dev-badge-tag">🛠️ Dev Quick Link (Lokal)</span>
+              <span class="auth-dev-badge-tag">🛠️ Dev Link Cepat (Localhost)</span>
               <a href="${devResetUrl}" class="auth-dev-badge-link" id="auth-dev-direct-link">Buka Halaman Reset Langsung &rarr;</a>
             </div>
           `
@@ -29,7 +29,7 @@ export function renderForgotPasswordForm(
       </div>
 
       <button type="button" class="auth-submit-btn auth-btn-secondary" id="auth-btn-back-to-login">
-        Kembali ke Halaman Masuk
+        ← Kembali ke Halaman Masuk
       </button>
     `;
   }
@@ -38,19 +38,25 @@ export function renderForgotPasswordForm(
     <form id="auth-form" class="auth-form">
       <div class="auth-field-group">
         <label for="auth-email" class="auth-label">Alamat Email Terdaftar</label>
-        <input 
-          type="email" 
-          id="auth-email" 
-          name="email"
-          class="auth-input" 
-          placeholder="nama@email.com"
-          autocomplete="email"
-          required
-        />
+        <div class="auth-input-wrapper">
+          <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+          </svg>
+          <input 
+            type="email" 
+            id="auth-email" 
+            name="email"
+            class="auth-input" 
+            placeholder="nama@email.com"
+            autocomplete="email"
+            required
+          />
+        </div>
       </div>
 
       <button type="submit" class="auth-submit-btn" id="auth-submit-btn" ${loading ? 'disabled' : ''}>
-        ${loading ? `<span class="auth-spinner"></span> Mengirim Tautan...` : 'Kirim Tautan Reset Kata Sandi'}
+        ${loading ? `<span class="auth-spinner"></span> Mengirim Tautan...` : 'Kirim Tautan Pemulihan Kata Sandi →'}
       </button>
     </form>
 
@@ -61,7 +67,7 @@ export function renderForgotPasswordForm(
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
-        <span>Masuk di sini</span>
+        <span>Kembali Masuk</span>
       </button>
     </div>
   `;

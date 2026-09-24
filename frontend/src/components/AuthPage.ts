@@ -97,42 +97,158 @@ export class AuthPage {
       subtitle = 'Masukkan email yang terdaftar. Kami akan mengirimkan tautan reset kata sandi ke email Anda.';
     } else if (this.mode === 'reset') {
       title = 'Atur Ulang Kata Sandi';
-      subtitle = 'Buat kata sandi baru yang kuat untuk mengamankan akun JobTrack Anda.';
+      subtitle = 'Buat kata sandi baru yang kuat untuk mengamankan akun JobTrackId Anda.';
     }
+
+    const isLoginOrRegister = this.mode === 'login' || this.mode === 'register';
 
     this.container.innerHTML = `
       <div class="auth-page-wrapper">
-        <div class="auth-card">
-          <div class="auth-header">
-            <div class="auth-brand">
-              <span class="auth-brand-icon">💼</span>
-              <span class="auth-brand-name">JobTrack</span>
+        <!-- Glowing ambient backdrop matching landing page -->
+        <div class="auth-glow-orb auth-glow-1"></div>
+        <div class="auth-glow-orb auth-glow-2"></div>
+        <div class="auth-grid-overlay"></div>
+
+        <div class="auth-layout-container">
+          <!-- Left Showcase Panel (Hero & Value Propositions) -->
+          <div class="auth-showcase-panel">
+            <a href="/" class="auth-showcase-brand" title="Ke Beranda JobTrackId">
+              <div class="auth-showcase-logo-badge">
+                <img src="/icon-logo.svg" alt="JobTrackId Logo" width="24" height="24" style="display:block; object-fit:contain;" />
+              </div>
+              <span class="auth-showcase-brand-name">JobTrackId</span>
+            </a>
+
+            <div class="auth-pill-badge">
+              <span class="auth-pulse-dot"></span>
+              <span>8.225+ Perusahaan Indonesia Tersedia</span>
             </div>
-            <h1 class="auth-title">${title}</h1>
-            <p class="auth-subtitle">${subtitle}</p>
+
+            <h1 class="auth-showcase-title">
+              Kelola Lamaran Kerja Lebih <span class="gradient-text">Teratur &amp; Terarah</span>
+            </h1>
+
+            <p class="auth-showcase-desc">
+              Tinggalkan catatan manual dan spreadsheet berantakan. Pantau progress setiap wawancara, tes seleksi, dan penawaran kerja dari satu dashboard terpadu.
+            </p>
+
+            <div class="auth-features-list">
+              <div class="auth-feature-item">
+                <div class="auth-feature-icon">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="7" height="9" x="3" y="3" rx="1"/>
+                    <rect width="7" height="5" x="14" y="3" rx="1"/>
+                    <rect width="7" height="9" x="14" y="12" rx="1"/>
+                    <rect width="7" height="5" x="3" y="16" rx="1"/>
+                  </svg>
+                </div>
+                <div class="auth-feature-text">
+                  <strong>Pipeline Kanban Otomatis</strong>
+                  <span>Geser tahap lamaran dari Wishlist, Applied, Interview, hingga Diterima.</span>
+                </div>
+              </div>
+
+              <div class="auth-feature-item">
+                <div class="auth-feature-icon">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </div>
+                <div class="auth-feature-text">
+                  <strong>Agenda &amp; Pengingat Terjadwal</strong>
+                  <span>Notifikasi tenggat lowongan dan jadwal tes agar tidak ada yang terlewat.</span>
+                </div>
+              </div>
+
+              <div class="auth-feature-item">
+                <div class="auth-feature-icon">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </div>
+                <div class="auth-feature-text">
+                  <strong>100% Privat &amp; Terenkripsi</strong>
+                  <span>Data terisolasi secara privat, aman, dan tanpa iklan atau pelacakan pihak ketiga.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Trust Badge -->
+            <div class="auth-trust-note">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>Gratis selamanya tanpa syarat kartu kredit</span>
+            </div>
           </div>
 
-          ${
-            this.errorMessage
-              ? `
-            <div class="auth-alert-error" role="alert">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-              </svg>
-              <span>${this.errorMessage}</span>
+          <!-- Right Side: The Interactive Auth Card -->
+          <div class="auth-card-panel">
+            <div class="auth-card-topbar">
+              <a href="/" class="auth-back-link" title="Kembali ke Beranda">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>Beranda</span>
+              </a>
+
+              <a href="/" class="auth-mobile-brand" title="JobTrackId Beranda">
+                <div class="auth-showcase-logo-badge" style="width: 28px; height: 28px;">
+                  <img src="/icon-logo.svg" alt="JobTrackId Logo" width="18" height="18" style="display:block; object-fit:contain;" />
+                </div>
+                <span style="font-weight: 700; font-size: 15px; color: #F1F5F9;">JobTrackId</span>
+              </a>
             </div>
-          `
-              : ''
-          }
 
-          ${this.renderBodyByMode()}
+            ${
+              isLoginOrRegister
+                ? `
+              <div class="auth-mode-tabs">
+                <button type="button" class="auth-mode-tab ${this.mode === 'login' ? 'active' : ''}" id="auth-tab-login">
+                  Masuk Akun
+                </button>
+                <button type="button" class="auth-mode-tab ${this.mode === 'register' ? 'active' : ''}" id="auth-tab-register">
+                  Daftar Baru
+                </button>
+              </div>
+            `
+                : ''
+            }
 
-          <div class="auth-footer">
-            <p class="auth-footer-text">
-              Data lamaran Anda terenkripsi dan terisolasi secara privat per akun.
-            </p>
+            <div class="auth-header">
+              <h2 class="auth-title">${title}</h2>
+              <p class="auth-subtitle">${subtitle}</p>
+            </div>
+
+            ${
+              this.errorMessage
+                ? `
+              <div class="auth-alert-error" role="alert">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span>${this.errorMessage}</span>
+              </div>
+            `
+                : ''
+            }
+
+            ${this.renderBodyByMode()}
+
+            <div class="auth-footer">
+              <p class="auth-footer-text">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline-block; vertical-align: -1px; margin-right: 4px;">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                Data lamaran Anda terenkripsi dan tersimpan aman secara privat.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -161,6 +277,8 @@ export class AuthPage {
     const toggleConfirmPwd = this.container.querySelector<HTMLButtonElement>('#auth-toggle-confirm-pwd');
     const confirmPwdInput = this.container.querySelector<HTMLInputElement>('#auth-password-confirm');
 
+    const tabLogin = this.container.querySelector<HTMLButtonElement>('#auth-tab-login');
+    const tabRegister = this.container.querySelector<HTMLButtonElement>('#auth-tab-register');
     const btnSwitchRegister = this.container.querySelector<HTMLButtonElement>('#auth-btn-switch-register');
     const btnSwitchLogin = this.container.querySelector<HTMLButtonElement>('#auth-btn-switch-login');
     const btnToForgot = this.container.querySelector<HTMLButtonElement>('#auth-btn-to-forgot');
@@ -168,6 +286,8 @@ export class AuthPage {
     const btnResetSuccessLogin = this.container.querySelector<HTMLButtonElement>('#auth-btn-reset-success-login');
     const btnRequestNewReset = this.container.querySelector<HTMLButtonElement>('#auth-btn-request-new-reset');
 
+    tabLogin?.addEventListener('click', () => this.setMode('login'));
+    tabRegister?.addEventListener('click', () => this.setMode('register'));
     btnSwitchRegister?.addEventListener('click', () => this.setMode('register'));
     btnSwitchLogin?.addEventListener('click', () => this.setMode('login'));
     btnToForgot?.addEventListener('click', () => this.setMode('forgot'));

@@ -160,7 +160,7 @@ export function renderWawancaraTab(
       <div class="agenda-sync-hub">
         <div class="agenda-sync-header">
           <div class="agenda-sync-title">
-            <span>${getIconSvg('link', { size: 14 })}</span> Integrasi Agenda & Kalender JobTrack
+            <span>${getIconSvg('link', { size: 14 })}</span> Integrasi Agenda & Kalender JobTrackId
           </div>
           <div class="agenda-sync-flow">
             <span>Interview (${currentInterview.type})</span>

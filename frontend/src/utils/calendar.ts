@@ -45,7 +45,7 @@ export function generateGoogleCalendarUrl(task: Task, appItem?: ApplicationItem)
     `Perusahaan: ${companyName}`,
     `Posisi: ${jobTitle}`,
     appItem?.jobPosting?.sourceUrl ? `Link Lowongan: ${appItem.jobPosting.sourceUrl}` : '',
-    'Dikelola melalui JobTrack'
+    'Dikelola melalui JobTrackId'
   ].filter(Boolean).join('\n\n');
 
   const location = appItem?.jobPosting?.location || appItem?.company?.location || 'Online / Kantor Perusahaan';
@@ -78,7 +78,7 @@ export function downloadIcsFile(task: Task, appItem?: ApplicationItem): void {
     `Perusahaan: ${companyName}`,
     `Posisi: ${jobTitle}`,
     appItem?.jobPosting?.sourceUrl ? `Link Lowongan: ${appItem.jobPosting.sourceUrl}` : '',
-    'Dikelola melalui JobTrack'
+    'Dikelola melalui JobTrackId'
   ].filter(Boolean).join('\\n');
 
   const location = appItem?.jobPosting?.location || appItem?.company?.location || 'Online / Kantor';
@@ -93,7 +93,7 @@ export function downloadIcsFile(task: Task, appItem?: ApplicationItem): void {
   const icsContent = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//JobTrack//ID//JobTrack Calendar 1.0//EN',
+    'PRODID:-//JobTrackId//ID//JobTrackId Calendar 1.0//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
@@ -144,7 +144,7 @@ export function generateInterviewGoogleCalendarUrl(
     interview.interviewerName ? `Pewawancara: ${interview.interviewerName} (${interview.interviewerRole || 'Interviewer'})` : '',
     interview.meetingLink ? `Link Meeting: ${interview.meetingLink}` : '',
     interview.location ? `Lokasi: ${interview.location}` : '',
-    'Dikelola melalui JobTrack'
+    'Dikelola melalui JobTrackId'
   ].filter(Boolean).join('\n\n');
 
   const location = interview.meetingLink || interview.location || appItem?.company?.location || 'Google Meet / Online';
@@ -192,7 +192,7 @@ export function downloadInterviewIcsFile(
     interview.interviewerName ? `Pewawancara: ${interview.interviewerName} (${interview.interviewerRole || 'Interviewer'})` : '',
     interview.meetingLink ? `Link Meeting: ${interview.meetingLink}` : '',
     interview.location ? `Lokasi: ${interview.location}` : '',
-    'Dikelola melalui JobTrack'
+    'Dikelola melalui JobTrackId'
   ].filter(Boolean).join('\\n');
 
   const location = interview.meetingLink || interview.location || 'Online';
@@ -217,7 +217,7 @@ export function downloadInterviewIcsFile(
   const icsContent = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//JobTrack//ID//JobTrack Calendar 1.0//EN',
+    'PRODID:-//JobTrackId//ID//JobTrackId Calendar 1.0//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
@@ -269,7 +269,7 @@ export function generateCalendarEventGoogleUrl(
     event.meetingUrl ? `Link Meeting: ${event.meetingUrl}` : '',
     event.location ? `Lokasi: ${event.location}` : '',
     event.notes ? `Catatan: ${event.notes}` : '',
-    'Dikelola melalui JobTrack'
+    'Dikelola melalui JobTrackId'
   ].filter(Boolean).join('\n\n');
 
   const location = event.meetingUrl || event.location || 'Google Meet / Online';
@@ -307,7 +307,7 @@ export function downloadCalendarEventIcs(
     event.interviewer ? `Pewawancara: ${event.interviewer}` : '',
     event.meetingUrl ? `Link Meeting: ${event.meetingUrl}` : '',
     event.location ? `Lokasi: ${event.location}` : '',
-    'Dikelola melalui JobTrack'
+    'Dikelola melalui JobTrackId'
   ].filter(Boolean).join('\\n');
 
   const location = event.meetingUrl || event.location || 'Online';
@@ -324,7 +324,7 @@ export function downloadCalendarEventIcs(
   const icsContent = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//JobTrack//ID//JobTrack Calendar 1.0//EN',
+    'PRODID:-//JobTrackId//ID//JobTrackId Calendar 1.0//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
@@ -339,7 +339,7 @@ export function downloadCalendarEventIcs(
     'BEGIN:VALARM',
     'TRIGGER:-PT30M',
     'ACTION:DISPLAY',
-    'DESCRIPTION:Pengingat Jadwal JobTrack',
+    'DESCRIPTION:Pengingat Jadwal JobTrackId',
     'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR'

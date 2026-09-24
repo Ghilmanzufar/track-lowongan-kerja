@@ -19,7 +19,7 @@ export function renderResetPasswordForm(
       </div>
 
       <button type="button" class="auth-submit-btn" id="auth-btn-reset-success-login">
-        Masuk dengan Kata Sandi Baru
+        Masuk dengan Kata Sandi Baru →
       </button>
     `;
   }
@@ -32,7 +32,7 @@ export function renderResetPasswordForm(
           <line x1="12" y1="8" x2="12" y2="12"></line>
           <line x1="12" y1="16" x2="12.01" y2="16"></line>
         </svg>
-        <span>Tautan reset tidak memiliki token atau tidak valid. Silakan ajukan permintaan baru.</span>
+        <span>Tautan reset tidak memiliki token atau sudah kadaluarsa. Silakan ajukan permohonan baru.</span>
       </div>
 
       <button type="button" class="auth-submit-btn auth-btn-secondary" id="auth-btn-request-new-reset">
@@ -48,7 +48,11 @@ export function renderResetPasswordForm(
           <label for="auth-password" class="auth-label">Kata Sandi Baru</label>
           <span class="auth-helper-note">Minimal 6 karakter</span>
         </div>
-        <div class="auth-password-wrapper">
+        <div class="auth-input-wrapper auth-password-wrapper">
+          <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
           <input 
             type="password" 
             id="auth-password" 
@@ -69,7 +73,11 @@ export function renderResetPasswordForm(
 
       <div class="auth-field-group">
         <label for="auth-password-confirm" class="auth-label">Konfirmasi Kata Sandi Baru</label>
-        <div class="auth-password-wrapper">
+        <div class="auth-input-wrapper auth-password-wrapper">
+          <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
           <input 
             type="password" 
             id="auth-password-confirm" 
@@ -89,7 +97,7 @@ export function renderResetPasswordForm(
       </div>
 
       <button type="submit" class="auth-submit-btn" id="auth-submit-btn" ${loading ? 'disabled' : ''}>
-        ${loading ? `<span class="auth-spinner"></span> Memperbarui...` : 'Simpan Kata Sandi Baru'}
+        ${loading ? `<span class="auth-spinner"></span> Memperbarui Sandi...` : 'Simpan Kata Sandi Baru →'}
       </button>
     </form>
 

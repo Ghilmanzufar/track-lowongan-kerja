@@ -31,7 +31,7 @@ export async function sendPasswordResetEmail(
   resetUrl: string,
   displayName?: string | null
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  const name = displayName?.trim() || 'Pengguna JobTrack';
+  const name = displayName?.trim() || 'Pengguna JobTrackId';
 
   // Log URL token hanya di development saat SMTP belum aktif (testing offline)
   if (process.env.NODE_ENV !== 'production' && !process.env.SMTP_USER) {
@@ -50,7 +50,7 @@ export async function sendPasswordResetEmail(
     return { success: false, error: 'SMTP belum dikonfigurasi' };
   }
 
-  const from = process.env.SMTP_FROM || `"JobTrack" <${process.env.SMTP_USER}>`;
+  const from = process.env.SMTP_FROM || `"JobTrackId" <${process.env.SMTP_USER}>`;
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -75,11 +75,11 @@ export async function sendPasswordResetEmail(
     <body>
       <div class="container">
         <div class="header">
-          <h1>JobTrack — Pelacak Lowongan Kerja</h1>
+          <h1>JobTrackId — Pelacak Lowongan Kerja</h1>
         </div>
         <div class="content">
           <p>Halo <strong>${name}</strong>,</p>
-          <p>Kami menerima permintaan untuk mengatur ulang kata sandi akun JobTrack Anda.</p>
+          <p>Kami menerima permintaan untuk mengatur ulang kata sandi akun JobTrackId Anda.</p>
           <p style="text-align: center;">
             <a href="${resetUrl}" class="btn" target="_blank">Atur Ulang Kata Sandi</a>
           </p>
@@ -93,7 +93,7 @@ export async function sendPasswordResetEmail(
           </p>
         </div>
         <div class="footer">
-          &copy; ${new Date().getFullYear()} JobTrack. Email ini dikirim secara otomatis, mohon tidak membalas.
+          &copy; ${new Date().getFullYear()} JobTrackId. Email ini dikirim secara otomatis, mohon tidak membalas.
         </div>
       </div>
     </body>
@@ -104,8 +104,8 @@ export async function sendPasswordResetEmail(
     const info = await transporter.sendMail({
       from,
       to,
-      subject: 'Atur Ulang Kata Sandi Akun JobTrack',
-      text: `Halo ${name},\n\nKami menerima permintaan untuk mengatur ulang kata sandi akun JobTrack Anda.\nSilakan buka tautan berikut (berlaku 1 jam):\n${resetUrl}\n\nJika Anda tidak meminta ini, abaikan email ini.`,
+      subject: 'Atur Ulang Kata Sandi Akun JobTrackId',
+      text: `Halo ${name},\n\nKami menerima permintaan untuk mengatur ulang kata sandi akun JobTrackId Anda.\nSilakan buka tautan berikut (berlaku 1 jam):\n${resetUrl}\n\nJika Anda tidak meminta ini, abaikan email ini.`,
       html: htmlContent,
     });
 
@@ -125,7 +125,7 @@ export async function sendVerificationEmail(
   verifyUrl: string,
   displayName?: string | null
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  const name = displayName?.trim() || 'Pengguna JobTrack';
+  const name = displayName?.trim() || 'Pengguna JobTrackId';
 
   // Log URL token hanya di development saat SMTP belum aktif (testing offline)
   if (process.env.NODE_ENV !== 'production' && !process.env.SMTP_USER) {
@@ -143,7 +143,7 @@ export async function sendVerificationEmail(
     return { success: false, error: 'SMTP belum dikonfigurasi' };
   }
 
-  const from = process.env.SMTP_FROM || `"JobTrack" <${process.env.SMTP_USER}>`;
+  const from = process.env.SMTP_FROM || `"JobTrackId" <${process.env.SMTP_USER}>`;
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -167,17 +167,17 @@ export async function sendVerificationEmail(
     <body>
       <div class="container">
         <div class="header">
-          <h1>JobTrack — Verifikasi Email Anda</h1>
+          <h1>JobTrackId — Verifikasi Email Anda</h1>
         </div>
         <div class="content">
           <p>Halo <strong>${name}</strong>,</p>
-          <p>Terima kasih telah mendaftar di JobTrack! Klik tombol di bawah untuk memverifikasi alamat email Anda.</p>
+          <p>Terima kasih telah mendaftar di JobTrackId! Klik tombol di bawah untuk memverifikasi alamat email Anda.</p>
           <p style="text-align: center;">
             <a href="${verifyUrl}" class="btn" target="_blank">Verifikasi Email Saya</a>
           </p>
           <p class="note">
             Tautan ini berlaku selama <strong>24 jam</strong> dan hanya dapat digunakan <strong>1 kali</strong>.<br>
-            Jika Anda tidak mendaftar di JobTrack, abaikan email ini.
+            Jika Anda tidak mendaftar di JobTrackId, abaikan email ini.
           </p>
           <p class="note">
             Jika tombol tidak berfungsi, salin tautan berikut:<br>
@@ -185,7 +185,7 @@ export async function sendVerificationEmail(
           </p>
         </div>
         <div class="footer">
-          &copy; ${new Date().getFullYear()} JobTrack. Email ini dikirim secara otomatis.
+          &copy; ${new Date().getFullYear()} JobTrackId. Email ini dikirim secara otomatis.
         </div>
       </div>
     </body>
@@ -196,8 +196,8 @@ export async function sendVerificationEmail(
     const info = await transporter.sendMail({
       from,
       to,
-      subject: 'Verifikasi Alamat Email Akun JobTrack',
-      text: `Halo ${name},\n\nSilakan verifikasi alamat email Anda dengan membuka tautan berikut (berlaku 24 jam):\n${verifyUrl}\n\nJika Anda tidak mendaftar di JobTrack, abaikan email ini.`,
+      subject: 'Verifikasi Alamat Email Akun JobTrackId',
+      text: `Halo ${name},\n\nSilakan verifikasi alamat email Anda dengan membuka tautan berikut (berlaku 24 jam):\n${verifyUrl}\n\nJika Anda tidak mendaftar di JobTrackId, abaikan email ini.`,
       html: htmlContent,
     });
 

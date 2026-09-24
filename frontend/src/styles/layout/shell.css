@@ -60,19 +60,27 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.15s ease;
+}
+
+.sidebar-brand:hover {
+  opacity: 0.85;
 }
 
 .brand-logo {
   width: 32px;
   height: 32px;
-  background-color: var(--accent-blue-bg);
-  color: var(--accent-blue);
-  border: 1px solid rgba(37, 99, 235, 0.2);
-  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, #6366F1, #8B5CF6);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
 }
 
 .brand-info {
@@ -175,13 +183,14 @@
 
 .nav-item-btn.active {
   color: var(--text-primary);
-  background-color: var(--bg-subtle);
-  border-color: var(--border-color);
+  background-color: var(--accent-blue-bg);
+  border-color: rgba(99, 102, 241, 0.25);
+  border-left: 3px solid #6366F1;
   font-weight: 600;
 }
 
 .nav-item-btn.active svg {
-  color: var(--accent-blue);
+  color: #818CF8;
 }
 
 .nav-badge {
@@ -305,6 +314,16 @@
   padding: 0 24px;
   gap: 16px;
   z-index: 40;
+}
+
+[data-theme="dark"] .app-topbar {
+  background-color: rgba(14, 15, 17, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+[data-theme="dark"] .app-sidebar {
+  background-color: #0B0D10;
 }
 
 .topbar-left {

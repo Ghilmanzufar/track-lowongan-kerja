@@ -339,7 +339,7 @@ function open(): void {
         <span class="cmd-footer-hint"><span class="cmd-kbd">Enter</span> Pilih</span>
         <span class="cmd-footer-hint"><span class="cmd-kbd">Esc</span> Tutup</span>
       </div>
-      <span style="font-size: 10.5px; opacity: 0.7;">JobTrack Command Palette</span>
+      <span style="font-size: 10.5px; opacity: 0.7;">JobTrackId Command Palette</span>
     </div>
   `;
 

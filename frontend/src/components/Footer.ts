@@ -21,9 +21,9 @@ export function renderFooter(container: HTMLElement): void {
         <!-- Brand & Status -->
         <div class="footer-brand-section">
           <div class="footer-brand-logo">
-            <img src="/icon-logo.svg" alt="JobTrack Logo" width="16" height="16" style="display:block; object-fit:contain;" />
+            <img src="/icon-logo.svg" alt="JobTrackId Logo" width="16" height="16" style="display:block; object-fit:contain;" />
           </div>
-          <span class="footer-brand-title">JobTrack</span>
+          <span class="footer-brand-title">JobTrackId</span>
         </div>
 
         <!-- Quick Nav Links -->
@@ -62,7 +62,7 @@ export function renderFooter(container: HTMLElement): void {
       <!-- Bottom Row: Copyright -->
       <div class="footer-sub-row">
         <div class="footer-meta-text">
-          <span>&copy; 2026 JobTrack</span>
+          <span>&copy; 2026 JobTrackId &bull; Dibuat oleh <a href="https://www.linkedin.com/in/ghilman-zufar" target="_blank" rel="noopener noreferrer" style="color: var(--accent-blue); text-decoration: none; font-weight: 500;">Ghilman Zufar</a> untuk pencari kerja Indonesia</span>
         </div>
       </div>
 
