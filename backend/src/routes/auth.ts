@@ -15,7 +15,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET!;
 
 // ─── Select fields for user profile ─────────────────────────────────────────
-const USER_PROFILE_SELECT = {
+export const USER_PROFILE_SELECT = {
   id: true,
   email: true,
   displayName: true,
@@ -30,7 +30,22 @@ const USER_PROFILE_SELECT = {
   notifInterviewReminder: true,
   notifFollowUpReminder: true,
   notifDeadlineReminder: true,
+  passwordHash: true,
+  googleRefreshToken: true,
+  googleCalendarSync: true,
+  role: true,
+  isSuspended: true,
 } as const;
+
+export function formatUserProfile(user: any) {
+  if (!user) return null;
+  const { passwordHash, googleRefreshToken, ...rest } = user;
+  return {
+    ...rest,
+    hasPassword: Boolean(passwordHash),
+    isGoogleCalendarConnected: Boolean(googleRefreshToken)
+  };
+}
 
 // ─── Helper Token & Session Management ─────────────────────────────────────
 function hashToken(token: string): string {
@@ -157,7 +172,7 @@ authRouter.post('/register', authLimiter, async (req: Request, res: Response) =>
       return sendVerificationEmail(user.email, verifyUrl, user.displayName);
     }).catch((e) => console.error('[Register] Gagal mengirim email verifikasi:', e));
 
-    res.status(201).json({ user: fullUser, accessToken });
+    res.status(201).json({ user: formatUserProfile(fullUser), accessToken });
   } catch (err) {
     console.error('[POST /auth/register]', err);
     res.status(500).json({ error: 'Terjadi kesalahan pada server saat registrasi.' });
@@ -209,7 +224,7 @@ authRouter.post('/login', authLimiter, async (req: Request, res: Response) => {
     });
 
     auditLog({ event: 'LOGIN_SUCCESS', userId: user.id, email: trimmedEmail, ip: getClientIp(req), ua: req.headers['user-agent'] });
-    res.json({ user: fullUser, accessToken });
+    res.json({ user: formatUserProfile(fullUser), accessToken });
   } catch (err) {
     console.error('[POST /auth/login]', err);
     res.status(500).json({ error: 'Terjadi kesalahan pada server saat login.' });
@@ -286,7 +301,7 @@ authRouter.post('/refresh', async (req: Request, res: Response) => {
       select: USER_PROFILE_SELECT,
     });
 
-    res.json({ accessToken: tokens.accessToken, user: fullUser });
+    res.json({ accessToken: tokens.accessToken, user: formatUserProfile(fullUser) });
   } catch (err) {
     console.error('[POST /auth/refresh]', err);
     res.status(500).json({ error: 'Gagal memperbarui token autentikasi.' });
@@ -415,7 +430,7 @@ authRouter.get('/me', requireAuth, async (req: AuthenticatedRequest, res: Respon
       return res.status(404).json({ error: 'Pengguna tidak ditemukan.' });
     }
 
-    res.json(user);
+    res.json(formatUserProfile(user));
   } catch (err) {
     console.error('[GET /auth/me]', err);
     res.status(500).json({ error: 'Gagal mengambil data profil pengguna.' });
@@ -462,10 +477,198 @@ authRouter.patch('/me', requireAuth, async (req: AuthenticatedRequest, res: Resp
       select: USER_PROFILE_SELECT
     });
 
-    res.json(updated);
+    res.json(formatUserProfile(updated));
   } catch (err) {
     console.error('[PATCH /auth/me]', err);
     res.status(500).json({ error: 'Gagal memperbarui profil pengguna.' });
+  }
+});
+
+// ─── POST /api/v1/auth/set-password (Buat Password untuk Pengguna OAuth) ──────
+authRouter.post('/set-password', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { newPassword } = req.body as { newPassword?: string };
+
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ error: 'Kata sandi baru minimal terdiri dari 8 karakter.' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, passwordHash: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Pengguna tidak ditemukan.' });
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: newHash }
+    });
+
+    auditLog({ event: 'PASSWORD_SET', userId, ip: getClientIp(req) });
+    res.json({ success: true, message: 'Kata sandi berhasil dibuat. Sekarang Anda dapat masuk dengan email dan kata sandi.' });
+  } catch (err) {
+    console.error('[POST /auth/set-password]', err);
+    res.status(500).json({ error: 'Gagal membuat kata sandi baru.' });
+  }
+});
+
+// ─── DELETE /api/v1/auth/account (Hapus Akun Mandiri & Cascade Data) ───────────
+authRouter.delete('/account', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { password, confirmText } = req.body as { password?: string; confirmText?: string };
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, passwordHash: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Pengguna tidak ditemukan.' });
+    }
+
+    // Verifikasi keamanan sebelum penghapusan akun permanen
+    if (user.passwordHash) {
+      if (!password) {
+        return res.status(400).json({ error: 'Kata sandi diperlukan untuk mengonfirmasi penghapusan akun.' });
+      }
+      const isMatch = await bcrypt.compare(password, user.passwordHash);
+      if (!isMatch) {
+        return res.status(401).json({ error: 'Kata sandi salah. Penghapusan akun dibatalkan.' });
+      }
+    } else {
+      // User OAuth tanpa password wajib mengetik konfirmasi
+      if (confirmText !== 'HAPUS AKUN') {
+        return res.status(400).json({ error: 'Ketik "HAPUS AKUN" untuk mengonfirmasi penghapusan akun.' });
+      }
+    }
+
+    // Hapus user secara cascade di database (semua relasi cascade di schema)
+    await prisma.user.delete({
+      where: { id: userId }
+    });
+
+    clearAuthCookies(res);
+    auditLog({ event: 'ACCOUNT_DELETED', userId, email: user.email, ip: getClientIp(req) });
+
+    res.json({ success: true, message: 'Akun Anda dan seluruh data terkait telah berhasil dihapus secara permanen.' });
+  } catch (err) {
+    console.error('[DELETE /auth/account]', err);
+    res.status(500).json({ error: 'Gagal menghapus akun pengguna.' });
+  }
+});
+
+// ─── GET /api/v1/auth/export-personal-data (GDPR Arsip Lengkap Data Akun) ──────
+authRouter.get('/export-personal-data', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+        phone: true,
+        location: true,
+        bio: true,
+        notifInterviewReminder: true,
+        notifFollowUpReminder: true,
+        notifDeadlineReminder: true,
+        createdAt: true,
+        lastLoginAt: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Pengguna tidak ditemukan.' });
+    }
+
+    const [applications, careerLinks, documents, calendarEvents] = await Promise.all([
+      prisma.application.findMany({
+        where: { userId, deletedAt: null },
+        include: {
+          jobPosting: { include: { company: true } },
+          tasks: { where: { deletedAt: null } },
+          interviews: true,
+          contacts: true,
+          stageHistory: true,
+          activities: true
+        },
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.userCareerLink.findMany({
+        where: { userId }
+      }),
+      prisma.userDocument.findMany({
+        where: { userId, deletedAt: null },
+        include: {
+          versions: {
+            select: {
+              id: true,
+              versionName: true,
+              storageType: true,
+              url: true,
+              fileName: true,
+              fileSize: true,
+              mimeType: true,
+              notes: true,
+              isDefault: true,
+              createdAt: true
+            }
+          }
+        }
+      }),
+      prisma.calendarEvent.findMany({
+        where: { userId, deletedAt: null },
+        include: { reminders: true }
+      })
+    ]);
+
+    const dateStr = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="jobtrack-personal-data-${dateStr}.json"`);
+
+    auditLog({ event: 'ACCOUNT_DATA_EXPORTED', userId, email: user.email, ip: getClientIp(req) });
+
+    res.json({
+      exportedAt: new Date().toISOString(),
+      profile: user,
+      applicationsCount: applications.length,
+      applications: applications.map(app => ({
+        id: app.id,
+        companyName: app.jobPosting.company.name,
+        position: app.jobPosting.title,
+        stage: app.stage,
+        workType: app.jobPosting.workType,
+        location: app.jobPosting.location,
+        salaryMin: app.jobPosting.salaryMin,
+        salaryMax: app.jobPosting.salaryMax,
+        sourceUrl: app.jobPosting.sourceUrl,
+        dateApplied: app.dateApplied,
+        applyDeadline: app.jobPosting.applyDeadline,
+        notes: app.notes,
+        tasks: app.tasks,
+        interviews: app.interviews,
+        contacts: app.contacts,
+        stageHistory: app.stageHistory,
+        activities: app.activities,
+        createdAt: app.createdAt,
+        updatedAt: app.updatedAt
+      })),
+      careerLinks,
+      vaultDocuments: documents,
+      calendarEvents
+    });
+  } catch (err) {
+    console.error('[GET /auth/export-personal-data]', err);
+    res.status(500).json({ error: 'Gagal mengekspor data akun pengguna.' });
   }
 });
 

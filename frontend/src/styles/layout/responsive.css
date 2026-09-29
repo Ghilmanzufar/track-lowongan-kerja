@@ -138,13 +138,18 @@
   }
 
   .topbar-right {
-    flex: 0 1 auto;
+    flex: 0 0 auto;
     gap: 6px;
     justify-content: flex-end;
   }
 
-  .topbar-right .header-search {
-    display: none; /* Sembunyikan search input navbar di mobile (setiap view memiliki filter/search sendiri) */
+  .topbar-right .header-search,
+  .topbar-right #btnOpenSalaryCalc,
+  .topbar-right #btnOpenEmailTemplates,
+  .topbar-right #btnOpenFeedbackModal,
+  .topbar-right #btnPwaInstallTopbar,
+  .topbar-right #topbarAdminBackBtn {
+    display: none !important;
   }
 
   .nav-user-profile {
@@ -260,6 +265,12 @@
   body[data-current-view="analytics"] #mobileFabAdd,
   body[data-current-view="career-links"] .mobile-fab-add,
   body[data-current-view="career-links"] #mobileFabAdd,
+  body[data-current-view="companies"] .mobile-fab-add,
+  body[data-current-view="companies"] #mobileFabAdd,
+  body[data-current-view="jobs"] .mobile-fab-add,
+  body[data-current-view="jobs"] #mobileFabAdd,
+  body[data-current-view="guide"] .mobile-fab-add,
+  body[data-current-view="guide"] #mobileFabAdd,
   body[data-current-view="agenda"] .mobile-fab-add,
   body[data-current-view="agenda"] #mobileFabAdd {
     display: none !important;

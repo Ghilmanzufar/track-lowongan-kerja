@@ -9,20 +9,105 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="/icon-logo.svg" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#08090A" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="JobTrackId" />
+  <link rel="apple-touch-icon" href="/icon-logo.svg" />
   <link rel="stylesheet" href="/src/styles/main.css" />
+  <script>
+    (function () {
+      var h = (window.location.hash || '').toLowerCase();
+      var isAuth = h.startsWith('#login') || 
+                   h.startsWith('#register') || 
+                   h.startsWith('#daftar') || 
+                   h.startsWith('#forgot') || 
+                   h.includes('reset-password') || 
+                   h.startsWith('#google-callback');
+      if (isAuth) {
+        document.documentElement.classList.add('auth-flow');
+      }
+    })();
+  </script>
+  <style>
+    /* Prevent Flash of Unauthenticated Content (FOUC) */
+    #app.dashboard-app-layout {
+      display: none;
+    }
+    #mobileFabAdd {
+      display: none;
+    }
+    html.auth-flow #authContainer {
+      display: block !important;
+    }
+    html.auth-flow #app {
+      display: none !important;
+    }
+    html.auth-flow #initialLoader {
+      display: none !important;
+    }
+
+    /* Minimalist smooth initial loader for cold app visits while checking session */
+    .app-initial-loader {
+      position: fixed;
+      inset: 0;
+      background: #08090A;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 99999;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+    .app-initial-loader.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .loader-pulse-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulseLogo 1.6s ease-in-out infinite;
+    }
+    .loader-pulse-logo img {
+      width: 28px;
+      height: 28px;
+      display: block;
+    }
+    @keyframes pulseLogo {
+      0%, 100% { transform: scale(1); opacity: 0.85; }
+      50% { transform: scale(1.06); opacity: 1; filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.5)); }
+    }
+  </style>
 </head>
 <body>
+  <!-- Initial Loader (shown only during cold session check) -->
+  <div id="initialLoader" class="app-initial-loader">
+    <div class="loader-pulse-logo">
+      <img src="/icon-logo.svg" alt="JobTrackId Logo" />
+    </div>
+  </div>
+
   <!-- Authentication View Container (shown when not logged in) -->
   <div id="authContainer" style="display: none;"></div>
 
-  <div id="app" class="dashboard-app-layout">
+  <div id="app" class="dashboard-app-layout" style="display: none;">
     <!-- Mobile Backdrop for Sidebar -->
     <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 
     <!-- Left App Sidebar -->
     <aside class="app-sidebar" id="appSidebar">
       <div class="sidebar-top">
-        <a href="/" class="sidebar-brand" title="Ke Beranda JobTrackId">
+        <a href="#dashboard" class="sidebar-brand" id="sidebarBrandLink" title="Ke Dashboard JobTrackId">
           <div class="brand-logo">
             <img src="/icon-logo.svg" alt="JobTrackId Logo" width="24" height="24" style="display:block; object-fit:contain;" />
           </div>
@@ -113,14 +198,27 @@
           <span class="tab-count nav-badge" id="tabCountDocuments">0</span>
         </button>
 
-        <div class="nav-section-label" style="margin-top: 14px;">SUMBER KARIR</div>
+        <div class="nav-section-label" style="margin-top: 14px;">EKSPLORASI &amp; KARIR</div>
 
-        <button class="nav-item-btn tab-btn" data-view="career-links">
+        <button class="nav-item-btn tab-btn" data-view="jobs" id="sidebarNavJobs" title="Cari &amp; Jelajahi Lowongan Kerja Indonesia">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
           </svg>
-          <span>Direktori Karir</span>
+          <span>Cari Lowongan</span>
+          <span class="nav-badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 10px; font-weight: 700; padding: 2px 5px;">BARU</span>
+        </button>
+
+        <button class="nav-item-btn tab-btn" data-view="companies" id="sidebarNavCompanies" title="Direktori Perusahaan BUMN, Startup &amp; Swasta di Indonesia">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="16" height="20" x="4" y="2" rx="2" ry="2"/>
+            <path d="M9 22v-4h6v4"/>
+            <path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/>
+            <path d="M12 10h.01"/><path d="M12 14h.01"/>
+            <path d="M16 10h.01"/><path d="M16 14h.01"/>
+            <path d="M8 10h.01"/><path d="M8 14h.01"/>
+          </svg>
+          <span>Perusahaan Indonesia</span>
         </button>
 
         <div class="nav-section-label" style="margin-top: 14px;">ARSIP &amp; SISTEM</div>
@@ -133,10 +231,46 @@
           <span>Sampah (Trash)</span>
           <span class="tab-count nav-badge" id="tabCountTrash">0</span>
         </button>
+
+        <div class="nav-section-label" style="margin-top: 14px;">BANTUAN &amp; PANDUAN</div>
+
+        <button class="nav-item-btn tab-btn" data-view="guide" id="sidebarGuideBtn" title="Buka Buku Panduan Penggunaan">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+          <span>Buku Panduan</span>
+        </button>
+
+        <button class="nav-item-btn" id="sidebarFeedbackBtn" title="Kirim Masukan atau Laporkan Masalah">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span>Bantuan &amp; Masukan</span>
+        </button>
+
+        <div class="nav-section-label admin-only-nav" id="sidebarAdminSection" style="margin-top: 14px; display: none;">ADMINISTRATOR</div>
+
+        <button class="nav-item-btn tab-btn admin-only-nav" data-view="admin" id="sidebarAdminBtn" style="display: none;" title="Buka Standalone Mission Control Admin (/admin)" onclick="window.location.href='/admin'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          <span>Panel Admin</span>
+          <span class="nav-badge" style="background: rgba(99, 102, 241, 0.15); color: #6366f1; font-size: 10px; font-weight: 800; padding: 2px 6px;">PRO ↗</span>
+        </button>
       </nav>
 
       <!-- Sidebar Footer -->
       <div class="sidebar-footer">
+        <button type="button" class="btn-pwa-install" id="btnPwaInstallSidebar" style="display: none; width: 100%; margin-bottom: 8px; justify-content: center; padding: 7px 12px;" title="Install Aplikasi JobTrackId di Layar Utama HP / Desktop">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Install Aplikasi</span>
+        </button>
+
         <div class="sidebar-profile-card" id="sidebarProfileBtn" title="Buka Profil Saya" role="button" tabindex="0">
           <div class="sidebar-profile-avatar" id="sidebarUserAvatar">U</div>
           <div class="sidebar-profile-info">
@@ -177,6 +311,46 @@
             <button type="button" class="search-shortcut-badge" id="btnOpenCmdPalette" title="Command Palette (Ctrl+K)">⌘K</button>
           </div>
 
+          <button class="btn btn-secondary btn-icon" id="btnOpenSalaryCalc" title="Kalkulator Gaji & PPh 21 TER 2024" aria-label="Kalkulator Gaji & PPh 21">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="16" height="20" x="4" y="2" rx="2"/>
+              <line x1="8" x2="16" y1="6" y2="6"/>
+              <line x1="16" x2="16" y1="14"/>
+              <path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/>
+              <path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/>
+            </svg>
+          </button>
+
+          <button class="btn btn-secondary btn-icon" id="btnOpenEmailTemplates" title="Generator Template Email HRD" aria-label="Template Email HRD">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="16" x="2" y="4" rx="2"/>
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+            </svg>
+          </button>
+
+          <button class="btn btn-secondary btn-icon" id="btnOpenFeedbackModal" title="Pusat Bantuan &amp; Kirim Masukan" aria-label="Bantuan &amp; Masukan">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </button>
+
+          <button type="button" class="btn-pwa-install" id="btnPwaInstallTopbar" style="display: none;" title="Install Aplikasi JobTrackId di Desktop / HP">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span>Install App</span>
+          </button>
+
+          <!-- Admin Switcher Shortcut (Visible only to SuperAdmin/Operator) -->
+          <a href="/admin" class="btn btn-secondary btn-sm admin-only-nav" id="topbarAdminBackBtn" style="display: none; align-items: center; gap: 6px; text-decoration: none; border-color: rgba(99, 102, 241, 0.4); background: rgba(99, 102, 241, 0.1); color: #818cf8; font-weight: 600;" title="Kembali ke Panel Mission Control Admin">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>Panel Admin</span>
+          </a>
+
           <button class="btn btn-secondary btn-icon" id="btnThemeToggle" title="Ganti Mode Gelap / Terang" aria-label="Ganti Mode Gelap / Terang">
             <svg id="iconThemeDark" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
@@ -195,6 +369,9 @@
           </div>
         </div>
       </header>
+
+      <!-- Global System Announcement Banner -->
+      <div id="systemAnnouncementBanner" style="display: none;" role="banner"></div>
 
       <!-- Email Verification Banner (shown only when emailVerified === false) -->
       <div id="emailVerifyBanner" class="email-verify-banner" style="display: none;" role="alert" aria-live="polite">
@@ -438,7 +615,7 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Mobile Floating Action Button -->
-  <button id="mobileFabAdd" class="mobile-fab-add" title="Tambah Lowongan Baru">
+  <button id="mobileFabAdd" class="mobile-fab-add" title="Tambah Lowongan Baru" style="display: none;">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <line x1="12" y1="5" x2="12" y2="19"/>
       <line x1="5" y1="12" x2="19" y2="12"/>

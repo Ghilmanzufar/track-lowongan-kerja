@@ -73,7 +73,14 @@ export type IconName =
   | 'palette'
   | 'hardHat'
   | 'lock'
-  | 'eyeOff';
+  | 'eyeOff'
+  | 'calculator'
+  | 'smartphone'
+  | 'send'
+  | 'copy'
+  | 'shield'
+  | 'crown'
+  | 'bug';
 
 interface IconOptions {
   size?: number;
@@ -444,6 +451,47 @@ const ICON_PATHS: Record<IconName, string> = {
     <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
     <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
     <line x1="2" x2="22" y1="2" y2="22"/>
+  `,
+  calculator: `
+    <rect width="16" height="20" x="4" y="2" rx="2"/>
+    <line x1="8" x2="16" y1="6" y2="6"/>
+    <line x1="16" x2="16" y1="14"/>
+    <path d="M16 10h.01"/>
+    <path d="M12 10h.01"/>
+    <path d="M8 10h.01"/>
+    <path d="M12 14h.01"/>
+    <path d="M8 14h.01"/>
+    <path d="M12 18h.01"/>
+    <path d="M8 18h.01"/>
+  `,
+  smartphone: `
+    <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+    <path d="M12 18h.01"/>
+  `,
+  send: `
+    <path d="m22 2-7 20-4-9-9-4Z"/>
+    <path d="M22 2 11 13"/>
+  `,
+  copy: `
+    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+  `,
+  shield: `
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+  `,
+  crown: `
+    <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/>
+  `,
+  bug: `
+    <rect width="8" height="14" x="8" y="6" rx="4"/>
+    <path d="m19 7-3 2"/>
+    <path d="m5 7 3 2"/>
+    <path d="m19 19-3-2"/>
+    <path d="m5 19 3-2"/>
+    <path d="M20 13h-4"/>
+    <path d="M4 13h4"/>
+    <path d="m10 4 1 2"/>
+    <path d="m14 4-1 2"/>
   `
 };
 

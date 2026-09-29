@@ -9,3 +9,7 @@ export * from './interviews';
 export * from './calendar';
 export * from './trash';
 export * from './search';
+export * from './integrations';
+export * from './admin';
+export * from './feedback';
+export * from './jobs';

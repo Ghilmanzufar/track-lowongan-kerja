@@ -54,6 +54,16 @@
   --accent-cyan: #0891b2;
   --accent-cyan-bg: #ecfeff;
   --gradient-accent: linear-gradient(135deg, #6366F1, #8B5CF6, #A78BFA);
+
+  /* Component Aliases */
+  --color-surface: var(--bg-surface);
+  --color-card: var(--bg-card);
+  --color-background: var(--bg-subtle);
+  --color-border: var(--border-color);
+  --color-text: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-primary: var(--accent-blue);
+  --color-surface-hover: var(--bg-subtle);
 }
 
 /* Dark Theme (JobTrack Obsidian & Violet-Indigo Aesthetic) */
@@ -87,4 +97,14 @@
   --accent-purple: #8B5CF6;
   --accent-purple-bg: rgba(139, 92, 246, 0.15);
   --accent-cyan-bg: rgba(8, 145, 178, 0.15);
+
+  /* Component Aliases (Dark Mode) */
+  --color-surface: var(--bg-surface);
+  --color-card: var(--bg-card);
+  --color-background: var(--bg-subtle);
+  --color-border: var(--border-color);
+  --color-text: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-primary: #818CF8;
+  --color-surface-hover: rgba(255, 255, 255, 0.03);
 }

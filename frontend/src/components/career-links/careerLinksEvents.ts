@@ -317,7 +317,7 @@ export function attachCareerLinksEvents(
         });
 
         if (res.starred) {
-          toast(`"${name}" ditambahkan ke Favorit ⭐`, 'success');
+          toast(`"${name}" ditambahkan ke Favorit`, 'success');
         } else {
           toast(`"${name}" dihapus dari Favorit`, 'info');
         }

@@ -3,6 +3,10 @@ import { STAGES_CONFIG, ApplicationStage } from '../types';
 import { escapeHtml } from '../utils';
 import { searchGlobal } from '../services/api';
 import { getIconSvg } from '../utils/icons';
+import { SalaryCalculatorModal } from './SalaryCalculatorModal';
+import { EmailTemplatesModal } from './EmailTemplatesModal';
+import { FeedbackModal } from './FeedbackModal';
+import { pwaService } from '../services/pwa';
 
 interface CommandItem {
   id: string;
@@ -62,6 +66,54 @@ function getStaticCommands(): CommandItem[] {
       }
     },
     {
+      id: 'salary-calc',
+      icon: getIconSvg('calculator', { size: 16 }),
+      iconClass: 'action',
+      title: 'Kalkulator Gaji Bersih (PPh 21 TER 2024)',
+      description: 'Hitung Take Home Pay dari gaji bruto tanpa potongan BPJS',
+      group: 'action',
+      action: () => {
+        close();
+        SalaryCalculatorModal.open();
+      }
+    },
+    {
+      id: 'email-templates',
+      icon: getIconSvg('mail', { size: 16 }),
+      iconClass: 'action',
+      title: 'Template Email Komunikasi HRD',
+      description: 'Generator draf follow-up, thank-you note, negosiasi, dan konfirmasi',
+      group: 'action',
+      action: () => {
+        close();
+        EmailTemplatesModal.open();
+      }
+    },
+    {
+      id: 'pwa-install',
+      icon: getIconSvg('smartphone', { size: 16 }),
+      iconClass: 'action',
+      title: 'Install Aplikasi JobTrackId (PWA)',
+      description: 'Pasang aplikasi di layar utama HP atau desktop komputer',
+      group: 'action',
+      action: () => {
+        close();
+        pwaService.promptInstall();
+      }
+    },
+    {
+      id: 'user-feedback',
+      icon: getIconSvg('helpCircle', { size: 16 }),
+      iconClass: 'action',
+      title: 'Bantuan & Kirim Masukan',
+      description: 'Laporkan masalah / bug atau kirimkan saran fitur ke admin',
+      group: 'action',
+      action: () => {
+        close();
+        FeedbackModal.open();
+      }
+    },
+    {
       id: 'nav-dashboard',
       icon: getIconSvg('home', { size: 16 }),
       iconClass: 'nav',
@@ -116,13 +168,22 @@ function getStaticCommands(): CommandItem[] {
       action: () => { close(); window.location.hash = 'documents'; }
     },
     {
-      id: 'nav-career-links',
-      icon: getIconSvg('link', { size: 16 }),
+      id: 'nav-jobs',
+      icon: getIconSvg('briefcase', { size: 16 }),
       iconClass: 'nav',
-      title: 'Buka Direktori Karir',
-      description: 'Link karir perusahaan swasta, BUMN, multinasional',
+      title: 'Buka Cari Lowongan Kerja',
+      description: 'Eksplorasi lowongan kerja terkurasi di Indonesia dan simpan ke Kanban',
       group: 'navigate',
-      action: () => { close(); window.location.hash = 'career-links'; }
+      action: () => { close(); window.location.hash = 'jobs'; }
+    },
+    {
+      id: 'nav-companies',
+      icon: getIconSvg('building', { size: 16 }),
+      iconClass: 'nav',
+      title: 'Buka Direktori Perusahaan Indonesia',
+      description: 'Profil korporat, BUMN, unicorn tech, swasta nasional, dan link karir resmi',
+      group: 'navigate',
+      action: () => { close(); window.location.hash = 'companies'; }
     },
     {
       id: 'nav-trash',
@@ -132,6 +193,15 @@ function getStaticCommands(): CommandItem[] {
       description: 'Pulihkan item yang terhapus',
       group: 'navigate',
       action: () => { close(); window.location.hash = 'trash'; }
+    },
+    {
+      id: 'nav-guide',
+      icon: getIconSvg('book', { size: 16 }),
+      iconClass: 'nav',
+      title: 'Buka Buku Panduan Penggunaan',
+      description: 'Pelajari alur pipeline 9 tahap, kalkulator pajak PPh 21, dan tips karir',
+      group: 'navigate',
+      action: () => { close(); window.location.hash = 'guide'; }
     },
     {
       id: 'toggle-theme',

@@ -580,7 +580,7 @@ function showLinkVaultDocDialog(container: HTMLElement, item: ApplicationItem, o
                     const icon = categoryIcons[doc.category] || getIconSvg('fileText', { size: 18 });
                     const catLabel = categoryLabels[doc.category] || doc.category;
                     const isLink = ver.storageType === 'Link';
-                    let storageLabel = isLink ? 'Tautan ↗' : 'Berkas 📄';
+                    let storageLabel = isLink ? 'Tautan' : 'Berkas Dokumen';
                     if (isLink && ver.url) {
                       const u = ver.url.toLowerCase();
                       if (u.includes('drive.google.com')) storageLabel = 'Google Drive ↗';

@@ -121,8 +121,8 @@ function renderView(container: HTMLElement): void {
             Semua Kategori
             <span class="cl-tab-count">${state.globalLinks.length + state.userLinks.length}</span>
           </button>
-          <button class="cl-filter-tab cl-tab-starred ${state.activeFilter === 'starred' ? 'active' : ''}" data-filter="starred" title="Tampilkan portal karir yang Anda tandai ⭐">
-            <span style="color:#f59e0b; display:inline-flex; align-items:center;">⭐</span>
+          <button class="cl-filter-tab cl-tab-starred ${state.activeFilter === 'starred' ? 'active' : ''}" data-filter="starred" title="Tampilkan portal karir yang Anda tandai favorit">
+            <span style="color:#f59e0b; display:inline-flex; align-items:center;">${getIconSvg('star', { size: 13 })}</span>
             <span>Favorit</span>
             <span class="cl-tab-count">${state.starredUrls.size}</span>
           </button>
@@ -228,7 +228,7 @@ function renderView(container: HTMLElement): void {
             </svg>
             <p style="font-weight:600; color:var(--text-primary); margin-top:8px;">Belum Ada Tautan Karir Favorit</p>
             <p style="font-size:12.5px; color:var(--text-muted); max-width:420px; line-height:1.5;">
-              Tandai link atau portal perusahaan dengan mengklik ikon bintang (⭐) pada kartu direktori agar tersimpan di sini untuk akses instan.
+              Tandai link atau portal perusahaan dengan mengklik ikon bintang pada kartu direktori agar tersimpan di sini untuk akses instan.
             </p>
             <button class="btn btn-secondary btn-sm" id="clResetToAllTab" style="margin-top: 12px;">
               Jelajahi Semua Direktori Karir
@@ -270,8 +270,8 @@ function renderView(container: HTMLElement): void {
         <!-- Personal Links section -->
         <section class="cl-section cl-section-personal">
           <div class="cl-section-header">
-            <h3 class="cl-section-title">
-              📌 Tambahan Saya
+            <h3 class="cl-section-title" style="display: flex; align-items: center; gap: 6px;">
+              ${getIconSvg('pin', { size: 14 })} Tambahan Saya
             </h3>
             <div style="display:flex;align-items:center;gap:8px;">
               <span class="cl-section-count">${totalUser} link</span>

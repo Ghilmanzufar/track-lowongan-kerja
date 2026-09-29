@@ -10,6 +10,7 @@ import { renderProfileBasicInfoHtml, bindProfileBasicInfo } from './profile/Prof
 import { renderProfileStatsHtml } from './profile/ProfileStats';
 import { renderProfileStarredLinksHtml, bindProfileStarredLinks } from './profile/ProfileStarredLinks';
 import { renderProfileNotificationsHtml, bindProfileNotifications } from './profile/ProfileNotifications';
+import { renderProfileGoogleCalendarHtml, initProfileGoogleCalendar, bindProfileGoogleCalendarEvents } from './profile/ProfileGoogleCalendar';
 import { renderProfileSecurityHtml, bindProfileSecurity } from './profile/ProfileSecurity';
 import { renderAvatarUploadModalHtml, bindAvatarUploadModal } from './profile/AvatarUploadModal';
 
@@ -35,6 +36,7 @@ export function renderProfileView(container: HTMLElement): void {
       ${renderProfileBasicInfoHtml(profile, user)}
       ${renderProfileStatsHtml()}
       ${renderProfileStarredLinksHtml()}
+      ${renderProfileGoogleCalendarHtml()}
       ${renderProfileNotificationsHtml(profile)}
       ${renderProfileSecurityHtml()}
       ${renderAvatarUploadModalHtml(hasAvatar, avatarContent)}
@@ -52,6 +54,8 @@ export function renderProfileView(container: HTMLElement): void {
 
   bindProfileBasicInfo(container, profile);
   bindProfileStarredLinks(container);
+  bindProfileGoogleCalendarEvents(container);
+  initProfileGoogleCalendar(container);
   bindProfileNotifications(container);
   bindProfileSecurity(container);
 }

@@ -45,18 +45,40 @@ app.use(helmet({
 import { prisma } from './db.js';
 export { prisma };
 
-const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173',
+const getOrigin = (urlStr?: string): string | null => {
+  if (!urlStr) return null;
+  try {
+    return new URL(urlStr).origin;
+  } catch {
+    return null;
+  }
+};
+
+const clientOrigin = getOrigin(process.env.CLIENT_URL);
+
+const allowedOrigins = new Set([
+  'http://localhost:5173',
   'http://localhost:3000',
-  'http://127.0.0.1:5173'
-];
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+  ...(clientOrigin ? [clientOrigin] : [])
+]);
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Izinkan request tanpa origin (seperti curl, mobile app) atau origin yang terdaftar di whitelist
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Izinkan request tanpa origin (seperti curl, mobile app, postman)
+    if (!origin) return callback(null, true);
+
+    // Di development, izinkan port apapun pada localhost atau 127.0.0.1
+    const isDev = process.env.NODE_ENV !== 'production';
+    if (isDev && (/^http:\/\/localhost(:\d+)?$/.test(origin) || /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin))) {
       return callback(null, true);
     }
+
+    if (allowedOrigins.has(origin)) {
+      return callback(null, true);
+    }
+
     return callback(new Error(`Origin ${origin} tidak diizinkan oleh kebijakan CORS.`));
   },
   credentials: true
@@ -78,6 +100,9 @@ app.use('/api/v1', apiRouter);
 // Centralized Error Handling Middleware (Always at the end of middleware stack)
 app.use(errorHandler);
 
+import { startReminderCron } from './workers/reminderCron.js';
+
 app.listen(PORT, () => {
   console.log(`[jobtrack-backend] Running on http://localhost:${PORT}`);
+  startReminderCron();
 });

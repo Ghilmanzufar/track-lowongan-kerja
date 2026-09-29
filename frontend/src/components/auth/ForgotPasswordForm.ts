@@ -19,7 +19,7 @@ export function renderForgotPasswordForm(
             devResetUrl
               ? `
             <div class="auth-dev-badge">
-              <span class="auth-dev-badge-tag">🛠️ Dev Link Cepat (Localhost)</span>
+              <span class="auth-dev-badge-tag">Dev Link Cepat (Localhost)</span>
               <a href="${devResetUrl}" class="auth-dev-badge-link" id="auth-dev-direct-link">Buka Halaman Reset Langsung &rarr;</a>
             </div>
           `

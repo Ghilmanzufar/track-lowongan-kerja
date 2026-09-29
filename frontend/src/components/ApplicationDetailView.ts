@@ -45,7 +45,7 @@ export async function renderApplicationDetailView(
       container.innerHTML = `
         <div class="app-detail-page">
           <div style="text-align: center; padding: 60px 20px; color: var(--text-secondary);">
-            <div style="font-size: 28px; margin-bottom: 8px;">⏳</div>
+            <div class="spinner" style="width: 28px; height: 28px; margin: 0 auto 12px auto; border-width: 3px;"></div>
             <p style="font-size: 13px; font-weight: 600;">Memuat data lamaran...</p>
           </div>
         </div>

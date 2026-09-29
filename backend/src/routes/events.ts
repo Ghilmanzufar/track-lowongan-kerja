@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { prisma } from '../index.js';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
+import { syncEventToGoogle, deleteEventFromGoogle } from '../services/googleCalendarService.js';
 
 export const eventsRouter = Router();
 
@@ -142,6 +143,9 @@ eventsRouter.post('/', async (req: AuthenticatedRequest, res: Response) => {
       }
     });
 
+    // Background sync to Google Calendar if user connected
+    syncEventToGoogle(userId, event.id).catch((e) => console.warn('[Events] Google Calendar sync warning:', e));
+
     res.status(201).json(formatCalendarEvent(refreshed));
   } catch (err) {
     console.error('[POST /events]', err);
@@ -216,6 +220,9 @@ eventsRouter.put('/:id', async (req: AuthenticatedRequest, res: Response) => {
       }
     });
 
+    // Background sync to Google Calendar
+    syncEventToGoogle(userId, updated.id).catch((e) => console.warn('[Events] Google Calendar update warning:', e));
+
     res.json(formatCalendarEvent(updated));
   } catch (err) {
     console.error('[PUT /events/:id]', err);
@@ -241,6 +248,10 @@ eventsRouter.delete('/:id', async (req: AuthenticatedRequest, res: Response) => 
       where: { id },
       data: { deletedAt: new Date() }
     });
+
+    if (existing.googleEventId) {
+      deleteEventFromGoogle(userId, existing.googleEventId).catch((e) => console.warn('[Events] Google Calendar delete warning:', e));
+    }
 
     res.json({ success: true, deletedId: id, message: 'Event berhasil dipindahkan ke tempat sampah.' });
   } catch (err) {

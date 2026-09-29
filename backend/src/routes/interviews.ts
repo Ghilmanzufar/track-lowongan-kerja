@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { prisma } from '../index.js';
 import { requireAuth, AuthenticatedRequest } from '../middleware/auth.js';
+import { syncEventToGoogle } from '../services/googleCalendarService.js';
 
 export const interviewsRouter = Router();
 
@@ -128,6 +129,9 @@ interviewsRouter.post('/application/:applicationId', async (req: AuthenticatedRe
           status: 'Scheduled'
         }
       });
+
+      // Background sync to Google Calendar if enabled
+      syncEventToGoogle(userId, calEvent.id).catch((e) => console.warn('[Interviews] Google Calendar sync warning:', e));
 
       // 2. Reminder 30 min before
       const remindAt = new Date(scheduledAt.getTime() - 30 * 60 * 1000);
@@ -398,6 +402,11 @@ interviewsRouter.post('/:id/sync-tasks', async (req: AuthenticatedRequest, res: 
             status: 'Scheduled'
           }
         });
+      }
+
+      // Background sync to Google Calendar
+      if (calendarEvent?.id) {
+        syncEventToGoogle(userId, calendarEvent.id).catch((e) => console.warn('[Interviews] Google Calendar sync warning:', e));
       }
 
       // Reminder 30 min before

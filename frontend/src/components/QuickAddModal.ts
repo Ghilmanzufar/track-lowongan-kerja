@@ -377,7 +377,7 @@ export function setupQuickAddModal(): void {
         const opt = document.createElement('option');
         opt.value = ver.id;
         // Keep option text clean, concise, and responsive: never put 100-char paragraphs in native <option>!
-        opt.textContent = `${ver.versionName}${ver.isDefault ? ' ⭐ (Default)' : ''}`;
+        opt.textContent = `${ver.versionName}${ver.isDefault ? ' (Default)' : ''}`;
         optGroup.appendChild(opt);
       }
       if (optGroup.children.length > 0) {

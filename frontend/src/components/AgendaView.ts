@@ -8,6 +8,8 @@ import { CalendarWidget } from './CalendarWidget';
 import { downloadIcsFile, downloadCalendarEventIcs } from '../utils/calendar';
 import { notificationService } from '../services/notification';
 import { getIconSvg } from '../utils/icons';
+import { fetchGoogleCalendarStatus, fetchGoogleCalendarConnectUrl, syncGoogleCalendar } from '../services/api';
+import { showToast } from '../ui/toast';
 
 import type { AgendaCategoryTab, TaskWithContext } from './agenda/agendaTypes';
 import { renderTaskItem } from './agenda/AgendaTaskCard';
@@ -135,6 +137,15 @@ export function renderAgendaView(container: HTMLElement): void {
         </div>
 
         <div class="agenda-header-actions">
+          <button type="button" class="btn btn-secondary btn-sm" id="btnSyncGoogleCalendarAgenda" title="Sinkronkan jadwal dengan Google Calendar" style="display:inline-flex; align-items:center; gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <span id="labelSyncGoogleCalendar">Sync Google Calendar</span>
+          </button>
           <button type="button" class="btn btn-primary btn-sm" id="btnOpenNewEventDialog">
             ${getIconSvg('calendar', { size: 14 })}
             <span>+ Buat Event Baru</span>
@@ -239,6 +250,47 @@ function attachAgendaListeners(
   // Date selection in CalendarWidget
   calendarWidget.setOnDateSelect(() => {
     rerender();
+  });
+
+  // Google Calendar Sync button in Agenda
+  container.querySelector('#btnSyncGoogleCalendarAgenda')?.addEventListener('click', async () => {
+    const btn = container.querySelector<HTMLButtonElement>('#btnSyncGoogleCalendarAgenda');
+    if (!btn) return;
+
+    btn.disabled = true;
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = `<span class="spinner" style="display:inline-block; width:12px; height:12px; border:2px solid currentColor; border-right-color:transparent; border-radius:50%; animation:spin 0.6s linear infinite;"></span> <span>Sinkronisasi...</span>`;
+
+    try {
+      const status = await fetchGoogleCalendarStatus();
+      if (!status.isConnected) {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+        const wantConnect = await showConfirmDialog(
+          'Akun Google Calendar Anda belum terhubung. Apakah Anda ingin menghubungkan akun Google Anda sekarang agar jadwal wawancara tersinkronisasi otomatis?',
+          'Hubungkan Google Calendar?',
+          {
+            confirmText: 'Hubungkan Sekarang',
+            cancelText: 'Nanti Saja',
+            confirmVariant: 'primary'
+          }
+        );
+        if (wantConnect) {
+          const { authUrl } = await fetchGoogleCalendarConnectUrl();
+          if (authUrl) window.location.href = authUrl;
+        }
+        return;
+      }
+
+      const res = await syncGoogleCalendar();
+      showToast(res.message, 'success');
+      await store.reloadEvents();
+      rerender();
+    } catch (err: any) {
+      showToast(err?.message || 'Gagal melakukan sinkronisasi dengan Google Calendar.', 'error');
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+    }
   });
 
   // Enable notifications button

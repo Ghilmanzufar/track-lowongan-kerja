@@ -4,6 +4,8 @@
 import { store } from '../services/store';
 import { escapeHtml, formatSalary } from '../utils';
 import { getIconSvg } from '../utils/icons';
+import { calculateTakeHomePay } from '../utils/taxCalculator';
+import { SalaryCalculatorModal } from './SalaryCalculatorModal';
 
 type ComparisonViewMode = 'table' | 'cards';
 
@@ -166,23 +168,30 @@ export class OfferComparisonModal {
                 <span>⇄ Geser tabel ke kanan-kiri untuk melihat seluruh kolom</span>
               </div>
 
-              <!-- View Switcher (Table vs Stacked Cards) -->
-              <div class="offer-view-toggle">
-                <button type="button" class="offer-toggle-btn ${this.viewMode === 'table' ? 'active' : ''}" id="btnToggleTableView" title="Tampilan Tabel Berdampingan">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                    <line x1="3" y1="9" x2="21" y2="9"/>
-                    <line x1="9" y1="21" x2="9" y2="9"/>
-                  </svg>
-                  <span>Tabel</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <button type="button" class="btn btn-secondary btn-xs" id="btnOpenGlobalCalcFromOffer" style="display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 8px; border-radius: var(--radius-xs);">
+                  ${getIconSvg('calculator', { size: 12 })}
+                  <span>Kalkulator PPh 21</span>
                 </button>
-                <button type="button" class="offer-toggle-btn ${this.viewMode === 'cards' ? 'active' : ''}" id="btnToggleCardsView" title="Tampilan Kartu Ringkasan">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="3" width="7" height="18" rx="1"/>
-                    <rect x="14" y="3" width="7" height="18" rx="1"/>
-                  </svg>
-                  <span>Kartu</span>
-                </button>
+
+                <!-- View Switcher (Table vs Stacked Cards) -->
+                <div class="offer-view-toggle">
+                  <button type="button" class="offer-toggle-btn ${this.viewMode === 'table' ? 'active' : ''}" id="btnToggleTableView" title="Tampilan Tabel Berdampingan">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <line x1="3" y1="9" x2="21" y2="9"/>
+                      <line x1="9" y1="21" x2="9" y2="9"/>
+                    </svg>
+                    <span>Tabel</span>
+                  </button>
+                  <button type="button" class="offer-toggle-btn ${this.viewMode === 'cards' ? 'active' : ''}" id="btnToggleCardsView" title="Tampilan Kartu Ringkasan">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="7" height="18" rx="1"/>
+                      <rect x="14" y="3" width="7" height="18" rx="1"/>
+                    </svg>
+                    <span>Kartu</span>
+                  </button>
+                </div>
               </div>
             </div>
           ` : ''}
@@ -197,7 +206,8 @@ export class OfferComparisonModal {
             <div class="comparison-cards-grid">
               ${selectedItems.map(item => {
                 const base = item.application.expectedSalary || item.jobPosting.salaryMin || 0;
-                const estimatedThp = base > 0 ? Math.round(base * 0.92) : 0;
+                const estResult = base > 0 ? calculateTakeHomePay({ grossMonthly: base, ptkpStatus: 'TK/0' }) : null;
+                const estimatedThp = estResult ? estResult.takeHomePayMonthly : 0;
                 const wt = item.jobPosting.workType || 'onsite';
                 const wtColor = wt === 'remote' ? '#10b981' : wt === 'hybrid' ? '#3b82f6' : '#6b7280';
                 let score = 70;
@@ -237,9 +247,17 @@ export class OfferComparisonModal {
                       </div>
                       <div class="comparison-card-row">
                         <span class="comparison-card-key">Estimasi THP</span>
-                        <span class="comparison-card-val mono font-bold" style="color: var(--primary);">
-                          ${estimatedThp > 0 ? `~Rp ${estimatedThp.toLocaleString('id-ID')}/bln` : '-'}
-                        </span>
+                        <div class="comparison-card-val" style="text-align: right;">
+                          <span class="mono font-bold" style="color: var(--primary);">
+                            ${estimatedThp > 0 ? `Rp ${estimatedThp.toLocaleString('id-ID')}/bln` : '-'}
+                          </span>
+                          ${estResult ? `
+                            <span style="font-size: 10px; color: var(--text-muted); display: block;">PPh 21 TER: Rp ${estResult.monthlyPPh21.toLocaleString('id-ID')} (${estResult.effectiveRatePercent})</span>
+                            <button type="button" class="btn-open-calc-for-app" data-appid="${item.application.id}" data-base="${base}" data-company="${escapeHtml(item.company.name)}" data-title="${escapeHtml(item.jobPosting.title)}" style="font-size: 10.5px; margin-top: 4px; background: none; border: 1px solid var(--border-color); border-radius: 4px; padding: 2px 6px; cursor: pointer; color: var(--accent-blue); display: inline-flex; align-items: center; gap: 3px;">
+                              ${getIconSvg('calculator', { size: 10 })} Rincian Pajak
+                            </button>
+                          ` : ''}
+                        </div>
                       </div>
                       <div class="comparison-card-row">
                         <span class="comparison-card-key">Model Kerja</span>
@@ -314,14 +332,22 @@ export class OfferComparisonModal {
                     `).join('')}
                   </tr>
                   <tr>
-                    <td class="feature-label">Estimasi Take-Home Pay</td>
+                    <td class="feature-label">Estimasi Take-Home Pay (PPh 21 TER)</td>
                     ${selectedItems.map(item => {
                       const base = item.application.expectedSalary || item.jobPosting.salaryMin || 0;
-                      const estimatedThp = base > 0 ? Math.round(base * 0.92) : 0;
+                      const estResult = base > 0 ? calculateTakeHomePay({ grossMonthly: base, ptkpStatus: 'TK/0' }) : null;
+                      const estimatedThp = estResult ? estResult.takeHomePayMonthly : 0;
                       return `
                         <td class="col-candidate mono font-bold" style="color: var(--primary);">
-                          ${estimatedThp > 0 ? `~Rp ${estimatedThp.toLocaleString('id-ID')}` : '-'}
-                          <span style="font-size: 10px; color: var(--text-muted); display: block; font-weight: normal; margin-top: 2px;">(est. setelah BPJS & PPh21)</span>
+                          ${estimatedThp > 0 ? `Rp ${estimatedThp.toLocaleString('id-ID')}` : '-'}
+                          ${estResult ? `
+                            <span style="font-size: 10px; color: var(--text-muted); display: block; font-weight: normal; margin-top: 2px;">
+                              PPh 21 TER: Rp ${estResult.monthlyPPh21.toLocaleString('id-ID')} (${estResult.effectiveRatePercent})
+                            </span>
+                            <button type="button" class="btn-open-calc-for-app" data-appid="${item.application.id}" data-base="${base}" data-company="${escapeHtml(item.company.name)}" data-title="${escapeHtml(item.jobPosting.title)}" style="font-size: 10.5px; margin-top: 5px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; padding: 3px 8px; cursor: pointer; color: var(--text-primary); display: inline-flex; align-items: center; gap: 4px;">
+                              ${getIconSvg('calculator', { size: 11 })} Rincian Pajak
+                            </button>
+                          ` : ''}
                         </td>
                       `;
                     }).join('')}
@@ -435,6 +461,28 @@ export class OfferComparisonModal {
           this.selectedAppIds = this.selectedAppIds.filter(id => id !== appId);
           this.render();
         }
+      });
+    });
+
+    // Kalkulator PPh 21 triggers
+    this.dialog.querySelector('#btnOpenGlobalCalcFromOffer')?.addEventListener('click', () => {
+      SalaryCalculatorModal.open();
+    });
+
+    this.dialog.querySelectorAll<HTMLButtonElement>('.btn-open-calc-for-app').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const base = Number(btn.getAttribute('data-base')) || 0;
+        const companyName = btn.getAttribute('data-company') || '';
+        const position = btn.getAttribute('data-title') || '';
+        const applicationId = btn.getAttribute('data-appid') || undefined;
+
+        SalaryCalculatorModal.open({
+          initialGross: base,
+          companyName,
+          position,
+          applicationId
+        });
       });
     });
   }

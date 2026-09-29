@@ -1025,3 +1025,946 @@ dialog > form,
   }
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   IMPORT SPREADSHEET MODAL STYLES (Light & Dark Theme Native)
+   ───────────────────────────────────────────────────────────────────────────── */
+.import-modal-dialog {
+  width: 780px;
+  max-width: 95vw;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.import-modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-surface);
+  flex-shrink: 0;
+}
+
+.import-modal-header-icon {
+  background: var(--accent-blue-bg);
+  color: var(--accent-blue);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.import-modal-body {
+  padding: 24px;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.import-template-card {
+  background-color: var(--bg-subtle);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.import-template-title {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.import-template-desc {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.import-dropzone {
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 36px 20px;
+  text-align: center;
+  background-color: var(--bg-subtle);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.import-dropzone:hover,
+.import-dropzone.drag-over {
+  border-color: var(--accent-blue);
+  background-color: var(--accent-blue-bg);
+}
+
+.import-dropzone-icon {
+  color: var(--accent-blue);
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.import-dropzone-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.import-dropzone-desc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.import-modal-footer {
+  padding: 14px 24px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  background-color: var(--bg-surface);
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.import-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.import-metric-card {
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
+
+.import-metric-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.import-metric-val {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.import-options-box {
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.import-options-box label {
+  color: var(--text-primary);
+}
+
+.import-table-wrap {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  background-color: var(--bg-surface);
+}
+
+.import-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.import-table th {
+  background-color: var(--bg-subtle);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-weight: 600;
+  padding: 9px 12px;
+  text-align: left;
+}
+
+.import-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.import-table td.strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   DELETE ACCOUNT MODAL (Danger Zone Dialog)
+   ───────────────────────────────────────────────────────────────────────────── */
+.delete-account-dialog {
+  max-width: 480px;
+  width: 90vw;
+  background-color: var(--bg-surface);
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 0;
+  overflow: hidden;
+}
+
+.delete-account-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(220, 38, 38, 0.2);
+  background-color: rgba(220, 38, 38, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.delete-account-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ef4444;
+}
+
+.delete-account-body {
+  padding: 20px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background-color: var(--bg-surface);
+}
+
+.delete-account-warning {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #ef4444;
+  font-weight: 600;
+  font-size: 13.5px;
+}
+
+.delete-account-desc {
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.delete-account-label {
+  display: block;
+  font-weight: 600;
+  font-size: 12.5px;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.delete-account-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  box-sizing: border-box;
+  background-color: var(--bg-subtle);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.delete-account-input:focus {
+  border-color: #ef4444;
+}
+
+.delete-account-footer {
+  padding: 14px 20px;
+  background-color: var(--bg-surface);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.delete-account-body code {
+  background-color: rgba(220, 38, 38, 0.15);
+  color: #ef4444;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SALARY & PPh 21 TER 2024 CALCULATOR MODAL
+   ───────────────────────────────────────────────────────────────────────────── */
+.salary-calc-dialog {
+  max-width: 860px;
+  width: 95vw;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 0;
+  overflow: hidden;
+}
+
+.salary-calc-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-surface);
+}
+
+.salary-calc-header-icon {
+  background: var(--accent-blue-bg);
+  color: var(--accent-blue);
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.salary-calc-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.salary-calc-subtitle {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.salary-calc-body {
+  padding: 24px;
+  max-height: calc(85vh - 140px);
+  overflow-y: auto;
+  background-color: var(--bg-surface);
+}
+
+.salary-calc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .salary-calc-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.calc-field-group {
+  margin-bottom: 12px;
+}
+
+.calc-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.calc-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.calc-input-prefix {
+  position: absolute;
+  left: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.calc-input {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.calc-input:focus {
+  border-color: var(--accent-blue);
+}
+
+.calc-select {
+  width: 100%;
+  padding: 9px 12px;
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+}
+
+.calc-select:focus {
+  border-color: var(--accent-blue);
+}
+
+.calc-ptkp-hint {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.calc-category-badge {
+  background-color: var(--accent-blue-bg);
+  color: var(--accent-blue);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 9999px;
+}
+
+.calc-presets-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.calc-presets-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.calc-presets-chips {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.calc-preset-btn {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.calc-preset-btn:hover {
+  background: var(--accent-blue-bg);
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.calc-legal-banner {
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 18px;
+}
+
+/* Kolom Kanan */
+.calc-hero-card {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08));
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.calc-hero-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.calc-hero-val {
+  font-size: 28px;
+  font-weight: 800;
+  color: #10b981;
+  font-family: var(--font-mono);
+  letter-spacing: -0.5px;
+}
+
+[data-theme="dark"] .calc-hero-val {
+  color: #34d399;
+}
+
+.calc-hero-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.calc-breakdown-box {
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.calc-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding: 5px 0;
+  color: var(--text-secondary);
+}
+
+.calc-breakdown-row.text-danger {
+  color: #ef4444;
+}
+
+.calc-breakdown-row.highlight {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.calc-tax-rate-pill {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+.calc-breakdown-val {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.calc-divider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 6px 0;
+}
+
+.calc-proportion-section {
+  margin-bottom: 16px;
+}
+
+.calc-proportion-bar {
+  height: 8px;
+  background-color: var(--bg-subtle);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+}
+
+.calc-proportion-fill.nett {
+  background-color: #10b981;
+  transition: width 0.2s ease;
+}
+
+.calc-proportion-fill.tax {
+  background-color: #ef4444;
+  transition: width 0.2s ease;
+}
+
+.calc-proportion-legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legend-dot.nett {
+  background-color: #10b981;
+}
+
+.legend-dot.tax {
+  background-color: #ef4444;
+}
+
+.calc-annual-box {
+  background-color: var(--bg-subtle);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+}
+
+.calc-annual-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.calc-annual-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.calc-annual-lbl {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.calc-annual-val {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+.salary-calc-footer {
+  padding: 14px 24px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  background-color: var(--bg-surface);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   EMAIL TEMPLATES GENERATOR MODAL
+   ───────────────────────────────────────────────────────────────────────────── */
+.email-tmpl-dialog {
+  max-width: 980px;
+  width: 95vw;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 0;
+  overflow: hidden;
+}
+
+.email-tmpl-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-surface);
+}
+
+.email-tmpl-header-icon {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .email-tmpl-header-icon {
+  color: #4ade80;
+}
+
+.email-tmpl-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.email-tmpl-subtitle {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.email-tmpl-body {
+  padding: 0;
+  background-color: var(--bg-surface);
+  max-height: calc(85vh - 140px);
+  overflow-y: auto;
+}
+
+.email-tmpl-layout {
+  display: grid;
+  grid-template-columns: 310px 1fr;
+  min-height: 480px;
+}
+
+@media (max-width: 768px) {
+  .email-tmpl-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.email-tmpl-sidebar {
+  border-right: 1px solid var(--border-color);
+  padding: 16px;
+  background-color: var(--bg-subtle);
+  overflow-y: auto;
+}
+
+.email-tmpl-sidebar-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+.email-tmpl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.email-tmpl-item {
+  text-align: left;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.email-tmpl-item:hover {
+  border-color: var(--accent-blue);
+  transform: translateY(-1px);
+}
+
+.email-tmpl-item.active {
+  border-color: var(--accent-blue);
+  background-color: var(--accent-blue-bg);
+}
+
+.email-tmpl-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.badge-followup {
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+}
+
+.badge-interview {
+  background: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+}
+
+.badge-offer {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+
+.badge-declining {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+.email-tmpl-item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.email-tmpl-item-desc {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  line-height: 1.35;
+}
+
+.email-tmpl-main {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-surface);
+}
+
+.email-tmpl-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.email-lang-switcher {
+  display: inline-flex;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.email-lang-btn {
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.email-lang-btn.active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.email-vars-panel {
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.email-vars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.email-subject-input {
+  font-weight: 600;
+  color: var(--text-primary);
+  background-color: var(--bg-subtle);
+}
+
+.email-body-textarea {
+  font-size: 13px;
+  line-height: 1.6;
+  font-family: var(--font-sans);
+  background-color: var(--bg-subtle);
+  color: var(--text-primary);
+  resize: vertical;
+}
+
+.email-tmpl-footer {
+  padding: 14px 24px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  background-color: var(--bg-surface);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PWA INSTALLATION BUTTONS & PILLS
+   ───────────────────────────────────────────────────────────────────────────── */
+.btn-pwa-install {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  color: var(--accent-blue);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-pwa-install:hover {
+  background: var(--accent-blue);
+  color: #ffffff;
+}
+
+[data-theme="dark"] .btn-pwa-install {
+  color: #a5b4fc;
+}
+
+[data-theme="dark"] .btn-pwa-install:hover {
+  color: #ffffff;
+}
+
+
+

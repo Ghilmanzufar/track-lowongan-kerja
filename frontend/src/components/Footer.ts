@@ -34,7 +34,10 @@ export function renderFooter(container: HTMLElement): void {
           <button class="footer-nav-link" data-view-target="agenda">Agenda</button>
           <button class="footer-nav-link" data-view-target="analytics">Analitik</button>
           <button class="footer-nav-link" data-view-target="documents">Vault Dokumen</button>
-          <button class="footer-nav-link" data-view-target="career-links">Direktori Karir</button>
+          <button class="footer-nav-link" data-view-target="jobs">Cari Lowongan</button>
+          <button class="footer-nav-link" data-view-target="companies">Perusahaan</button>
+          <button class="footer-nav-link" data-view-target="guide">Buku Panduan</button>
+          <button class="footer-nav-link" id="footerBtnFeedback">Bantuan &amp; Masukan</button>
         </nav>
 
         <!-- Quick Action Buttons -->
@@ -93,6 +96,10 @@ export function renderFooter(container: HTMLElement): void {
     store.setView('board');
     window.location.hash = 'board';
     container.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  footer.querySelector('#footerBtnFeedback')?.addEventListener('click', () => {
+    window.dispatchEvent(new CustomEvent('open-feedback-modal'));
   });
 
   // 4. Toggle Theme

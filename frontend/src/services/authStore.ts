@@ -40,6 +40,9 @@ export const authStore = {
     accessToken = null;
     currentUser = null;
     isInitialized = true;
+    try {
+      localStorage.removeItem('jobtrack-profile');
+    } catch {}
     notify();
   },
 

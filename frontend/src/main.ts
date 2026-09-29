@@ -15,37 +15,72 @@ import { setupTheme } from './ui/theme';
 import { showToast } from './ui/toast';
 import { setupEmailVerificationBanner } from './ui/banner';
 import { updateUserUI, setupWorkspaceEvents } from './ui/layout';
+import { initAnnouncementBanner } from './ui/announcementBanner';
 import { initRouter } from './router';
+import { pwaService } from './services/pwa';
+import { initGlobalErrorHandlers } from './services/errorHandler';
 import type { User } from './types';
 
 // Re-export showToast for 100% backward compatibility with existing views
 export { showToast } from './ui/toast';
 
 async function initApp(): Promise<void> {
+  // Purge any legacy un-scoped profile cache to prevent avatar leakage across accounts
+  try {
+    localStorage.removeItem('jobtrack-profile');
+  } catch {}
+
+  // 0. Initialize Global Error Boundary & Diagnostics
+  initGlobalErrorHandlers();
+
   // 1. Initialize Theme (Light / Dark)
   setupTheme();
+
+  // 2. Register Progressive Web App (PWA) Service Worker
+  pwaService.registerServiceWorker();
+
+  // 3. Initialize Global Announcement Banner & Maintenance Check
+  initAnnouncementBanner();
+  window.addEventListener('system-banner-updated', () => initAnnouncementBanner());
 
   const authContainer = document.getElementById('authContainer')!;
   const appEl = document.getElementById('app')!;
   let isAppInitialized = false;
 
+  const removeLoader = () => {
+    const loaderEl = document.getElementById('initialLoader');
+    if (loaderEl) {
+      loaderEl.classList.add('fade-out');
+      setTimeout(() => loaderEl.remove(), 250);
+    }
+  };
+
   const showAuthScreen = () => {
+    document.documentElement.classList.add('auth-flow');
+    removeLoader();
     appEl.style.display = 'none';
     authContainer.style.display = 'block';
     const fabEl = document.getElementById('mobileFabAdd');
     if (fabEl) fabEl.style.display = 'none';
 
     const authPage = new AuthPage(authContainer, async () => {
-      showToast('Berhasil masuk! Memuat data...', 'success');
       const user = authStore.getUser();
+      if (user?.role === 'SUPERADMIN' || user?.role === 'OPERATOR') {
+        showToast('Selamat datang Admin! Mengalihkan ke Panel Admin...', 'success');
+        window.location.href = '/admin';
+        return;
+      }
+      showToast('Berhasil masuk! Memuat data...', 'success');
       await bootstrapWorkspace(user);
     });
     authPage.render();
   };
 
   const bootstrapWorkspace = async (user: User | null) => {
+    document.documentElement.classList.remove('auth-flow');
+    removeLoader();
     authContainer.style.display = 'none';
-    appEl.style.display = '';
+    appEl.style.display = 'flex';
     const fabEl = document.getElementById('mobileFabAdd');
     if (fabEl) fabEl.style.display = '';
 
@@ -84,9 +119,11 @@ async function initApp(): Promise<void> {
     }
   });
 
-  // Check initial URL hash: reset password, forgot, atau verify email
+  // Check initial URL hash: reset password, forgot, verify email, login, register, atau google callback
   const initialHash = window.location.hash.toLowerCase();
-  const isResetOrForgotFlow = initialHash.includes('reset-password') || initialHash.includes('#forgot');
+  const isResetOrForgotFlow = initialHash.includes('reset-password') || initialHash.startsWith('#forgot');
+  const isGoogleCallbackFlow = initialHash.startsWith('#google-callback');
+  const isLoginFlow = initialHash.startsWith('#login') || initialHash.startsWith('#register') || initialHash.startsWith('#daftar');
   const isVerifyEmailFlow = initialHash.includes('verify-email');
 
   if (isVerifyEmailFlow) {
@@ -103,7 +140,7 @@ async function initApp(): Promise<void> {
     history.replaceState(null, '', window.location.pathname);
   }
 
-  if (isResetOrForgotFlow) {
+  if (isResetOrForgotFlow || isGoogleCallbackFlow || isLoginFlow) {
     showAuthScreen();
   } else {
     // Check initial session via refresh token cookie
@@ -111,6 +148,10 @@ async function initApp(): Promise<void> {
       const token = await refreshSession();
       if (token && authStore.isAuthenticated()) {
         const user = authStore.getUser();
+        if (initialHash === '#admin') {
+          window.location.href = '/admin';
+          return;
+        }
         await bootstrapWorkspace(user);
         setupEmailVerificationBanner(user);
       } else {
@@ -122,5 +163,9 @@ async function initApp(): Promise<void> {
   }
 }
 
-// Start application on DOM ready
-window.addEventListener('DOMContentLoaded', initApp);
+// Start application on DOM ready or immediately if already loaded
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}

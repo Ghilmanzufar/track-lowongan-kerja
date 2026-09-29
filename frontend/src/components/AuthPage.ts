@@ -1,4 +1,5 @@
-import { login, register, forgotPassword, resetPassword, getRememberedEmail } from '../services/auth';
+import { login, register, forgotPassword, resetPassword, getRememberedEmail, loginWithGoogle, handleGoogleCallback } from '../services/auth';
+import { authStore } from '../services/authStore';
 export type { AuthMode } from './auth/authTypes';
 import type { AuthMode } from './auth/authTypes';
 import { renderLoginForm } from './auth/LoginForm';
@@ -36,6 +37,66 @@ export class AuthPage {
         this.render();
       }
     });
+
+    // Handle Google OAuth callback (redirect kembali dari Google)
+    this.handleGoogleCallbackHash();
+  }
+
+  private async handleGoogleCallbackHash(): Promise<void> {
+    const rawHash = window.location.hash;
+    if (rawHash.startsWith('#google-callback')) {
+      const queryPart = rawHash.split('?')[1];
+      if (queryPart) {
+        const params = new URLSearchParams(queryPart);
+        const token = params.get('token');
+        if (token) {
+          try {
+            await handleGoogleCallback(token);
+            const user = authStore.getUser();
+            if (user?.role === 'SUPERADMIN' || user?.role === 'OPERATOR') {
+              window.location.href = '/admin';
+              return;
+            }
+            window.location.hash = '';
+            if (this.onSuccessCallback) {
+              this.onSuccessCallback();
+            }
+            return;
+          } catch (err) {
+            this.errorMessage = 'Gagal memproses login Google. Silakan coba lagi.';
+            window.location.hash = '#login';
+            this.render();
+            return;
+          }
+        }
+      }
+    }
+
+    // Handle Google error parameters
+    if (rawHash.startsWith('#login') && rawHash.includes('error=')) {
+      const queryPart = rawHash.split('?')[1];
+      if (queryPart) {
+        const params = new URLSearchParams(queryPart);
+        const error = params.get('error');
+        const errorMessages: Record<string, string> = {
+          google_unavailable: 'Login Google tidak tersedia saat ini. Silakan coba lagi nanti.',
+          google_denied: 'Anda membatalkan proses login Google.',
+          google_no_code: 'Gagal mendapatkan otorisasi dari Google.',
+          google_invalid_state: 'Sesi login tidak valid. Silakan coba lagi.',
+          google_no_token: 'Gagal mendapatkan token dari Google.',
+          google_no_email: 'Email tidak ditemukan di akun Google Anda.',
+          google_server_error: 'Terjadi kesalahan server saat memproses login Google.',
+        };
+        if (error && errorMessages[error]) {
+          const detail = params.get('details');
+          this.errorMessage = detail 
+            ? `${errorMessages[error]} Detail: ${decodeURIComponent(detail)}`
+            : errorMessages[error];
+          window.location.hash = '#login';
+          this.render();
+        }
+      }
+    }
   }
 
   private parseHash(): { mode: AuthMode; token: string } {
@@ -295,6 +356,10 @@ export class AuthPage {
     btnResetSuccessLogin?.addEventListener('click', () => this.setMode('login'));
     btnRequestNewReset?.addEventListener('click', () => this.setMode('forgot'));
 
+    // Google login button
+    const googleBtn = this.container.querySelector<HTMLButtonElement>('#auth-google-login');
+    googleBtn?.addEventListener('click', () => loginWithGoogle());
+
     togglePwd?.addEventListener('click', () => {
       if (!pwdInput) return;
       const isPassword = pwdInput.type === 'password';
@@ -412,7 +477,14 @@ export class AuthPage {
         if (this.mode === 'login') {
           const rememberInput = this.container.querySelector<HTMLInputElement>('#auth-remember-me');
           const rememberMe = Boolean(rememberInput?.checked);
-          await login(email, password, rememberMe);
+          const res = await login(email, password, rememberMe);
+
+          // Instant Role Inspection: Redirect Admin straight to /admin
+          const user = res.user || authStore.getUser();
+          if (user?.role === 'SUPERADMIN' || user?.role === 'OPERATOR') {
+            window.location.href = '/admin';
+            return;
+          }
         } else {
           await register(email, password, displayName);
         }

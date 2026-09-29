@@ -1,0 +1,1021 @@
+/* ==========================================================================
+   JobTrack User Guide (Buku Panduan Penggunaan) Stylesheet
+   Modern, utilitarian, responsive & rich interactive design system
+   Mobile-First Reflow with zero horizontal scroll & thumb-friendly targets
+   ========================================================================== */
+
+.guide-page-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 28px 60px;
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Hero Banner ────────────────────────────────────────────────────────── */
+
+.guide-hero {
+  position: relative;
+  border-radius: var(--radius-lg);
+  padding: 30px 34px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.04) 50%, rgba(15, 23, 42, 0.6) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+}
+
+.guide-hero::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(40px);
+}
+
+.guide-hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 820px;
+}
+
+.guide-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  margin-bottom: 12px;
+}
+
+.guide-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  flex-shrink: 0;
+}
+
+.guide-hero-title {
+  font-size: clamp(20px, 4vw, 26px);
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.25;
+  margin-bottom: 10px;
+  letter-spacing: -0.02em;
+}
+
+.guide-hero-desc {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+/* Hero Search & Quick Jump */
+.guide-search-wrapper {
+  position: relative;
+  max-width: 540px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.guide-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.guide-search-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 16px 0 42px;
+  font-size: 13.5px;
+  font-family: var(--font-sans);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.guide-search-input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.guide-quick-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.guide-quick-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 9999px;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.guide-quick-pill:hover,
+.guide-quick-pill:active {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  border-color: var(--accent-blue);
+  transform: translateY(-1px);
+}
+
+/* ─── Mobile Sticky Chapter Header & Drawer ──────────────────────────────── */
+
+.guide-mobile-bar {
+  display: none; /* Desktop default: hidden */
+  position: sticky;
+  top: 52px;
+  z-index: 90;
+  margin-bottom: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.guide-mobile-bar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.guide-mobile-bar-btn:active {
+  background: var(--bg-subtle);
+}
+
+.guide-mobile-bar-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guide-mobile-bar-chevron {
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.guide-mobile-bar.open .guide-mobile-bar-chevron {
+  transform: rotate(180deg);
+  color: var(--accent-blue);
+}
+
+.guide-mobile-drawer-content {
+  display: none;
+  padding: 8px 10px 14px;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-subtle);
+  max-height: 320px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.guide-mobile-bar.open .guide-mobile-drawer-content {
+  display: block;
+}
+
+/* Mobile Quick Chapter Horizontal Strip */
+.guide-mobile-scroll-strip {
+  display: none; /* Desktop default: hidden */
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 14px;
+  margin-bottom: 18px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.guide-mobile-scroll-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.guide-strip-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.guide-strip-pill:active,
+.guide-strip-pill.active {
+  background: var(--accent-blue);
+  color: #FFFFFF;
+  border-color: var(--accent-blue);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+}
+
+/* ─── Main Guide Layout (Sidebar TOC + Content Area) ───────────────────────── */
+
+.guide-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+/* ─── Desktop Sticky Sidebar TOC ─────────────────────────────────────────── */
+
+.guide-sidebar {
+  position: sticky;
+  top: 80px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 18px 14px;
+  box-shadow: var(--shadow-sm);
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.guide-toc-header {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  padding: 0 10px 4px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.guide-toc-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.guide-toc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+  box-sizing: border-box;
+}
+
+.guide-toc-item:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.guide-toc-item.active {
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--accent-blue);
+  font-weight: 600;
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+.guide-toc-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-xs);
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.guide-toc-item.active .guide-toc-icon {
+  background: var(--accent-blue);
+  color: #ffffff;
+}
+
+/* Sidebar Quick Actions Card */
+.guide-sidebar-card {
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  font-size: 12px;
+  box-sizing: border-box;
+}
+
+.guide-sidebar-card-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.guide-sidebar-card-desc {
+  color: var(--text-secondary);
+  line-height: 1.45;
+  margin-bottom: 12px;
+}
+
+.guide-sidebar-card .btn {
+  width: 100%;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+/* ─── Main Content Chapters ──────────────────────────────────────────────── */
+
+.guide-content {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-width: 0; /* Prevents flex child overflow leak */
+}
+
+.guide-section {
+  scroll-margin-top: 84px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 26px 28px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-fast);
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.guide-section:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.guide-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.guide-section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.guide-section-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #6366F1, #8B5CF6);
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  flex-shrink: 0;
+}
+
+.guide-section-title {
+  font-size: 18.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  word-break: break-word;
+}
+
+.guide-section-lead {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+/* ─── Step-by-Step Cards ─────────────────────────────────────────────────── */
+
+.guide-step-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.guide-step-card {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  transition: all var(--transition-fast);
+  position: relative;
+  box-sizing: border-box;
+}
+
+.guide-step-card:hover {
+  border-color: var(--accent-blue);
+  background: var(--bg-surface);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.guide-step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-blue);
+  font-weight: 700;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.guide-step-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.guide-step-desc {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* ─── Interactive Stage Visualizer ────────────────────────────────────────── */
+
+.guide-stage-visualizer {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+
+.guide-stage-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 14px;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.guide-stage-chip {
+  min-height: 38px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.guide-stage-chip:hover {
+  border-color: var(--accent-blue);
+  color: var(--text-primary);
+}
+
+.guide-stage-chip.active {
+  background: var(--accent-blue);
+  color: #FFFFFF;
+  border-color: var(--accent-blue);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+}
+
+.guide-stage-detail-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.guide-stage-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.guide-stage-detail-name {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.guide-stage-detail-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.guide-stage-detail-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.guide-stage-detail-tip {
+  font-size: 12px;
+  color: var(--accent-blue);
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px dashed rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-xs);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.45;
+}
+
+/* ─── Callout Boxes ──────────────────────────────────────────────────────── */
+
+.guide-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  margin: 16px 0;
+  font-size: 13px;
+  line-height: 1.55;
+  box-sizing: border-box;
+}
+
+.guide-callout-info {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: var(--text-primary);
+}
+
+.guide-callout-tip {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: var(--text-primary);
+}
+
+.guide-callout-warning {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: var(--text-primary);
+}
+
+.guide-callout-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+}
+
+.guide-callout-info .guide-callout-icon { color: var(--accent-blue); }
+.guide-callout-tip .guide-callout-icon { color: #10b981; }
+.guide-callout-warning .guide-callout-icon { color: #f59e0b; }
+
+/* ─── Interactive Action Callout Card ─────────────────────────────────────── */
+
+.guide-feature-action-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin-top: 20px;
+  box-sizing: border-box;
+}
+
+.guide-feature-action-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.guide-feature-action-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.guide-feature-action-desc {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.guide-feature-action-card .btn {
+  flex-shrink: 0;
+}
+
+/* ─── Responsive Table Container ─────────────────────────────────────────── */
+
+.guide-table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 14px 0;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  scrollbar-width: thin;
+  box-sizing: border-box;
+}
+
+.guide-table {
+  width: 100%;
+  min-width: 480px; /* guarantees columns don't crush into illegible slivers */
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.guide-table th {
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.guide-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  line-height: 1.5;
+}
+
+.guide-table tr:last-child td {
+  border-bottom: none;
+}
+
+kbd {
+  display: inline-block;
+  padding: 2px 7px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text-primary);
+  background-color: var(--bg-subtle);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── Interactive FAQ Accordion ───────────────────────────────────────────── */
+
+.guide-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.guide-faq-item {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  overflow: hidden;
+  transition: all var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.guide-faq-item:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.guide-faq-question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  gap: 12px;
+}
+
+.guide-faq-question:hover,
+.guide-faq-question:active {
+  background: var(--bg-subtle);
+}
+
+.guide-faq-arrow {
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.guide-faq-item.open .guide-faq-arrow {
+  transform: rotate(90deg);
+  color: var(--accent-blue);
+}
+
+.guide-faq-answer {
+  display: none;
+  padding: 0 16px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  border-top: 1px solid transparent;
+}
+
+.guide-faq-item.open .guide-faq-answer {
+  display: block;
+  border-top-color: var(--border-color);
+  background: var(--bg-subtle);
+}
+
+/* ==========================================================================
+   TABLET & MOBILE RESPONSIVE ADAPTATIONS (<= 992px & <= 640px)
+   ========================================================================== */
+
+@media (max-width: 992px) {
+  .guide-page-container {
+    padding: 16px 16px 48px;
+  }
+
+  .guide-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Desktop sidebar is hidden on tablet/mobile; replaced by sticky mobile bar */
+  .guide-sidebar {
+    display: none;
+  }
+
+  /* Mobile Chapter Selector Bar & Strip are visible */
+  .guide-mobile-bar {
+    display: block;
+  }
+
+  .guide-mobile-scroll-strip {
+    display: flex;
+  }
+
+  .guide-hero {
+    padding: 22px 20px;
+    margin-bottom: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  .guide-page-container {
+    padding: 12px 10px 48px;
+  }
+
+  .guide-hero {
+    padding: 16px 14px;
+    border-radius: var(--radius-md);
+  }
+
+  .guide-hero-desc {
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+
+  .guide-search-input {
+    font-size: 16px; /* Prevents auto-zoom in iOS Safari */
+    height: 40px;
+  }
+
+  .guide-quick-pills {
+    display: none; /* Mobile swipe strip takes care of chapter navigation */
+  }
+
+  .guide-section {
+    padding: 16px 14px;
+    border-radius: var(--radius-md);
+    scroll-margin-top: 104px;
+  }
+
+  .guide-section-header {
+    padding-bottom: 12px;
+    margin-bottom: 14px;
+  }
+
+  .guide-section-number {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+    border-radius: 7px;
+  }
+
+  .guide-section-title {
+    font-size: 16px;
+  }
+
+  .guide-section-lead {
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin-bottom: 16px;
+  }
+
+  .guide-step-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .guide-step-card {
+    padding: 14px;
+  }
+
+  .guide-stage-visualizer {
+    padding: 12px 14px;
+  }
+
+  .guide-stage-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .guide-feature-action-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .guide-feature-action-card .btn {
+    width: 100%;
+    min-height: 40px;
+  }
+
+  .guide-callout {
+    padding: 12px 12px;
+    font-size: 12.5px;
+  }
+
+  .guide-faq-question {
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+
+  .guide-faq-answer {
+    padding: 0 14px 12px;
+    font-size: 12.5px;
+  }
+
+  .guide-feedback-cta {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .guide-feedback-cta-left {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .guide-feedback-cta .btn {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+    font-size: 13.5px;
+  }
+}
+
+/* ─── Guide Feedback CTA Card ────────────────────────────────────────────── */
+.guide-feedback-cta {
+  margin-top: 28px;
+  padding: 22px 26px;
+  border-radius: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+.guide-feedback-cta-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+

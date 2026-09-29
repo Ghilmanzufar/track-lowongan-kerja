@@ -3,7 +3,8 @@
 /* ========================================= */
 /* DASHBOARD APP LAYOUT SHELL                */
 /* ========================================= */
-#app.dashboard-app-layout {
+#app.dashboard-app-layout,
+#adminApp.admin-app-layout {
   display: flex;
   flex-direction: row;
   height: 100vh;
@@ -42,7 +43,8 @@
 }
 
 /* Collapsed state on Desktop (Full width content) */
-.dashboard-app-layout.sidebar-collapsed .app-sidebar {
+.dashboard-app-layout.sidebar-collapsed .app-sidebar,
+.admin-app-layout.sidebar-collapsed .app-sidebar {
   margin-left: -245px;
   opacity: 0;
   pointer-events: none;

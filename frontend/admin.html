@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobTrackId Admin — Mission Control &amp; System Governance</title>
+  <meta name="description" content="Mission Control Center, Executive Telemetry, User Directory, and Security Governance Suite for JobTrackId." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/icon-logo.svg" />
+  <meta name="theme-color" content="#08090A" />
+  <link rel="stylesheet" href="/src/styles/main.css" />
+  <link rel="stylesheet" href="/src/styles/components/admin.css" />
+  <script>
+    (function () {
+      var saved = localStorage.getItem('jobtrack-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var theme = saved || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+  <style>
+    /* Dedicated Admin Styles & Loader */
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    #adminApp {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .admin-initial-loader {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-app);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 99999;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+
+    .admin-initial-loader.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .admin-pulse-shield {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulseShield 1.6s ease-in-out infinite;
+      color: #818cf8;
+    }
+
+    @keyframes pulseShield {
+      0%, 100% { transform: scale(1); opacity: 0.85; }
+      50% { transform: scale(1.08); opacity: 1; filter: drop-shadow(0 0 16px rgba(99, 102, 241, 0.6)); }
+    }
+
+    .admin-loader-text {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 0.3px;
+    }
+
+    /* 403 Forbidden State View */
+    .admin-forbidden-view {
+      display: none;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .admin-forbidden-card {
+      max-width: 480px;
+      width: 100%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 36px 28px;
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .admin-forbidden-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Initial Loader (Cold start session & role verification) -->
+  <div id="adminInitialLoader" class="admin-initial-loader">
+    <div class="admin-pulse-shield">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+    </div>
+    <div class="admin-loader-text">Memverifikasi Otoritas Administrator...</div>
+  </div>
+
+  <!-- 403 Forbidden Screen (Unauthorized users) -->
+  <div id="adminForbiddenContainer" class="admin-forbidden-view">
+    <div class="admin-forbidden-card">
+      <div class="admin-forbidden-icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+      </div>
+      <h2 style="font-size: 20px; font-weight: 700; color: #F8FAFC; margin: 0 0 10px 0;">403 — Akses Ditolak</h2>
+      <p style="font-size: 13.5px; color: #94A3B8; line-height: 1.6; margin: 0 0 24px 0;">
+        Halaman ini dikhususkan untuk Administrator (SuperAdmin &amp; Operator). Akun Anda tidak memiliki hak akses ke Mission Control Panel.
+      </p>
+      <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <a href="/app" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Kembali ke Workspace Saya (/app)</span>
+        </a>
+        <button id="adminBtnSwitchAccount" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px;">
+          <span>Ganti Akun Admin</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dedicated Admin Shell Container -->
+  <div id="adminApp" class="admin-app-layout">
+    <!-- Rendered dynamically by adminLayout.ts & admin.ts -->
+  </div>
+
+  <!-- Global Toast Notifications -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Admin Entry Script -->
+  <script type="module" src="/src/admin.ts"></script>
+</body>
+</html>

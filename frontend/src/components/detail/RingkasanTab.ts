@@ -20,6 +20,8 @@ import { showConfirmDialog } from '../Dialog';
 import { toast, WORK_TYPE_LABELS } from './shared';
 import { showFollowUpEditDialog, showFollowUpTemplatesDialog } from './FollowUpModal';
 import { getIconSvg } from '../../utils/icons';
+import { SalaryCalculatorModal } from '../SalaryCalculatorModal';
+import { EmailTemplatesModal } from '../EmailTemplatesModal';
 
 let isEditingOverview = false;
 
@@ -207,6 +209,9 @@ function renderRingkasanView(
           <button type="button" class="btn-fu-template" id="btnFuTemplates" title="Buka dan salin template pesan email / LinkedIn / WhatsApp siap pakai">
             <span>${getIconSvg('clipboard', { size: 13 })}</span> Salin Template Pesan
           </button>
+          <button type="button" class="btn-fu-template" id="btnRingkasanEmailTmpl" title="Buka Generator Draf Email Resmi HRD (Follow-up, Interview, Offer, dll)">
+            <span>${getIconSvg('mail', { size: 13 })}</span> Draf Email HRD
+          </button>
         </div>
       </div>
       `
@@ -229,9 +234,14 @@ function renderRingkasanView(
           <div style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; max-width: 560px;">
             Lamaran ini masih berada di tahap <strong>${STAGES_CONFIG[item.application.stage]?.label || item.application.stage}</strong>. Fitur <strong>Follow-up Tracker</strong> baru dapat digunakan setelah lamaran resmi dikirimkan (tahap <strong>Terkirim / Applied</strong> ke atas).
           </div>
-          <button type="button" class="btn btn-sm btn-primary" id="btnAdvanceToApplied" style="display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
-            <span>${getIconSvg('rocket', { size: 12 })}</span> Pindahkan ke Terkirim
-          </button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-sm btn-primary" id="btnAdvanceToApplied" style="display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
+              <span>${getIconSvg('rocket', { size: 12 })}</span> Pindahkan ke Terkirim
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary" id="btnRingkasanEmailTmplEarly" title="Buat Draf Lamaran atau Email Baru">
+              <span>${getIconSvg('mail', { size: 12 })}</span> Template Email
+            </button>
+          </div>
         </div>
       </div>
       `
@@ -258,6 +268,11 @@ function renderRingkasanView(
         <div>
           <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 3px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Rentang Gaji Lowongan</span>
           <span class="mono" style="font-weight: 600;">${salary || '-'}</span>
+          <div style="margin-top: 5px;">
+            <button type="button" class="btn btn-secondary btn-xs" id="btnRingkasanSalaryCalc" style="font-size: 10.5px; padding: 2px 7px; display: inline-flex; align-items: center; gap: 4px;" title="Hitung PPh 21 TER 2024 & Take-Home Pay">
+              ${getIconSvg('calculator', { size: 11 })} Hitung Gaji Bersih
+            </button>
+          </div>
         </div>
         <div>
           <span style="color: var(--text-muted); font-size: 10.5px; display: block; margin-bottom: 3px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Ekspektasi Gaji Anda</span>
@@ -453,6 +468,30 @@ function renderRingkasanView(
     showFollowUpTemplatesDialog(item);
   });
 
+  // Salary Calculator & Email Templates Modal Handlers
+  container.querySelector('#btnRingkasanSalaryCalc')?.addEventListener('click', () => {
+    SalaryCalculatorModal.open({
+      initialGross: item.application.expectedSalary || item.jobPosting.salaryMin || undefined,
+      applicationId: item.application.id,
+      companyName: item.company.name,
+      jobTitle: item.jobPosting.title
+    });
+  });
+
+  const openEmailModal = () => {
+    EmailTemplatesModal.open({
+      companyName: item.company.name,
+      jobTitle: item.jobPosting.title,
+      hrName: item.contacts?.[0]?.name,
+      proposedSalary: (item.application.expectedSalary || item.jobPosting.salaryMin)
+        ? `Rp ${(item.application.expectedSalary || item.jobPosting.salaryMin)!.toLocaleString('id-ID')}`
+        : undefined
+    });
+  };
+
+  container.querySelector('#btnRingkasanEmailTmpl')?.addEventListener('click', openEmailModal);
+  container.querySelector('#btnRingkasanEmailTmplEarly')?.addEventListener('click', openEmailModal);
+
   // URL Status Check Listener
   container.querySelector('#btnCheckSourceUrl')?.addEventListener('click', async () => {
     const badge = container.querySelector('#sourceUrlStatusBadge') as HTMLElement;
@@ -461,7 +500,7 @@ function renderRingkasanView(
 
     btn.disabled = true;
     badge.className = 'url-status-tag status-checking';
-    badge.textContent = '⏳ Memeriksa...';
+    badge.textContent = 'Memeriksa...';
 
     try {
       const res = await fetch('/api/v1/check-url', {

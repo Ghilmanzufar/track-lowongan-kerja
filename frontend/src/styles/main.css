@@ -21,6 +21,8 @@
 @import './components/agenda.css';
 @import './components/analytics.css';
 @import './components/directory.css';
+@import './components/companies.css';
+@import './components/jobs.css';
 @import './components/documents.css';
 @import './components/wawancara.css';
 @import './components/duplicate.css';
@@ -30,7 +32,11 @@
 
 /* 5. Modals, Dialogs & Details */
 @import './components/modals.css';
+@import './components/feedback-modal.css';
 @import './components/detail-modal.css';
+@import './components/error-page.css';
+@import './components/guide.css';
+@import './components/admin.css';
 
 /* 6. Responsive Breakpoints (Mobile & Tablet) */
 @import './layout/responsive.css';

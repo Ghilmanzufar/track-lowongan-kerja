@@ -16,6 +16,13 @@ function cleanUrlMiddleware(req: IncomingMessage, res: ServerResponse, next: () 
     return;
   }
 
+  // Redirect /admin.html → /admin
+  if (pathname === '/admin.html') {
+    res.writeHead(301, { Location: `/admin${queryStr}` });
+    res.end();
+    return;
+  }
+
   // Redirect /index.html or /landing or /landing.html → /
   if (pathname === '/index.html' || pathname === '/landing' || pathname === '/landing.html') {
     res.writeHead(301, { Location: `/${queryStr}` });
@@ -26,6 +33,12 @@ function cleanUrlMiddleware(req: IncomingMessage, res: ServerResponse, next: () 
   // Rewrite /app or /app/* → /app.html internally
   if (pathname === '/app' || pathname.startsWith('/app/')) {
     req.url = `/app.html${queryStr}`;
+    return next();
+  }
+
+  // Rewrite /admin or /admin/* → /admin.html internally
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    req.url = `/admin.html${queryStr}`;
     return next();
   }
 
@@ -64,6 +77,8 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         // Main app — /app
         app: resolve(__dirname, 'app.html'),
+        // Dedicated Standalone Admin Workspace — /admin
+        admin: resolve(__dirname, 'admin.html'),
       }
     }
   }

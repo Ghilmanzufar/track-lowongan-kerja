@@ -90,7 +90,7 @@ class NotificationService {
             const companyName = item.company?.name || 'Perusahaan';
             const jobTitle = item.jobPosting?.title || 'Posisi';
 
-            this.notify(`⏰ Pengingat: ${task.title} (${hoursRemaining} jam lagi)`, {
+            this.notify(`Pengingat: ${task.title} (${hoursRemaining} jam lagi)`, {
               body: `${task.type}: ${jobTitle} @ ${companyName}\nJatuh tempo: ${new Date(task.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} WIB`,
               tag: cacheKey
             });

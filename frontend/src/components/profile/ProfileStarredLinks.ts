@@ -37,10 +37,10 @@ export function renderProfileStarredLinksHtml(): string {
           </div>
           <p class="profile-starred-empty-title">Belum ada tautan karir favorit</p>
           <p class="profile-starred-empty-desc">
-            Tandai portal karir atau website perusahaan dengan ikon bintang (⭐) di Direktori Karir untuk akses cepat langsung dari profil Anda.
+            Tandai portal karir atau website perusahaan dengan ikon bintang di Direktori Perusahaan untuk akses cepat langsung dari profil Anda.
           </p>
           <button type="button" class="btn btn-secondary btn-sm" id="btnEmptyExploreLinks">
-            Jelajahi Direktori Karir
+            Jelajahi Direktori Perusahaan
           </button>
         </div>
       </div>
@@ -145,7 +145,7 @@ export function bindProfileStarredLinks(container: HTMLElement): void {
         profileStarredMoreBar.style.display = 'flex';
         profileStarredMoreBar.innerHTML = `
           <button type="button" class="btn btn-secondary btn-sm" id="btnViewAllStarred" style="display:inline-flex;align-items:center;gap:6px;width:100%;justify-content:center;">
-            Lihat Semua (${currentStarred.length}) Portal Favorit di Direktori Karir ↗
+            Lihat Semua (${currentStarred.length}) Perusahaan Favorit di Direktori Perusahaan
           </button>
         `;
         profileStarredMoreBar.querySelector('#btnViewAllStarred')?.addEventListener('click', navToCareerLinks);

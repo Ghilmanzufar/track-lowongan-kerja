@@ -1,0 +1,26 @@
+{
+  "name": "JobTrackId — Pelacak Karir & Lowongan Kerja",
+  "short_name": "JobTrackId",
+  "description": "Pelacak lamaran kerja modern, jadwal wawancara, dan kalkulator gaji PPh 21 Indonesia.",
+  "start_url": "/app.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#08090A",
+  "theme_color": "#08090A",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-logo.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["productivity", "business", "utilities"]
+}

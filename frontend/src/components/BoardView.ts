@@ -8,6 +8,9 @@ import { showConfirmDialog } from './Dialog';
 import { renderFooter } from './Footer';
 import { getIconSvg } from '../utils/icons';
 import { renderKanbanCard } from './board/KanbanCard';
+import { ImportModal } from './ImportModal';
+import { exportApplications } from '../services/importExport';
+import { showToast } from '../ui/toast';
 
 const ORDERED_STAGES: ApplicationStage[] = [
   'Saved',
@@ -86,6 +89,30 @@ export function renderBoardView(container: HTMLElement): void {
               `
               : ''
           }
+
+          <!-- Impor & Ekspor Buttons -->
+          <button class="btn btn-secondary btn-sm" id="boardBtnImport" title="Impor Lamaran dari Excel / CSV" style="display:inline-flex; align-items:center; gap:6px;">
+            <span>${getIconSvg('upload', { size: 13 })}</span>
+            <span>Impor</span>
+          </button>
+
+          <div style="position: relative; display: inline-block;">
+            <button class="btn btn-secondary btn-sm" id="boardBtnExportToggle" title="Ekspor Data Lamaran" style="display:inline-flex; align-items:center; gap:6px;">
+              <span>${getIconSvg('download', { size: 13 })}</span>
+              <span>Ekspor ▾</span>
+            </button>
+            <div id="boardExportMenu" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 4px; background: var(--bg-surface, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 100; min-width: 160px; padding: 4px;">
+              <button type="button" class="btn-board-export-opt" data-format="xlsx" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 12px; border: none; background: none; cursor: pointer; font-size: 12.5px; border-radius: 6px; color: var(--text-primary, #0f172a);">
+                <span style="color: #10b981; display: flex;">${getIconSvg('barChart', { size: 14 })}</span> <span>Excel (.xlsx)</span>
+              </button>
+              <button type="button" class="btn-board-export-opt" data-format="csv" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 12px; border: none; background: none; cursor: pointer; font-size: 12.5px; border-radius: 6px; color: var(--text-primary, #0f172a);">
+                <span style="color: #0ea5e9; display: flex;">${getIconSvg('fileText', { size: 14 })}</span> <span>CSV Spreadsheet</span>
+              </button>
+              <button type="button" class="btn-board-export-opt" data-format="json" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 12px; border: none; background: none; cursor: pointer; font-size: 12.5px; border-radius: 6px; color: var(--text-primary, #0f172a);">
+                <span style="color: #f59e0b; display: flex;">${getIconSvg('code', { size: 14 })}</span> <span>JSON File</span>
+              </button>
+            </div>
+          </div>
 
           <!-- Filter Button (Dipindahkan dari Navbar) -->
           <button class="btn btn-secondary btn-sm ${hasActiveFilters ? 'btn-active-filter' : ''}" id="boardBtnToggleFilter" title="Buka Filter Lamaran">
@@ -361,6 +388,42 @@ function setupBoardInteractions(container: HTMLElement): void {
       window.dispatchEvent(
         new CustomEvent('open-quick-add', { detail: { stage } })
       );
+    });
+  });
+
+  // Impor Modal Trigger from Board View
+  container.querySelector('#boardBtnImport')?.addEventListener('click', () => {
+    ImportModal.open();
+  });
+
+  // Ekspor Dropdown Toggle from Board View
+  const exportToggle = container.querySelector('#boardBtnExportToggle') as HTMLButtonElement | null;
+  const exportMenu = container.querySelector('#boardExportMenu') as HTMLElement | null;
+
+  exportToggle?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (exportMenu) {
+      exportMenu.style.display = exportMenu.style.display === 'none' ? 'block' : 'none';
+    }
+  });
+
+  const closeBoardExportMenu = () => {
+    if (exportMenu) exportMenu.style.display = 'none';
+  };
+  document.removeEventListener('click', closeBoardExportMenu);
+  document.addEventListener('click', closeBoardExportMenu);
+
+  container.querySelectorAll<HTMLButtonElement>('.btn-board-export-opt').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (exportMenu) exportMenu.style.display = 'none';
+      const format = (btn.getAttribute('data-format') as 'xlsx' | 'csv' | 'json') || 'csv';
+      try {
+        await exportApplications(format);
+        showToast(`Data berhasil diekspor (${format.toUpperCase()}).`, 'success');
+      } catch (err: any) {
+        showToast(err.message || 'Gagal mengekspor data.', 'error');
+      }
     });
   });
 }

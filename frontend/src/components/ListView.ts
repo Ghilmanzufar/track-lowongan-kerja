@@ -10,6 +10,9 @@ import {
   formatSalary
 } from '../utils';
 import { OfferComparisonModal } from './OfferComparisonModal';
+import { ImportModal } from './ImportModal';
+import { exportApplications } from '../services/importExport';
+import { showToast } from '../ui/toast';
 import { getIconSvg } from '../utils/icons';
 
 type SortField = 'company' | 'title' | 'stage' | 'deadline' | 'updated';
@@ -54,7 +57,30 @@ export function renderListView(container: HTMLElement): void {
         <div style="font-size: 12.5px; color: var(--text-secondary);">
           Menampilkan <strong>${sortedItems.length}</strong> lamaran
         </div>
-        <div style="display: flex; gap: 8px;">
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <button class="btn btn-secondary btn-sm" id="btnListImport" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;">
+            <span>${getIconSvg('upload', { size: 14 })}</span>
+            <span>Impor Spreadsheet</span>
+          </button>
+          
+          <div style="position: relative; display: inline-block;">
+            <button class="btn btn-secondary btn-sm" id="btnListExportToggle" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;">
+              <span>${getIconSvg('download', { size: 14 })}</span>
+              <span>Ekspor Data ▾</span>
+            </button>
+            <div id="listExportMenu" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 4px; background: var(--bg-surface, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 100; min-width: 160px; padding: 4px;">
+              <button type="button" class="btn-export-action" data-format="xlsx" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 12px; border: none; background: none; cursor: pointer; font-size: 12.5px; border-radius: 6px; color: var(--text-primary, #0f172a);">
+                <span style="color: #10b981; display: flex;">${getIconSvg('barChart', { size: 14 })}</span> <span>Excel (.xlsx)</span>
+              </button>
+              <button type="button" class="btn-export-action" data-format="csv" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 12px; border: none; background: none; cursor: pointer; font-size: 12.5px; border-radius: 6px; color: var(--text-primary, #0f172a);">
+                <span style="color: #0ea5e9; display: flex;">${getIconSvg('fileText', { size: 14 })}</span> <span>CSV Spreadsheet</span>
+              </button>
+              <button type="button" class="btn-export-action" data-format="json" style="display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 12px; border: none; background: none; cursor: pointer; font-size: 12.5px; border-radius: 6px; color: var(--text-primary, #0f172a);">
+                <span style="color: #f59e0b; display: flex;">${getIconSvg('code', { size: 14 })}</span> <span>JSON File</span>
+              </button>
+            </div>
+          </div>
+
           <button class="btn btn-secondary btn-sm" id="btnListOfferCompare" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;">
             <span>${getIconSvg('scale', { size: 14 })}</span>
             <span>Bandingkan Penawaran</span>
@@ -115,7 +141,7 @@ export function renderListView(container: HTMLElement): void {
                             <span style="font-weight: 500;">${escapeHtml(item.jobPosting.title)}</span>
                             ${
                               item.jobPosting.sourceUrl
-                                ? `<a href="${item.jobPosting.sourceUrl}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-blue); font-size: 11px; margin-left: 4px;" onclick="event.stopPropagation();" title="Buka tautan asli lowongan">↗</a>`
+                                ? `<a href="${item.jobPosting.sourceUrl}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-blue); display: inline-flex; align-items: center; margin-left: 4px; vertical-align: middle;" onclick="event.stopPropagation();" title="Buka tautan asli lowongan">${getIconSvg('externalLink', { size: 11 })}</a>`
                                 : ''
                             }
                           </td>
@@ -239,5 +265,42 @@ export function renderListView(container: HTMLElement): void {
   // Offer Comparison Modal Trigger from List View
   container.querySelector('#btnListOfferCompare')?.addEventListener('click', () => {
     OfferComparisonModal.open();
+  });
+
+  // Import Modal Trigger
+  container.querySelector('#btnListImport')?.addEventListener('click', () => {
+    ImportModal.open();
+  });
+
+  // Export dropdown toggle
+  const exportToggle = container.querySelector('#btnListExportToggle') as HTMLButtonElement | null;
+  const exportMenu = container.querySelector('#listExportMenu') as HTMLElement | null;
+
+  exportToggle?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (exportMenu) {
+      exportMenu.style.display = exportMenu.style.display === 'none' ? 'block' : 'none';
+    }
+  });
+
+  const closeExportMenu = () => {
+    if (exportMenu) exportMenu.style.display = 'none';
+  };
+  document.removeEventListener('click', closeExportMenu);
+  document.addEventListener('click', closeExportMenu);
+
+  // Export action click
+  container.querySelectorAll<HTMLButtonElement>('.btn-export-action').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (exportMenu) exportMenu.style.display = 'none';
+      const format = (btn.getAttribute('data-format') as 'xlsx' | 'csv' | 'json') || 'csv';
+      try {
+        await exportApplications(format);
+        showToast(`Data berhasil diekspor (${format.toUpperCase()}).`, 'success');
+      } catch (err: any) {
+        showToast(err.message || 'Gagal mengekspor data.', 'error');
+      }
+    });
   });
 }

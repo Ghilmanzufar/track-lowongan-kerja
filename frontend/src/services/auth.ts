@@ -195,3 +195,83 @@ export async function resendVerification(): Promise<{ message: string }> {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
+
+export function loginWithGoogle(): void {
+  window.location.href = '/api/v1/auth/google';
+}
+
+export async function handleGoogleCallback(accessToken: string): Promise<void> {
+  authStore.setAccessToken(accessToken);
+
+  const user = await authFetch<User>('/me', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  authStore.setAuth(accessToken, user);
+}
+
+export async function setPassword(newPassword: string): Promise<{ success: boolean; message: string }> {
+  const token = authStore.getAccessToken();
+  if (!token) throw new Error('Unauthorized');
+
+  const res = await authFetch<{ success: boolean; message: string }>('/set-password', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({ newPassword })
+  });
+
+  // Perbarui status hasPassword di store
+  const current = authStore.getUser();
+  if (current) {
+    authStore.setUser({ ...current, hasPassword: true });
+  }
+
+  return res;
+}
+
+export async function deleteAccount(body: { password?: string; confirmText?: string }): Promise<{ success: boolean; message: string }> {
+  const token = authStore.getAccessToken();
+  if (!token) throw new Error('Unauthorized');
+
+  const res = await authFetch<{ success: boolean; message: string }>('/account', {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+
+  authStore.clearAuth();
+  return res;
+}
+
+export async function exportPersonalData(): Promise<void> {
+  const token = authStore.getAccessToken();
+  if (!token) throw new Error('Unauthorized');
+
+  const res = await fetch('/api/v1/auth/export-personal-data', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Gagal mengekspor data akun');
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `jobtrack-personal-data-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}

@@ -352,6 +352,8 @@ export interface CalendarEvent {
   reminders?: ReminderItem[];
   createdAt: string;
   updatedAt: string;
+  googleEventId?: string;
+  googleSyncedAt?: string;
 }
 
 // Composite interface for views and joined queries
@@ -482,7 +484,7 @@ export const JOB_SOURCES_CONFIG: Record<
   Other: { label: 'Lainnya', icon: getIconSvg('pin'), color: '#64748b' }
 };
 
-export type AppView = 'dashboard' | 'board' | 'list' | 'agenda' | 'analytics' | 'career-links' | 'documents' | 'trash' | 'application' | 'stage' | 'profile';
+export type AppView = 'dashboard' | 'board' | 'list' | 'agenda' | 'analytics' | 'jobs' | 'companies' | 'career-links' | 'documents' | 'trash' | 'guide' | 'application' | 'stage' | 'profile' | 'admin';
 
 // ─── Master Document & Resume Vault ──────────────────────────────────
 
@@ -748,6 +750,18 @@ export interface User {
   notifInterviewReminder?: boolean;
   notifFollowUpReminder?: boolean;
   notifDeadlineReminder?: boolean;
+  hasPassword?: boolean;
+  isGoogleCalendarConnected?: boolean;
+  googleCalendarSync?: boolean;
+  role?: 'USER' | 'OPERATOR' | 'SUPERADMIN';
+  isSuspended?: boolean;
+}
+
+export interface GoogleCalendarStatus {
+  isConnected: boolean;
+  syncEnabled: boolean;
+  totalEvents: number;
+  syncedEvents: number;
 }
 
 export interface AuthResponse {
@@ -927,5 +941,93 @@ export interface GlobalSearchResults {
     careerLinks: SearchCareerLinkItem[];
   };
 }
+
+// ─── Admin Suite Types ───────────────────────────────────────────────
+
+export type UserRole = 'USER' | 'OPERATOR' | 'SUPERADMIN';
+
+export interface AdminMetrics {
+  users: {
+    total: number;
+    verified: number;
+    unverified: number;
+    activeLast30Days: number;
+    newLast30Days: number;
+    monthlyGrowthPercent: number;
+  };
+  applications: {
+    total: number;
+    active: number;
+    closed: number;
+    offerCount: number;
+    interviewCount: number;
+    acceptedCount: number;
+    rejectedCount: number;
+    globalOfferRate: number;
+  };
+  events: {
+    upcoming7Days: number;
+  };
+  system: {
+    totalAuditLogs: number;
+    unresolvedErrors: number;
+    pendingFeedback: number;
+  };
+}
+
+export interface SystemHealth {
+  status: 'healthy' | 'degraded' | 'down';
+  environment: string;
+  uptimeSeconds: number;
+  memoryUsageMb: {
+    rss: number;
+    heapTotal: number;
+    heapUsed: number;
+    external: number;
+  };
+  database: {
+    status: 'connected' | 'error';
+    latencyMs: number;
+    userCount: number;
+  };
+  timestamp: string;
+}
+
+export interface AdminUserItem {
+  id: string;
+  email: string;
+  displayName?: string | null;
+  role: UserRole;
+  emailVerified: boolean;
+  isSuspended: boolean;
+  createdAt: string;
+  lastLoginAt?: string | null;
+  _count: {
+    applications: number;
+    documents: number;
+    calendarEvents: number;
+    reminders: number;
+    refreshTokens: number;
+  };
+}
+
+export interface AdminAuditLogItem {
+  id: string;
+  userId?: string | null;
+  action: string;
+  entityType: string;
+  entityId?: string | null;
+  details?: any;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  createdAt: string;
+  user?: {
+    id: string;
+    email: string;
+    displayName?: string | null;
+    role: UserRole;
+  } | null;
+}
+
 
 

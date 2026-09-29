@@ -3,35 +3,33 @@
 import type { User } from '../types';
 import { store } from '../services/store';
 import { initGlobalSearch } from '../components/GlobalSearchDropdown';
+import { SalaryCalculatorModal } from '../components/SalaryCalculatorModal';
+import { EmailTemplatesModal } from '../components/EmailTemplatesModal';
+import { FeedbackModal } from '../components/FeedbackModal';
+import { pwaService } from '../services/pwa';
 
 const getProfileData = (user: User | null): { name: string; avatarUrl?: string } => {
-  // Sumber utama: data dari database via authStore
   const name = user?.displayName?.trim() || user?.email?.split('@')[0] || 'Pengguna';
-  let avatarUrl = user?.avatarUrl || '';
-
-  // Fallback ke localStorage hanya jika data DB belum ada (migrasi akun lama)
-  if (!avatarUrl) {
-    try {
-      const saved = localStorage.getItem('jobtrack-profile');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.avatarUrl) avatarUrl = parsed.avatarUrl;
-      }
-    } catch {}
-  }
-
+  const avatarUrl = user?.avatarUrl || '';
   return { name, avatarUrl };
 };
 
 export function updateUserUI(user: User | null): void {
-  if (!user) return;
-  const { name, avatarUrl } = getProfileData(user);
-  const initial = name.charAt(0).toUpperCase() || 'U';
-
   const navUserName = document.getElementById('navUserName');
   const navUserAvatar = document.getElementById('navUserAvatar');
   const sidebarUserName = document.getElementById('sidebarUserName');
   const sidebarUserAvatar = document.getElementById('sidebarUserAvatar');
+
+  if (!user) {
+    if (navUserName) navUserName.textContent = '';
+    if (navUserAvatar) navUserAvatar.textContent = '';
+    if (sidebarUserName) sidebarUserName.textContent = '';
+    if (sidebarUserAvatar) sidebarUserAvatar.textContent = '';
+    return;
+  }
+
+  const { name, avatarUrl } = getProfileData(user);
+  const initial = name.charAt(0).toUpperCase() || 'U';
 
   if (navUserName) navUserName.textContent = name;
   if (sidebarUserName) sidebarUserName.textContent = name;
@@ -47,6 +45,17 @@ export function updateUserUI(user: User | null): void {
 
   setAvatar(navUserAvatar);
   setAvatar(sidebarUserAvatar);
+
+  // Show / hide admin navigation based on user role
+  const isAdmin = user?.role === 'SUPERADMIN' || user?.role === 'OPERATOR';
+  document.querySelectorAll<HTMLElement>('.admin-only-nav').forEach((el) => {
+    const tag = el.tagName.toLowerCase();
+    if (tag === 'button' || tag === 'a') {
+      el.style.display = isAdmin ? 'flex' : 'none';
+    } else {
+      el.style.display = isAdmin ? 'block' : 'none';
+    }
+  });
 }
 
 export function closeMobileSidebar(): void {
@@ -179,4 +188,68 @@ export function setupWorkspaceEvents(): void {
       }
     }
   });
+
+  // Salary Calculator Trigger from Topbar
+  const btnOpenSalaryCalc = document.getElementById('btnOpenSalaryCalc');
+  btnOpenSalaryCalc?.addEventListener('click', (e) => {
+    e.preventDefault();
+    SalaryCalculatorModal.open();
+  });
+
+  // Email Templates Trigger from Topbar
+  const btnOpenEmailTemplates = document.getElementById('btnOpenEmailTemplates');
+  btnOpenEmailTemplates?.addEventListener('click', (e) => {
+    e.preventDefault();
+    EmailTemplatesModal.open();
+  });
+
+  // PWA Install Triggers (Topbar & Sidebar)
+  const btnPwaInstallTopbar = document.getElementById('btnPwaInstallTopbar');
+  const btnPwaInstallSidebar = document.getElementById('btnPwaInstallSidebar');
+
+  const onInstallClick = async (e: Event) => {
+    e.preventDefault();
+    await pwaService.promptInstall();
+  };
+
+  btnPwaInstallTopbar?.addEventListener('click', onInstallClick);
+  btnPwaInstallSidebar?.addEventListener('click', onInstallClick);
+
+  pwaService.onInstallAvailabilityChange((canInstall) => {
+    if (btnPwaInstallTopbar) {
+      btnPwaInstallTopbar.style.display = canInstall ? 'inline-flex' : 'none';
+    }
+    if (btnPwaInstallSidebar) {
+      btnPwaInstallSidebar.style.display = canInstall ? 'inline-flex' : 'none';
+    }
+  });
+
+  // Helpdesk & Feedback Modal Triggers (Topbar & Sidebar)
+  const btnOpenFeedbackModal = document.getElementById('btnOpenFeedbackModal');
+  const sidebarFeedbackBtn = document.getElementById('sidebarFeedbackBtn');
+
+  const onFeedbackClick = (e: Event) => {
+    e.preventDefault();
+    FeedbackModal.open();
+    if (isMobile()) {
+      closeSidebar();
+    }
+  };
+
+  btnOpenFeedbackModal?.addEventListener('click', onFeedbackClick);
+  sidebarFeedbackBtn?.addEventListener('click', onFeedbackClick);
+
+  // Global Custom Event Listeners for Inter-Component Navigation
+  window.addEventListener('open-salary-calculator', ((e: CustomEvent) => {
+    SalaryCalculatorModal.open(e.detail);
+  }) as EventListener);
+
+  window.addEventListener('open-email-templates', ((e: CustomEvent) => {
+    EmailTemplatesModal.open(e.detail);
+  }) as EventListener);
+
+  window.addEventListener('open-feedback-modal', ((e: CustomEvent) => {
+    FeedbackModal.open(e.detail?.category);
+  }) as EventListener);
 }
+

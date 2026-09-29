@@ -565,6 +565,15 @@
   color: var(--accent-red, #ef4444);
 }
 
+.profile-section.danger-section {
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background-color: var(--accent-red-bg);
+}
+
+.profile-section.danger-section .profile-section-title {
+  color: var(--accent-red, #ef4444);
+}
+
 .btn-profile-logout {
   background: var(--accent-red-bg, rgba(239, 68, 68, 0.1));
   color: var(--accent-red, #ef4444);

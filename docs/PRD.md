@@ -1,117 +1,126 @@
-# Product Requirement Document (PRD): JobTrack (Personal Job Application Tracker)
+# Product Requirement Document (PRD): JobTrack
 
 | Dokumen | Keterangan |
 | :--- | :--- |
-| **Status** | Ready for Review |
-| **Versi** | 1.0 (MVP) |
-| **Author** | Product Team |
-| **Target Rilis** | Q4 2026 |
+| **Status** | Sesuai implementasi (bukan spesifikasi masa depan) |
+| **Versi** | 2.0 |
+| **Produk** | JobTrack, pelacak lamaran kerja pribadi |
+| **Target** | Q4 2026 |
+
+Dokumen ini mencatat apa yang **sudah ada di kode**, bukan rencana MVP lama. Versi 1.0 (local-first, IndexedDB, tanpa akun) tidak dibangun. Diganti akun + API + PostgreSQL.
 
 ---
 
-## 1. Latar Belakang & Pernyataan Masalah
+## 1. Masalah
 
-Pencari kerja, khususnya lulusan baru (*fresh graduates*), rata-rata mengirimkan puluhan hingga ratusan lamaran pekerjaan di berbagai portal (LinkedIn, Jobstreet, Glints, Kalibrr, email langsung). Volume lamaran yang tinggi dan tersebar di berbagai platform memicu masalah operasional bagi individu:
+Pencari kerja, terutama fresh graduate, mengirim banyak lamaran lewat LinkedIn, Jobstreet, Glints, Kalibrr, Indeed, dan situs perusahaan. Akibatnya:
 
-* **Lupa riwayat lamaran:** Pengguna sering lupa kapan mereka melamar, posisi apa yang dilamar, dan profil perusahaan saat dihubungi oleh HR via telepon/WhatsApp.
-* **Kehilangan konteks dokumen:** Sering menggunakan versi CV atau portofolio yang berbeda-beda (*tailored resume*), tetapi lupa versi mana yang dikirimkan ke perusahaan tertentu.
-* **Tenggat waktu terlewat:** Tidak memantau jadwal tes teknis, batas pengiriman tugas, atau jadwal wawancara karena tidak ada integrasi pengingat terpusat.
-* **Kelelahan mengelola spreadsheet:** Penggunaan Google Sheets atau Excel manual sering kali ditinggalkan karena merepotkan diakses via ponsel dan tidak memiliki otomatisasi status atau pengingat.
+* Lupa kapan melamar, posisi apa, dan ke perusahaan mana saat HR menghubungi.
+* Lupa versi CV atau portofolio yang dikirim ke perusahaan tertentu.
+* Lewat jadwal tes, tugas, atau wawancara.
+* Spreadsheet ditinggalkan karena lambat di ponsel dan tanpa status terpusat.
 
----
+## 2. Pengguna
 
-## 2. Target Pengguna (User Persona)
+Fresh graduate dan pelamar entry-level (sekitar 20–25 tahun) yang mengirim beberapa lamaran per minggu, memakai laptop untuk melamar dan ponsel untuk balasan rekruter, dan butuh catat lamaran dalam hitungan detik.
 
-* **Segmen Utama:** *Fresh Graduates* & *Entry-Level Job Seekers* (usia 20–25 tahun).
-* **Karakteristik:**
-  * Aktif mengirimkan 5–20 lamaran per minggu.
-  * Menggunakan *smartphone* untuk melihat notifikasi rekruter dan laptop saat mengirim lamaran.
-  * Membutuhkan solusi cepat, tidak mau ribet membuat akun atau setup yang kompleks.
-  * Mengutamakan privasi dan kontrol atas data pribadi mereka.
+Data lamaran, gaji, kontak HR, dan CV disimpan di server milik aplikasi (bukan hanya di peramban). Satu akun per orang. Privasi berarti data terikat ke akun pemiliknya, bukan "tidak pernah meninggalkan perangkat".
 
----
+## 3. Tujuan
 
-## 3. Tujuan Produk & Metrik Keberhasilan (Goals & Metrics)
+Satu tempat untuk mencatat, memindahkan status, dan menindaklanjuti setiap lamaran supaya tidak ada proses yang terbengkalai.
 
-### 3.1. Tujuan (Product Goals)
-Membantu *fresh graduates* mendokumentasikan, melacak status, dan mengelola tindak lanjut setiap lamaran kerja secara instan dalam satu tempat agar tidak ada proses rekrutmen yang terlewat atau terbengkalai.
-
-### 3.2. Metrik Keberhasilan (Success Metrics)
-
-| Metrik | Definisi | Target MVP |
+| Metrik | Arti | Target |
 | :--- | :--- | :--- |
-| **Task Completion Rate** | Persentase tugas (wawancara, tes, follow-up) yang diselesaikan tepat waktu | > 80% dari total tugas tercatat |
-| **Weekly Active Retention** | Pengguna yang kembali memperbarui status lamaran tiap pekan | > 40% pada minggu ke-4 (W4 Retention) |
-| **Time to Log an Application** | Waktu yang dibutuhkan pengguna untuk mencatat satu lowongan baru | < 45 detik via quick add / form |
-| **Export/Backup Adoption** | Persentase pengguna yang melakukan ekspor data (JSON/CSV) | > 25% dari total pengguna aktif |
+| Task selesai tepat waktu | Tugas wawancara, tes, follow-up yang ditutup sebelum atau pada jatuh tempo | > 80% |
+| Balik mingguan | Pengguna yang mengubah status lamaran tiap pekan | > 40% di minggu ke-4 |
+| Waktu catat satu lamaran | Dari buka quick-add atau ekstensi sampai tersimpan | < 45 detik |
 
----
+Target ekspor/backup dari PRD 1.0 dihapus dari metrik. Fitur ekspor JSON/CSV seluruh data milik user **belum ada**.
 
-## 4. Ruang Lingkup Produk (Scope)
+## 4. Ruang lingkup
 
-### 4.1. Dalam Cakupan (In-Scope - MVP)
-* Penyimpanan lokal peramban (*local-first storage* via IndexedDB/LocalStorage, tanpa wajib register akun).
-* Pencatatan lowongan manual dan *quick-add* berbasis URL.
-* Manajemen jalur lamaran (*Kanban board* dan *List view*) dengan 9 status bawaan.
-* Sistem tugas dan pengingat tanggal jatuh tempo (*due dates* & *overdue flags*).
-* Pencatatan tautan dokumen (CV/portofolio) dan kontak rekruter per lamaran.
-* Pencarian, filter multi-variabel, dan penandaan (*tagging*).
-* Ekspor dan impor data (format CSV dan JSON).
-* Dasbor analitik sederhana (total lamaran, rasio konversi tahapan, rata-rata durasi per tahap).
+### 4.1. Yang sudah ada
 
-### 4.2. Luar Cakupan (Out-of-Scope - Post-MVP)
-* Integrasi login OAuth dan sinkronisasi cloud multi-perangkat.
-* Ekstraksi otomatis berbasis AI / *web scraping* langsung dari tautan portal kerja.
-* Sinkronisasi dua arah ke Google Calendar / Outlook.
-* Fitur kalkulator PPh 21 / simulasi *take-home pay*.
+* Akun: daftar, masuk, keluar, lupa kata sandi, verifikasi email. JWT akses singkat plus refresh token di cookie. Sesi bisa dicabut.
+* Quick-add lamaran (posisi, perusahaan, status, URL, lokasi, tipe kerja, gaji, tenggat, catatan) plus deteksi duplikat URL/perusahaan/judul.
+* Pipeline 9 tahap, tampilan Kanban (seret-lepas) dan daftar. Riwayat pindah tahap tersimpan.
+* Tugas per lamaran: tipe, jatuh tempo, prioritas, status. Agenda menandai yang lewat jatuh tempo selama aplikasi terbuka.
+* Kontak rekruter per lamaran atau perusahaan.
+* Vault dokumen: master CV, cover letter, portofolio, versi (tautan atau berkas), dan jejak versi mana yang dipakai lamaran tertentu.
+* Lampiran berkas per lamaran.
+* Wawancara multi-ronde: jadwal, pewawancara, persiapan, pertanyaan, catatan, evaluasi.
+* Kalender (acara berbatas waktu) dan pengingat in-app.
+* Direktori tautan karir (global, hasil scraper) plus tautan pribadi, filter sektor, dan bintang favorit.
+* Dasbor ringkasan dan analitik konversi.
+* Pencarian.
+* Tempat sampah (soft delete) untuk lamaran, perusahaan, dokumen, dan acara. Bisa dipulihkan.
+* Profil: nama, avatar, telepon, lokasi, bio, preferensi pengingat.
+* Ekstensi peramban yang mengisi form dari halaman lowongan (LinkedIn, Glints, Jobstreet/Seek, Indeed, Kalibrr, situs karir).
+* Landing page publik dan aplikasi di balik login.
 
----
+### 4.2. Belum ada (jangan dianggap selesai)
 
-## 5. Kebutuhan Fungsional (User Stories & Acceptance Criteria)
+* Ekspor dan impor cadangan JSON/CSV milik user.
+* Hapus akun dan unduh seluruh data pribadi.
+* Pengingat yang tetap terkirim saat tab ditutup (email, push, atau cron). Toggle di profil hanya menyimpan preferensi.
+* Login OAuth.
+* Sinkronisasi Google Calendar / Outlook. Yang ada: tautan "tambah ke Google Calendar" untuk satu tugas, bukan sinkron dua arah.
+* Parsing lowongan pakai AI. Isi form dari ekstensi, bukan dari server yang membuka URL.
+* Kalkulator PPh 21.
+* Migrasi skema berversi (`prisma db push` saja, tanpa folder migrasi).
+* Tes otomatis.
 
-### US-01: Simpan Lowongan Kerja Cepat
-* **User Story:** Sebagai pelamar, saya ingin menyimpan informasi lowongan pekerjaan dengan cepat agar saya tidak kehilangan jejak posisi yang sudah/akan saya lamar.
-* **Kriteria Penerimaan (Acceptance Criteria):**
-  * Pengguna dapat menempelkan (*paste*) URL sumber lowongan.
-  * Form input minimal wajib mengisi: Posisi, Nama Perusahaan, dan Status.
-  * Form input opsional: URL Sumber, Lokasi, Tipe Kerja (WFO/Hybrid/Remote), Rentang Gaji, Batas Akhir, Deskripsi Singkat/Catatan.
-  * Lowongan yang baru disimpan langsung muncul di papan Kanban pada kolom yang dipilih (*default*: "Disimpan").
+### 4.3. Sengaja di luar produk
 
-### US-02: Manajemen Jalur Lamaran (Pipeline Board)
-* **User Story:** Sebagai pelamar, saya ingin melihat dan memindahkan tahapan lamaran secara visual agar saya tahu posisi mana saja yang masih berjalan.
-* **Kriteria Penerimaan:**
-  * Mendukung 9 tahapan default: *Disimpan*, *Siap Dilamar*, *Terkirim*, *Skrining*, *Wawancara*, *Penawaran*, *Diterima*, *Ditolak*, *Mengundurkan Diri*.
-  * Terdapat dua mode tampilan: **Kanban Board** (dengan *drag-and-drop*) dan **List View** (tabel).
-  * Kartu lamaran menampilkan: Nama Perusahaan, Posisi, Hari sejak update terakhir, dan indikator tugas aktif.
+* Papan lowongan multi-user, lamaran atas nama orang lain, atau ATS untuk perusahaan.
+* Menyimpan kata sandi situs kerja.
 
-### US-03: Tugas dan Pengingat (Tasks & Reminders)
-* **User Story:** Sebagai pelamar, saya ingin mencatat jadwal wawancara, tes teknis, atau jadwal *follow-up* agar saya tidak melewatkan kesempatan tersebut.
-* **Kriteria Penerimaan:**
-  * Pengguna dapat menambahkan tugas di dalam kartu lamaran dengan tipe: *Kirim Lamaran*, *Follow-up*, *Wawancara*, *Tugas/Tes*, *Kirim Thank-you Note*.
-  * Tugas memiliki field: Tanggal/Waktu Jatuh Tempo, Prioritas (Low, Med, High), dan Status (Belum / Selesai).
-  * Tampilan dashboard/agenda menampilkan peringatan warna merah (*overdue highlight*) untuk tugas yang melewati batas waktu.
+## 5. Alur yang harus tetap benar
 
-### US-04: Pencatatan Dokumen & Kontak Rekruter
-* **User Story:** Sebagai pelamar, saya ingin mencatat versi CV yang dikirim dan nama HR yang menghubungi saya agar saya tidak salah bicara saat dihubungi.
-* **Kriteria Penerimaan:**
-  * Field teks bebas untuk mencatat versi dokumen (misal: "CV_Frontend_v2.pdf", link Google Drive/Notion portofolio).
-  * Bagian kontak untuk menyimpan: Nama PIC/HR, Nomor WhatsApp, Email, dan Tautan LinkedIn.
+### US-01 Simpan lamaran
 
-### US-05: Ekspor & Impor Data (Privacy-First)
-* **User Story:** Sebagai pengguna, saya ingin mengekspor seluruh data saya ke format JSON/CSV agar data saya aman dan bisa dicadangkan secara mandiri.
-* **Kriteria Penerimaan:**
-  * Tombol "Ekspor Data" mengunduh file JSON atau CSV berisi seluruh entri lowongan, catatan, dan tugas.
-  * Tombol "Impor Data" memungkinkan upload file cadangan untuk memulihkan seluruh data aplikasi.
+Wajib: posisi, nama perusahaan, tahap. Opsional: URL, sumber, lokasi, tipe kerja (onsite / hybrid / remote), rentang gaji, tenggat, deskripsi, catatan. Default tahap: Disimpan. Tersimpan langsung muncul di kolom Kanban itu. URL yang sama untuk perusahaan dan posisi yang sama ditolak sebagai duplikat.
 
----
+### US-02 Pindah tahap
 
-## 6. Kebutuhan Non-Fungsional (Non-Functional Requirements)
+Sembilan tahap, urutan tampilan: Disimpan, Siap Dilamar, Terkirim, Skrining, Wawancara, Penawaran, Diterima, Ditolak, Mengundurkan Diri. Bisa lewat seret di Kanban atau aksi di daftar/detail. Setiap pindah menulis riwayat dari-tahap ke-tahap. Kartu menampilkan perusahaan, posisi, waktu sejak aktivitas terakhir, dan ada tidaknya tugas terbuka.
 
-* **Arsitektur & Privasi:** *Local-first architecture*. Semua data disimpan di peramban pengguna (IndexedDB). Tidak ada data sensitif pengguna yang dikirimkan ke server pihak ketiga pada rilis MVP.
-* **Responsivitas:** Desain antarmuka adaptif penuh (*responsive mobile-first*), dapat dioperasikan dengan baik pada layar smartphone (360px ke atas) maupun desktop (hingga 4K).
-* **Performa:** Waktu pemuatan awal (*First Contentful Paint*) < 1.5 detik. Operasi pencarian/filter data hingga 1.000 entri lamaran harus selesai dalam < 100 ms.
-* **Lokalisasi:** Format tanggal dan zona waktu disesuaikan dengan zona waktu lokal pengguna (*default*: Asia/Jakarta / WIB, format DD/MM/YYYY).
+### US-03 Tugas
 
----
+Tipe: Kirim Lamaran, Follow-up, Wawancara, Tugas/Tes, Thank-you. Prioritas Rendah / Sedang / Tinggi. Status Belum / Selesai. Agenda dan dasbor menyorot yang lewat jatuh tempo. Sorotan dihitung di klien saat aplikasi terbuka, bukan dikirim sebagai notifikasi latar.
 
-## 7. Rencana Rilis & Fase Pengembangan
+### US-04 Dokumen dan kontak
+
+Master dokumen punya kategori (Resume, Cover Letter, Portofolio, Lainnya) dan beberapa versi. Satu lamaran bisa menautkan versi yang benar-benar dikirim. Kontak menyimpan nama, peran, email, telepon, LinkedIn, catatan.
+
+### US-05 Masuk dan sesi
+
+Daftar butuh email dan kata sandi. Masuk mengembalikan sesi. Lupa kata sandi mengirim tautan sekali pakai lewat email bila SMTP dikonfigurasi. Email belum terverifikasi tetap bisa masuk, dengan ajakan verifikasi. Keluar mencabut refresh token sesi itu.
+
+### US-06 Clip dari peramban
+
+Di halaman lowongan yang didukung, ekstensi mengisi judul, perusahaan, lokasi, tautan, dan tipe kerja. Pengguna memilih tahap lalu menyimpan ke akun yang sedang masuk.
+
+### US-07 Hapus yang bisa kembali
+
+Hapus lamaran, dokumen, atau acara tidak langsung menghilangkan baris. Item masuk tempat sampah dan bisa dipulihkan. Hapus permanen baru benar-benar menghapus.
+
+## 6. Bukan persyaratan kode
+
+* Antarmuka harus tetap bisa dipakai dari lebar 360px ke desktop.
+* Tanggal ditampilkan menurut zona lokal pengguna. Yang disimpan di basis data adalah timestamp.
+* Setiap permintaan data lamaran harus terikat ke pengguna yang login. Pengguna A tidak boleh membaca lamaran pengguna B.
+* Berkas unggahan dibatasi jenis dan ukuran (saat ini PDF, dokumen office, gambar; batas 10 MB per berkas).
+
+## 7. Cara menjalankan (pengembangan)
+
+Butuh Docker untuk Postgres, berkas `backend/.env` (salin dari `.env.example`), lalu `npm run dev:be` dan `npm run dev:fe`.
+
+* Aplikasi: `http://localhost:5173`
+* API: `http://localhost:3000`
+* Postgres: `127.0.0.1:5433`, basis data `jobtrack_dev`
+
+Detail modul ada di [architecture.md](architecture.md).
+
+

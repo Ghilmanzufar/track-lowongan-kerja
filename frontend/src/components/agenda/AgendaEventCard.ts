@@ -26,6 +26,14 @@ export function renderEventCard(ev: CalendarEvent, now: Date, items: Application
           <span class="badge-interview-type ${ev.eventType}">
             ${EVENT_TYPE_LABELS[ev.eventType] || ev.eventType}
           </span>
+          ${
+            ev.googleEventId
+              ? `<span style="display:inline-flex; align-items:center; gap:3px; font-size:10.5px; padding:2px 7px; border-radius:9999px; background:rgba(66,133,244,0.1); color:#4285F4; border:1px solid rgba(66,133,244,0.25); font-weight:600;" title="Tersinkronisasi otomatis dengan Google Calendar">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>G-Cal</span>
+                </span>`
+              : ''
+          }
           <span class="agenda-event-title">
             ${escapeHtml(ev.title)}
           </span>

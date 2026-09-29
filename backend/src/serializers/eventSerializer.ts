@@ -33,6 +33,8 @@ export function formatCalendarEvent(e: any) {
         }))
       : undefined,
     createdAt: e.createdAt ? new Date(e.createdAt).toISOString() : new Date().toISOString(),
-    updatedAt: e.updatedAt ? new Date(e.updatedAt).toISOString() : new Date().toISOString()
+    updatedAt: e.updatedAt ? new Date(e.updatedAt).toISOString() : new Date().toISOString(),
+    googleEventId: e.googleEventId ?? undefined,
+    googleSyncedAt: e.googleSyncedAt ? new Date(e.googleSyncedAt).toISOString() : undefined
   };
 }

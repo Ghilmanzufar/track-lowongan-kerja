@@ -22,8 +22,9 @@ export function renderStarSubTab(interview: InterviewItem): string {
     <div style="display: flex; flex-direction: column; gap: 14px;">
       <div class="interview-section-header" style="margin-bottom: 0;">
         <div>
-          <div class="interview-section-title">
-            <span>⭐</span> Lembar Kerja Metode STAR (Situation, Task, Action, Result)
+          <div class="interview-section-title" style="display: flex; align-items: center; gap: 6px;">
+            <span style="color: #f59e0b; display: flex;">${getIconSvg('star', { size: 14 })}</span>
+            <span>Lembar Kerja Metode STAR (Situation, Task, Action, Result)</span>
           </div>
           <p style="font-size: 11.5px; color: var(--text-secondary); margin: 2px 0 0 0;">
             Strukturkan cerita pengalaman Anda secara terukur untuk menjawab pertanyaan behavioral & case study.

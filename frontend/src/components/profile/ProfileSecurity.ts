@@ -1,45 +1,61 @@
-// Profile Account Settings & Change Password Dialog Sub-component
-
+// Profile Account Settings, Password Management & Danger Zone
 import { store } from '../../services/store';
+import { authStore } from '../../services/authStore';
 import { getIconSvg } from '../../utils/icons';
 import { showToast } from '../../ui/toast';
 import { showConfirmDialog } from '../Dialog';
-import { logout, changePassword } from '../../services/auth';
+import { logout, changePassword, setPassword, deleteAccount, exportPersonalData } from '../../services/auth';
 
 export function renderProfileSecurityHtml(): string {
+  const user = authStore.getUser();
+  const hasPassword = user?.hasPassword ?? true;
+
   return `
     <div class="profile-section">
       <div class="profile-section-header">
         <div class="profile-section-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;">${getIconSvg('tools', { size: 16 })}</div>
-        <h2 class="profile-section-title">Pengaturan Akun</h2>
+        <h2 class="profile-section-title">Pengaturan Akun & Keamanan</h2>
       </div>
       <div class="profile-section-body">
         <div class="profile-account-actions">
 
           <div class="profile-action-row">
             <div class="profile-action-info">
-              <div class="profile-action-title">Ubah Kata Sandi</div>
-              <div class="profile-action-desc">Perbarui kata sandi akun untuk menjaga keamanan</div>
+              <div class="profile-action-title" style="display:flex; align-items:center; gap:8px;">
+                <span>${hasPassword ? 'Ubah Kata Sandi' : 'Buat Kata Sandi'}</span>
+                ${
+                  !hasPassword
+                    ? `<span style="background:rgba(37,99,235,0.1); color:#2563eb; font-size:11px; padding:2px 8px; border-radius:9999px; font-weight:600;">Akun Google</span>`
+                    : ''
+                }
+              </div>
+              <div class="profile-action-desc">
+                ${
+                  hasPassword
+                    ? 'Perbarui kata sandi akun untuk menjaga keamanan akses'
+                    : 'Buat kata sandi baru agar Anda dapat masuk menggunakan email & kata sandi secara langsung'
+                }
+              </div>
             </div>
             <button class="btn btn-secondary btn-sm" id="btnOpenPasswordModal" style="display:inline-flex;align-items:center;gap:6px;">
-              ${getIconSvg('lock', { size: 14 })} Ubah Kata Sandi
+              ${getIconSvg('lock', { size: 14 })} ${hasPassword ? 'Ubah Kata Sandi' : 'Buat Kata Sandi'}
             </button>
           </div>
 
           <div class="profile-action-row">
             <div class="profile-action-info">
-              <div class="profile-action-title">Ekspor Data Lamaran</div>
-              <div class="profile-action-desc">Unduh seluruh data lamaran Anda dalam format JSON</div>
+              <div class="profile-action-title">Unduh Seluruh Data Akun (GDPR)</div>
+              <div class="profile-action-desc">Cadangkan seluruh profil, lamaran kerja, kontak, tugas, dan arsip dokumen Anda ke format JSON</div>
             </div>
-            <button class="btn btn-secondary btn-sm" id="btnExportData" style="display:inline-flex;align-items:center;gap:6px;">
-              ${getIconSvg('download', { size: 14 })} Ekspor JSON
+            <button class="btn btn-secondary btn-sm" id="btnExportPersonalData" style="display:inline-flex;align-items:center;gap:6px;">
+              ${getIconSvg('download', { size: 14 })} Unduh Data Lengkap
             </button>
           </div>
 
-          <div class="profile-action-row danger">
+          <div class="profile-action-row">
             <div class="profile-action-info">
               <div class="profile-action-title">Keluar dari Akun</div>
-              <div class="profile-action-desc">Logout dan kembali ke halaman masuk</div>
+              <div class="profile-action-desc">Akhiri sesi aktif pada peramban ini dan kembali ke halaman masuk</div>
             </div>
             <button class="btn-profile-logout" id="btnProfileLogout">
               ${getIconSvg('arrowRight', { size: 14 })} Keluar
@@ -50,14 +66,37 @@ export function renderProfileSecurityHtml(): string {
       </div>
     </div>
 
-    <!-- ─── Ubah Kata Sandi Modal Popup ─────────────────────────── -->
+    <!-- ─── Danger Zone ─────────────────────────────────────────── -->
+    <div class="profile-section danger-section">
+      <div class="profile-section-header">
+        <div class="profile-section-icon" style="background:rgba(239,68,68,0.1);color:#ef4444;">${getIconSvg('alert', { size: 16 })}</div>
+        <h2 class="profile-section-title">Zona Berbahaya</h2>
+      </div>
+      <div class="profile-section-body">
+        <div class="profile-account-actions">
+          <div class="profile-action-row danger" style="background: transparent; border: none; padding: 0;">
+            <div class="profile-action-info">
+              <div class="profile-action-title">Hapus Akun Secara Permanen</div>
+              <div class="profile-action-desc">
+                Seluruh data lamaran, tugas, catatan, dan berkas akan dihapus selamanya dari database dan tidak dapat dipulihkan.
+              </div>
+            </div>
+            <button class="btn btn-danger btn-sm" id="btnOpenDeleteModal" style="display:inline-flex;align-items:center;gap:6px;flex-shrink:0;">
+              ${getIconSvg('trash', { size: 14 })} Hapus Akun Saya
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Ubah / Buat Kata Sandi Modal Popup ─────────────────────────── -->
     <dialog id="changePasswordModal" class="custom-dialog password-modal-dialog">
       <div class="modal-header">
         <div style="display:flex; align-items:center; gap:8px;">
           <span style="color:var(--accent-amber, #f59e0b); display:flex; align-items:center;">
             ${getIconSvg('lock', { size: 18 })}
           </span>
-          <h3 class="modal-title">Ubah Kata Sandi</h3>
+          <h3 class="modal-title" id="passwordModalTitle">${hasPassword ? 'Ubah Kata Sandi' : 'Buat Kata Sandi Baru'}</h3>
         </div>
         <button type="button" class="btn btn-secondary btn-icon btn-close-password-modal" style="width:28px; height:28px; padding:0; border-radius:50%;">
           ${getIconSvg('x', { size: 14 })}
@@ -65,12 +104,19 @@ export function renderProfileSecurityHtml(): string {
       </div>
 
       <div class="password-modal-body">
-        <p class="password-modal-desc">
-          Masukkan kata sandi saat ini untuk verifikasi keamanan, kemudian buat kata sandi baru Anda.
+        <p class="password-modal-desc" id="passwordModalDesc">
+          ${
+            hasPassword
+              ? 'Masukkan kata sandi saat ini untuk verifikasi keamanan, kemudian buat kata sandi baru Anda.'
+              : 'Akun Anda belum memiliki kata sandi. Buat kata sandi minimal 8 karakter untuk masuk langsung dengan email.'
+          }
         </p>
 
         <div class="profile-password-form">
-          <div class="profile-field profile-password-field">
+          ${
+            hasPassword
+              ? `
+          <div class="profile-field profile-password-field" id="currentPasswordFieldWrap">
             <label for="inputCurrentPassword">Kata Sandi Saat Ini</label>
             <div class="profile-password-input-wrap">
               <input type="password" id="inputCurrentPassword" placeholder="Masukkan kata sandi saat ini" autocomplete="current-password" />
@@ -79,11 +125,14 @@ export function renderProfileSecurityHtml(): string {
               </button>
             </div>
           </div>
+          `
+              : ''
+          }
 
           <div class="profile-field profile-password-field">
             <label for="inputNewPassword">Kata Sandi Baru</label>
             <div class="profile-password-input-wrap">
-              <input type="password" id="inputNewPassword" placeholder="Minimal 6 karakter" autocomplete="new-password" />
+              <input type="password" id="inputNewPassword" placeholder="Minimal 8 karakter" autocomplete="new-password" />
               <button type="button" class="btn-toggle-password" data-target="inputNewPassword" title="Tampilkan / sembunyikan">
                 ${getIconSvg('eye', { size: 14 })}
               </button>
@@ -121,30 +170,79 @@ export function renderProfileSecurityHtml(): string {
           Batal
         </button>
         <button type="button" class="btn btn-primary btn-sm" id="btnSubmitChangePassword" style="display:inline-flex;align-items:center;gap:6px;">
-          ${getIconSvg('lock', { size: 13 })} Ubah Kata Sandi
+          ${getIconSvg('lock', { size: 13 })} ${hasPassword ? 'Ubah Kata Sandi' : 'Simpan Kata Sandi'}
         </button>
+      </div>
+    </dialog>
+
+    <!-- ─── Hapus Akun Permanen Modal Dialog ─────────────────────────── -->
+    <dialog id="deleteAccountModal" class="custom-dialog delete-account-dialog">
+      <div class="delete-account-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="color: #ef4444; display: flex; align-items: center;">${getIconSvg('alert', { size: 20 })}</span>
+          <h3 class="delete-account-title">Hapus Akun Permanen</h3>
+        </div>
+        <button type="button" class="btn-close-delete-modal" style="background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; padding: 4px;">
+          ${getIconSvg('x', { size: 16 })}
+        </button>
+      </div>
+
+      <div class="delete-account-body">
+        <p class="delete-account-warning">
+          Peringatan: Tindakan ini tidak dapat dibatalkan!
+        </p>
+        <p class="delete-account-desc">
+          Seluruh data lamaran, histori wawancara, catatan, kontak relasi, dan berkas di lemari dokumen Anda akan dihapus secara permanen dari server.
+        </p>
+
+        <div style="margin-top: 16px;">
+          ${
+            hasPassword
+              ? `
+            <label for="inputDeleteAccountPassword" class="delete-account-label">
+              Masukkan kata sandi Anda untuk konfirmasi:
+            </label>
+            <input type="password" id="inputDeleteAccountPassword" class="delete-account-input" placeholder="Kata sandi akun Anda" autocomplete="current-password" />
+            `
+              : `
+            <label for="inputDeleteAccountConfirmText" class="delete-account-label">
+              Ketik <code>HAPUS AKUN</code> untuk konfirmasi:
+            </label>
+            <input type="text" id="inputDeleteAccountConfirmText" class="delete-account-input" placeholder="HAPUS AKUN" />
+            `
+          }
+        </div>
+
+        <div id="deleteAccountError" style="display: none; color: #ef4444; font-size: 12px; margin-top: 10px; font-weight: 500;"></div>
+      </div>
+
+      <div class="delete-account-footer">
+        <button type="button" class="btn btn-secondary btn-sm btn-close-delete-modal">Batal</button>
+        <button type="button" class="btn btn-danger btn-sm" id="btnConfirmDeleteAccount">Hapus Akun Selamanya</button>
       </div>
     </dialog>
   `;
 }
 
 export function bindProfileSecurity(container: HTMLElement): void {
-  // ─── Export data ────────────────────────────────────────────────────────────
-  container.querySelector('#btnExportData')?.addEventListener('click', () => {
-    const items = store.getItems();
-    const data = {
-      exportedAt: new Date().toISOString(),
-      totalApplications: items.length,
-      applications: items,
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `jobtrack-export-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Data berhasil diekspor!', 'success');
+  // ─── Export GDPR Personal Data ──────────────────────────────────────────────
+  container.querySelector('#btnExportPersonalData')?.addEventListener('click', async () => {
+    const btn = container.querySelector('#btnExportPersonalData') as HTMLButtonElement | null;
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = `<span class="btn-spinner"></span> Mengunduh...`;
+    }
+    try {
+      await exportPersonalData();
+      showToast('Arsip data akun lengkap berhasil diunduh!', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Gagal mengekspor data akun.', 'error');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = `${getIconSvg('download', { size: 14 })} Unduh Data Lengkap`;
+      }
+    }
   });
 
   // ─── Logout ─────────────────────────────────────────────────────────────────
@@ -158,28 +256,38 @@ export function bindProfileSecurity(container: HTMLElement): void {
     try {
       await logout();
       showToast('Berhasil keluar.', 'info');
+      window.location.hash = '#login';
     } catch {
       showToast('Gagal keluar.', 'error');
     }
   });
 
-  // ─── Change password modal popup ──────────────────────────────────────────
-  const passwordModal       = container.querySelector<HTMLDialogElement>('#changePasswordModal');
-  const btnOpenPasswordModal= container.querySelector<HTMLButtonElement>('#btnOpenPasswordModal');
-  const inputCurrentPw      = container.querySelector<HTMLInputElement>('#inputCurrentPassword');
-  const inputNewPw          = container.querySelector<HTMLInputElement>('#inputNewPassword');
-  const inputConfirmPw      = container.querySelector<HTMLInputElement>('#inputConfirmPassword');
-  const pwStrength          = container.querySelector<HTMLElement>('#passwordStrength');
-  const pwStrengthFill      = container.querySelector<HTMLElement>('#passwordStrengthFill');
-  const pwStrengthText      = container.querySelector<HTMLElement>('#passwordStrengthText');
-  const pwFormError         = container.querySelector<HTMLElement>('#passwordFormError');
-  const pwFormErrorText     = container.querySelector<HTMLElement>('#passwordFormErrorText');
-  const btnSubmitPw         = container.querySelector<HTMLButtonElement>('#btnSubmitChangePassword');
+  // ─── Change / Set Password Modal Popup ──────────────────────────────────────
+  const user = authStore.getUser();
+  const hasPassword = user?.hasPassword ?? true;
+
+  const passwordModal = container.querySelector<HTMLDialogElement>('#changePasswordModal');
+  const btnOpenPasswordModal = container.querySelector<HTMLButtonElement>('#btnOpenPasswordModal');
+  const inputCurrentPw = container.querySelector<HTMLInputElement>('#inputCurrentPassword');
+  const inputNewPw = container.querySelector<HTMLInputElement>('#inputNewPassword');
+  const inputConfirmPw = container.querySelector<HTMLInputElement>('#inputConfirmPassword');
+  const pwStrength = container.querySelector<HTMLElement>('#passwordStrength');
+  const pwStrengthFill = container.querySelector<HTMLElement>('#passwordStrengthFill');
+  const pwStrengthText = container.querySelector<HTMLElement>('#passwordStrengthText');
+  const pwFormError = container.querySelector<HTMLElement>('#passwordFormError');
+  const pwFormErrorText = container.querySelector<HTMLElement>('#passwordFormErrorText');
+  const btnSubmitPw = container.querySelector<HTMLButtonElement>('#btnSubmitChangePassword');
 
   function openPasswordModal() {
     resetPasswordForm();
     passwordModal?.showModal();
-    setTimeout(() => inputCurrentPw?.focus(), 80);
+    setTimeout(() => {
+      if (hasPassword && inputCurrentPw) {
+        inputCurrentPw.focus();
+      } else {
+        inputNewPw?.focus();
+      }
+    }, 80);
   }
 
   function closePasswordModal() {
@@ -189,7 +297,7 @@ export function bindProfileSecurity(container: HTMLElement): void {
 
   btnOpenPasswordModal?.addEventListener('click', openPasswordModal);
 
-  container.querySelectorAll('.btn-close-password-modal').forEach(btn => {
+  container.querySelectorAll('.btn-close-password-modal').forEach((btn) => {
     btn.addEventListener('click', closePasswordModal);
   });
 
@@ -200,7 +308,7 @@ export function bindProfileSecurity(container: HTMLElement): void {
   });
 
   // Toggle password visibility
-  container.querySelectorAll<HTMLButtonElement>('.btn-toggle-password').forEach(btn => {
+  container.querySelectorAll<HTMLButtonElement>('.btn-toggle-password').forEach((btn) => {
     btn.addEventListener('click', () => {
       const targetId = btn.dataset.target;
       if (!targetId) return;
@@ -216,8 +324,8 @@ export function bindProfileSecurity(container: HTMLElement): void {
   // Password strength calculation
   function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
     let score = 0;
-    if (pw.length >= 6) score++;
-    if (pw.length >= 10) score++;
+    if (pw.length >= 8) score++;
+    if (pw.length >= 12) score++;
     if (/[A-Z]/.test(pw)) score++;
     if (/[0-9]/.test(pw)) score++;
     if (/[^A-Za-z0-9]/.test(pw)) score++;
@@ -261,8 +369,7 @@ export function bindProfileSecurity(container: HTMLElement): void {
     if (inputConfirmPw) inputConfirmPw.value = '';
     if (pwStrength) pwStrength.style.display = 'none';
     hidePwError();
-    // Reset visibility toggles
-    container.querySelectorAll<HTMLButtonElement>('.btn-toggle-password').forEach(btn => {
+    container.querySelectorAll<HTMLButtonElement>('.btn-toggle-password').forEach((btn) => {
       const targetId = btn.dataset.target;
       if (!targetId) return;
       const input = container.querySelector<HTMLInputElement>(`#${targetId}`);
@@ -275,10 +382,10 @@ export function bindProfileSecurity(container: HTMLElement): void {
   async function submitPasswordChange() {
     hidePwError();
     const currentPw = inputCurrentPw?.value ?? '';
-    const newPw     = inputNewPw?.value ?? '';
+    const newPw = inputNewPw?.value ?? '';
     const confirmPw = inputConfirmPw?.value ?? '';
 
-    if (!currentPw) {
+    if (hasPassword && !currentPw) {
       showPwError('Kata sandi saat ini wajib diisi.');
       inputCurrentPw?.focus();
       return;
@@ -288,8 +395,8 @@ export function bindProfileSecurity(container: HTMLElement): void {
       inputNewPw?.focus();
       return;
     }
-    if (newPw.length < 6) {
-      showPwError('Kata sandi baru minimal terdiri dari 6 karakter.');
+    if (newPw.length < 8) {
+      showPwError('Kata sandi baru minimal terdiri dari 8 karakter.');
       inputNewPw?.focus();
       return;
     }
@@ -298,7 +405,7 @@ export function bindProfileSecurity(container: HTMLElement): void {
       inputConfirmPw?.focus();
       return;
     }
-    if (currentPw === newPw) {
+    if (hasPassword && currentPw === newPw) {
       showPwError('Kata sandi baru tidak boleh sama dengan kata sandi saat ini.');
       inputNewPw?.focus();
       return;
@@ -306,30 +413,106 @@ export function bindProfileSecurity(container: HTMLElement): void {
 
     if (!btnSubmitPw) return;
     btnSubmitPw.disabled = true;
-    btnSubmitPw.innerHTML = `<span class="btn-spinner"></span> Mengubah...`;
+    btnSubmitPw.innerHTML = `<span class="btn-spinner"></span> Menyimpan...`;
 
     try {
-      await changePassword(currentPw, newPw);
+      if (hasPassword) {
+        await changePassword(currentPw, newPw);
+        showToast('Kata sandi berhasil diubah!', 'success');
+      } else {
+        await setPassword(newPw);
+        showToast('Kata sandi akun berhasil dibuat! Sekarang Anda dapat login dengan email dan kata sandi.', 'success');
+      }
       closePasswordModal();
-      showToast('Kata sandi berhasil diubah!', 'success');
     } catch (err: any) {
-      const msg = err?.message || 'Gagal mengubah kata sandi.';
+      const msg = err?.message || 'Gagal memproses kata sandi.';
       showPwError(msg);
     } finally {
       btnSubmitPw.disabled = false;
-      btnSubmitPw.innerHTML = `${getIconSvg('lock', { size: 13 })} Ubah Kata Sandi`;
+      btnSubmitPw.innerHTML = `${getIconSvg('lock', { size: 13 })} ${hasPassword ? 'Ubah Kata Sandi' : 'Simpan Kata Sandi'}`;
     }
   }
 
   btnSubmitPw?.addEventListener('click', submitPasswordChange);
 
-  // Submit on Enter key inside password inputs
-  [inputCurrentPw, inputNewPw, inputConfirmPw].forEach(input => {
+  [inputCurrentPw, inputNewPw, inputConfirmPw].forEach((input) => {
     input?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
         submitPasswordChange();
       }
     });
+  });
+
+  // ─── Danger Zone: Delete Account Dialog ─────────────────────────────────────
+  const deleteModal = container.querySelector<HTMLDialogElement>('#deleteAccountModal');
+  const btnOpenDeleteModal = container.querySelector<HTMLButtonElement>('#btnOpenDeleteModal');
+  const btnConfirmDelete = container.querySelector<HTMLButtonElement>('#btnConfirmDeleteAccount');
+  const inputDeletePw = container.querySelector<HTMLInputElement>('#inputDeleteAccountPassword');
+  const inputDeleteText = container.querySelector<HTMLInputElement>('#inputDeleteAccountConfirmText');
+  const deleteError = container.querySelector<HTMLElement>('#deleteAccountError');
+
+  btnOpenDeleteModal?.addEventListener('click', () => {
+    if (inputDeletePw) inputDeletePw.value = '';
+    if (inputDeleteText) inputDeleteText.value = '';
+    if (deleteError) deleteError.style.display = 'none';
+    deleteModal?.showModal();
+  });
+
+  container.querySelectorAll('.btn-close-delete-modal').forEach((btn) => {
+    btn.addEventListener('click', () => deleteModal?.close());
+  });
+
+  deleteModal?.addEventListener('click', (e) => {
+    if (e.target === deleteModal) deleteModal?.close();
+  });
+
+  btnConfirmDelete?.addEventListener('click', async () => {
+    if (deleteError) deleteError.style.display = 'none';
+
+    let payload: { password?: string; confirmText?: string } = {};
+
+    if (hasPassword) {
+      const pw = inputDeletePw?.value.trim();
+      if (!pw) {
+        if (deleteError) {
+          deleteError.textContent = 'Kata sandi wajib diisi.';
+          deleteError.style.display = 'block';
+        }
+        inputDeletePw?.focus();
+        return;
+      }
+      payload.password = pw;
+    } else {
+      const text = inputDeleteText?.value.trim();
+      if (text !== 'HAPUS AKUN') {
+        if (deleteError) {
+          deleteError.textContent = 'Harap ketik "HAPUS AKUN" dengan huruf kapital.';
+          deleteError.style.display = 'block';
+        }
+        inputDeleteText?.focus();
+        return;
+      }
+      payload.confirmText = text;
+    }
+
+    if (!btnConfirmDelete) return;
+    btnConfirmDelete.disabled = true;
+    btnConfirmDelete.innerHTML = `<span class="btn-spinner"></span> Menghapus...`;
+
+    try {
+      await deleteAccount(payload);
+      deleteModal?.close();
+      showToast('Akun Anda telah berhasil dihapus.', 'info');
+      store.reset();
+      window.location.hash = '#login';
+    } catch (err: any) {
+      if (deleteError) {
+        deleteError.textContent = err.message || 'Gagal menghapus akun.';
+        deleteError.style.display = 'block';
+      }
+      btnConfirmDelete.disabled = false;
+      btnConfirmDelete.textContent = 'Hapus Akun Selamanya';
+    }
   });
 }
