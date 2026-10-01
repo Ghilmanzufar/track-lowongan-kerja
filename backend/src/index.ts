@@ -101,8 +101,10 @@ app.use('/api/v1', apiRouter);
 app.use(errorHandler);
 
 import { startReminderCron } from './workers/reminderCron.js';
+import { startDisnakerjaFetchCron } from './workers/disnakerjaFetchCron.js';
 
 app.listen(PORT, () => {
   console.log(`[jobtrack-backend] Running on http://localhost:${PORT}`);
   startReminderCron();
+  startDisnakerjaFetchCron();
 });

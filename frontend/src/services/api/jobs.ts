@@ -108,3 +108,44 @@ export function saveJobToTracker(payload: SaveJobToTrackerPayload): Promise<{
   });
 }
 
+// ─── Disnakerja Feed ─────────────────────────────────────────────
+
+export interface FeedJobItem {
+  id: string;
+  title: string;
+  link: string;
+  description: string;
+  categories: string[];
+  pubDate: string;
+  fetchedAt: string;
+}
+
+export interface FeedJobsResponse {
+  success: boolean;
+  jobs: FeedJobItem[];
+  pagination: {
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+    limit: number;
+  };
+}
+
+export function fetchFeedJobs(params: {
+  q?: string;
+  category?: string;
+  page?: number;
+  limit?: number;
+} = {}): Promise<FeedJobsResponse> {
+  const query = new URLSearchParams();
+  if (params.q) query.set('q', params.q);
+  if (params.category && params.category !== 'all') query.set('category', params.category);
+  if (params.page) query.set('page', String(params.page));
+  if (params.limit) query.set('limit', String(params.limit));
+  const qs = query.toString() ? `?${query.toString()}` : '';
+  return request(`/jobs/feed${qs}`);
+}
+
+export function fetchFeedStats(): Promise<{ success: boolean; total: number; lastFetchedAt: string | null }> {
+  return request('/jobs/feed/stats');
+}

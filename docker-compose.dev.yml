@@ -1,0 +1,18 @@
+# docker-compose.dev.yml — untuk development lokal
+# Gunakan: docker compose -f docker-compose.dev.yml up
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: jobtrack_postgres
+    environment:
+      POSTGRES_USER: jobtrack
+      POSTGRES_PASSWORD: jobtrack
+      POSTGRES_DB: jobtrack_dev
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data_dev:

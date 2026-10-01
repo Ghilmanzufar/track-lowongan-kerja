@@ -14,12 +14,5 @@
     "build:be": "npm run build --workspace=backend",
     "build": "npm run build:be && npm run build:fe",
     "seed:companies": "npm run seed:companies --workspace=backend"
-  },
-  "devDependencies": {
-    "csv-parse": "^7.0.2",
-    "xlsx": "^0.18.5"
-  },
-  "dependencies": {
-    "google-auth-library": "^11.1.0"
   }
 }

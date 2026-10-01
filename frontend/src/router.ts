@@ -139,6 +139,11 @@ export function renderCurrentView(): void {
 
   // Render View Component with Error Boundary Protection
   try {
+    // If on jobs view and jobs-view is already active, only update topbar and badges without resetting DOM
+    if (currentView === 'jobs' && viewContainer.querySelector('.jobs-view')) {
+      return;
+    }
+
     viewContainer.innerHTML = '';
     viewContainer.scrollTop = 0;
     switch (currentView) {

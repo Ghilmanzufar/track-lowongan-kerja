@@ -284,3 +284,85 @@ jobsRouter.post('/save-to-tracker', requireAuth, async (req: AuthenticatedReques
     res.status(500).json({ error: 'Gagal menyimpan lowongan ke Kanban.' });
   }
 });
+
+/**
+ * GET /api/v1/jobs/feed
+ * Data lowongan dari disnakerja.com RSS yang sudah di-fetch ke DB
+ */
+jobsRouter.get('/feed', optionalAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const {
+      q,
+      category,
+      page = '1',
+      limit = '12'
+    } = req.query as Record<string, string | undefined>;
+
+    const pageNum = Math.max(1, parseInt(page, 10));
+    const limitNum = Math.max(1, Math.min(50, parseInt(limit, 10)));
+    const skip = (pageNum - 1) * limitNum;
+
+    const searchTerm = q?.trim() || '';
+    const categoryTerm = category?.trim().toLowerCase() || '';
+
+    const whereClause: any = { source: 'disnakerja' };
+
+    if (searchTerm) {
+      whereClause.OR = [
+        { title: { contains: searchTerm, mode: 'insensitive' } },
+        { description: { contains: searchTerm, mode: 'insensitive' } },
+        { categories: { contains: searchTerm, mode: 'insensitive' } }
+      ];
+    }
+
+    if (categoryTerm && categoryTerm !== 'all') {
+      whereClause.categories = { contains: categoryTerm, mode: 'insensitive' };
+    }
+
+    const [totalCount, posts] = await Promise.all([
+      prisma.externalJobPost.count({ where: whereClause }),
+      prisma.externalJobPost.findMany({
+        where: whereClause,
+        orderBy: { pubDate: 'desc' },
+        skip,
+        take: limitNum,
+        select: { id: true, title: true, link: true, description: true, categories: true, pubDate: true, fetchedAt: true }
+      })
+    ]);
+
+    const jobs = posts.map((p) => ({
+      id: p.id,
+      title: p.title,
+      link: p.link,
+      description: p.description || '',
+      categories: (() => { try { return JSON.parse(p.categories || '[]'); } catch { return []; } })(),
+      pubDate: p.pubDate,
+      fetchedAt: p.fetchedAt
+    }));
+
+    res.json({
+      success: true,
+      jobs,
+      pagination: { totalCount, totalPages: Math.ceil(totalCount / limitNum) || 1, currentPage: pageNum, limit: limitNum }
+    });
+  } catch (error) {
+    console.error('[GET /jobs/feed error]:', error);
+    res.status(500).json({ error: 'Gagal mengambil data feed lowongan.' });
+  }
+});
+
+/**
+ * GET /api/v1/jobs/feed/stats
+ */
+jobsRouter.get('/feed/stats', async (_req, res: Response): Promise<void> => {
+  try {
+    const total = await prisma.externalJobPost.count({ where: { source: 'disnakerja' } });
+    const latest = await prisma.externalJobPost.findFirst({
+      where: { source: 'disnakerja' }, orderBy: { fetchedAt: 'desc' }, select: { fetchedAt: true }
+    });
+    res.json({ success: true, total, lastFetchedAt: latest?.fetchedAt ?? null });
+  } catch (error) {
+    console.error('[GET /jobs/feed/stats error]:', error);
+    res.status(500).json({ error: 'Gagal mengambil statistik feed.' });
+  }
+});

@@ -6,8 +6,11 @@ import {
   fetchExploreJobs,
   fetchJobPortals,
   saveJobToTracker,
+  fetchFeedJobs,
+  fetchFeedStats,
   JobItem,
-  JobPortalItem
+  JobPortalItem,
+  FeedJobItem
 } from '../services/api/jobs';
 import { SalaryCalculatorModal } from './SalaryCalculatorModal';
 import { showToast } from '../ui/toast';
@@ -32,9 +35,26 @@ export class JobsView {
   private static searchDebounceTimeout: any = null;
   private static savingJobIds: Set<string> = new Set();
 
+  // Feed (Disnakerja) State
+  private static activeTab: 'curated' | 'feed' = 'feed';
+  private static feedJobs: FeedJobItem[] = [];
+  private static feedTotal: number = 0;
+  private static feedTotalPages: number = 1;
+  private static feedPage: number = 1;
+  private static feedQuery: string = '';
+  private static feedCategory: string = 'all';
+  private static feedIsLoading: boolean = false;
+  private static feedSearchDebounce: any = null;
+  private static feedStatsTotal: number = 0;
+  private static savingFeedJobIds: Set<string> = new Set();
+  private static savedFeedJobIds: Map<string, string> = new Map();
+
   public static async render(container: HTMLElement): Promise<void> {
     this.container = container;
-    await Promise.all([this.loadPortals(), this.loadJobs()]);
+    this.activeTab = 'feed';
+    await Promise.all([this.loadPortals(), this.loadFeed(), this.loadJobs()]);
+    // Pre-load feed stats for badge
+    fetchFeedStats().then(r => { this.feedStatsTotal = r.total; this.renderLayout(); }).catch(() => {});
   }
 
   private static async loadPortals(): Promise<void> {
@@ -74,6 +94,23 @@ export class JobsView {
     }
   }
 
+  private static async loadFeed(): Promise<void> {
+    if (!this.container) return;
+    this.feedIsLoading = true;
+    this.renderLayout();
+    try {
+      const res = await fetchFeedJobs({ q: this.feedQuery, category: this.feedCategory, page: this.feedPage, limit: 12 });
+      this.feedJobs = res.jobs || [];
+      this.feedTotal = res.pagination?.totalCount || 0;
+      this.feedTotalPages = res.pagination?.totalPages || 1;
+    } catch {
+      showToast('Gagal memuat feed lowongan.', 'error');
+    } finally {
+      this.feedIsLoading = false;
+      this.renderLayout();
+    }
+  }
+
   private static renderLayout(): void {
     if (!this.container) return;
 
@@ -87,6 +124,18 @@ export class JobsView {
               <h1>Eksplorasi Lowongan Kerja Indonesia</h1>
               <p>Temukan posisi aktif terkurasi dan simpan langsung ke Kanban Lamaran Anda hanya dengan satu klik.</p>
             </div>
+          </div>
+
+          <!-- Tab Switcher (Segmented Control) -->
+          <div style="display:flex;gap:10px;margin-top:16px;padding:4px;background:var(--bg-surface);border-radius:10px;width:fit-content;border:1px solid var(--border-color);">
+            <button id="tabFeed" class="jobs-tab-btn ${this.activeTab === 'feed' ? 'active' : ''}" style="padding:7px 16px;font-size:13px;font-weight:600;border-radius:7px;border:none;cursor:pointer;background:${this.activeTab === 'feed' ? 'var(--accent-primary)' : 'transparent'};color:${this.activeTab === 'feed' ? '#ffffff' : 'var(--text-secondary)'};box-shadow:${this.activeTab === 'feed' ? '0 1px 4px rgba(0,0,0,0.12)' : 'none'};display:inline-flex;align-items:center;gap:8px;transition:all 0.2s ease;">
+              ${getIconSvg('globe', { size: 14 })} Feed Disnakerja
+              <span style="background:${this.activeTab === 'feed' ? 'rgba(255,255,255,0.25)' : 'var(--border-color)'};color:${this.activeTab === 'feed' ? '#fff' : 'var(--text-secondary)'};font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;">${this.feedTotal > 0 ? this.feedTotal.toLocaleString('id') : (this.feedStatsTotal > 0 ? this.feedStatsTotal.toLocaleString('id') : '2.351')}</span>
+            </button>
+            <button id="tabCurated" class="jobs-tab-btn ${this.activeTab === 'curated' ? 'active' : ''}" style="padding:7px 16px;font-size:13px;font-weight:600;border-radius:7px;border:none;cursor:pointer;background:${this.activeTab === 'curated' ? 'var(--accent-primary)' : 'transparent'};color:${this.activeTab === 'curated' ? '#ffffff' : 'var(--text-secondary)'};box-shadow:${this.activeTab === 'curated' ? '0 1px 4px rgba(0,0,0,0.12)' : 'none'};display:inline-flex;align-items:center;gap:8px;transition:all 0.2s ease;">
+              ${getIconSvg('briefcase', { size: 14 })} Terkurasi &amp; Unggulan
+              <span style="background:${this.activeTab === 'curated' ? 'rgba(255,255,255,0.25)' : 'var(--border-color)'};color:${this.activeTab === 'curated' ? '#fff' : 'var(--text-secondary)'};font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;">${this.totalCount > 0 ? this.totalCount : '6'}</span>
+            </button>
           </div>
 
           <!-- Indonesian Job Portals Quick Strip -->
@@ -108,13 +157,13 @@ export class JobsView {
           ` : ''}
         </section>
 
-        <!-- Controls & Filter Bar -->
+        <!-- Controls & Filter Bar (Curated only) -->
+        ${this.activeTab === 'curated' ? `
         <div class="jobs-controls-card">
           <div class="jobs-controls-top">
             <div class="jobs-search-box">
               <svg class="jobs-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"/>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
               <input
                 type="search"
@@ -162,9 +211,10 @@ export class JobsView {
             </button>
           </div>
         </div>
+        ` : ''}
 
-        <!-- Content Grid or Empty/Loading State -->
-        ${this.isLoading ? `
+        <!-- Content Grid or Empty/Loading State (Curated Tab) -->
+        ${this.activeTab === 'curated' ? (this.isLoading ? `
           <div class="cl-loading" style="padding: 60px 0;">
             <div class="cl-spinner"></div>
             <span>Memuat peluang lowongan kerja...</span>
@@ -178,8 +228,8 @@ export class JobsView {
               ${this.query || this.workType !== 'all' || this.category !== 'all' || this.minSalary > 0 ? 'Lowongan tidak ditemukan' : 'Belum Ada Lowongan Tersedia'}
             </h3>
             <p style="margin: 0 0 16px 0; color: var(--text-secondary); font-size: 0.85rem; max-width: 520px; margin-left: auto; margin-right: auto;">
-              ${this.query || this.workType !== 'all' || this.category !== 'all' || this.minSalary > 0 
-                ? 'Coba sesuaikan kata kunci pencarian atau ubah filter sistem kerja dan gaji.' 
+              ${this.query || this.workType !== 'all' || this.category !== 'all' || this.minSalary > 0
+                ? 'Coba sesuaikan kata kunci pencarian atau ubah filter sistem kerja dan gaji.'
                 : 'Saat ini belum ada lowongan aktif yang terdaftar. Anda dapat menjelajahi lowongan melalui portal karir terpercaya di atas atau menambahkan lowongan langsung ke Kanban.'}
             </p>
             ${this.query || this.workType !== 'all' || this.category !== 'all' || this.minSalary > 0 ? `
@@ -206,11 +256,110 @@ export class JobsView {
               </button>
             </div>
           ` : ''}
-        `}
+        `) : this.renderFeedSection()}
       </div>
     `;
 
     this.attachEvents();
+  }
+
+  private static renderFeedSection(): string {
+    if (this.activeTab !== 'feed') return '';
+
+    const formatDate = (d: string) => {
+      try { return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }); }
+      catch { return d; }
+    };
+
+    const feedContent = this.feedIsLoading
+      ? `<div class="cl-loading" style="padding:60px 0;"><div class="cl-spinner"></div><span>Memuat feed disnakerja.com...</span></div>`
+      : this.feedJobs.length === 0
+        ? `<div style="text-align:center;padding:60px 24px;background:var(--bg-surface);border:1px dashed var(--border-color);border-radius:14px;">
+             <p style="color:var(--text-secondary);font-size:0.9rem;">Belum ada data feed${this.feedQuery ? ' yang cocok dengan pencarian.' : '. Tunggu beberapa saat, data sedang di-fetch...'}</p>
+           </div>`
+        : `<div class="jobs-grid">
+             ${this.feedJobs.map(j => {
+               const isSaved = this.savedFeedJobIds.has(j.id) || store.getItems().some(item =>
+                 (item.jobPosting.sourceUrl && item.jobPosting.sourceUrl === j.link) ||
+                 (item.jobPosting.title.toLowerCase().trim() === j.title.toLowerCase().trim())
+               );
+               const isSaving = this.savingFeedJobIds.has(j.id);
+               return `
+               <div class="job-card" style="display:flex;flex-direction:column;justify-content:space-between;">
+                 <div>
+                   <div class="job-card-header">
+                     <div class="job-company-avatar">${j.title.charAt(0).toUpperCase()}</div>
+                     <div class="job-header-info">
+                       <h3 class="job-title" style="font-size:0.92rem;line-height:1.4;">${this.escapeHtml(j.title)}</h3>
+                       <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">
+                         ${j.categories.slice(0, 4).map(c => `<span class="job-tag-pill" style="font-size:10px;">${this.escapeHtml(c)}</span>`).join('')}
+                       </div>
+                     </div>
+                   </div>
+                   <p style="margin:10px 0 0;font-size:0.82rem;color:var(--text-secondary);line-height:1.45;">
+                     ${this.escapeHtml((j.description || '').substring(0, 180))}${j.description?.length > 180 ? '...' : ''}
+                   </p>
+                 </div>
+                 <div class="job-card-footer" style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                   <span style="font-size:11px;color:var(--text-muted);">${formatDate(j.pubDate)}</span>
+                   <div style="display:flex;align-items:center;gap:6px;">
+                     ${isSaved ? `
+                       <button class="job-btn-save saved" data-action="go-kanban" title="Buka di Kanban Lamaran" style="padding:4px 8px;font-size:11px;">
+                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                         <span>Tersimpan</span>
+                       </button>
+                     ` : `
+                       <button
+                         class="btn btn-primary btn-xs btn-save-feed-tracker"
+                         data-feed-id="${j.id}"
+                         ${isSaving ? 'disabled' : ''}
+                         title="Simpan lowongan ini ke Kanban Lamaran saya"
+                         style="display:inline-flex;align-items:center;gap:4px;"
+                       >
+                         ${isSaving ? `
+                           <div class="spinner" style="width:10px;height:10px;border-width:2px;"></div>
+                           <span>Menyimpan...</span>
+                         ` : `
+                           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                           <span>+ Kanban</span>
+                         `}
+                       </button>
+                     `}
+                     <a href="${this.escapeHtml(j.link)}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-xs" title="Buka lowongan asli di disnakerja.com">
+                       Sumber ↗
+                     </a>
+                   </div>
+                 </div>
+               </div>
+             `}).join('')}
+           </div>
+           ${this.feedTotalPages > 1 ? `
+             <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;">
+               <button class="btn btn-secondary btn-sm" id="btnPrevFeedPage" ${this.feedPage <= 1 ? 'disabled' : ''}>← Sebelumnya</button>
+               <span style="font-size:12px;color:var(--text-secondary);">${this.feedPage} / ${this.feedTotalPages} &nbsp;(${this.feedTotal.toLocaleString('id')} total)</span>
+               <button class="btn btn-secondary btn-sm" id="btnNextFeedPage" ${this.feedPage >= this.feedTotalPages ? 'disabled' : ''}>Berikutnya →</button>
+             </div>
+           ` : ''}` ;
+
+    return `
+      <div style="margin-top:20px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+          <div class="jobs-search-box" style="flex:1;min-width:200px;">
+            <svg class="jobs-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="search" id="feedSearchInput" class="jobs-search-input" placeholder="Cari lowongan BUMN, CPNS, atau swasta..." value="${this.escapeHtml(this.feedQuery)}" autocomplete="off" />
+          </div>
+          <select id="feedCategorySelect" class="jobs-select">
+            <option value="all" ${this.feedCategory==='all'?'selected':''}>Semua Tipe</option>
+            <option value="BUMN" ${this.feedCategory==='bumn'?'selected':''}>BUMN</option>
+            <option value="CPNS" ${this.feedCategory==='cpns'?'selected':''}>CPNS / Pemerintahan</option>
+            <option value="SWASTA" ${this.feedCategory==='swasta'?'selected':''}>Swasta</option>
+            <option value="Internship" ${this.feedCategory==='internship'?'selected':''}>Internship / Magang</option>
+            <option value="Fresh Graduate" ${this.feedCategory==='fresh graduate'?'selected':''}>Fresh Graduate</option>
+          </select>
+        </div>
+        ${feedContent}
+      </div>
+    `;
   }
 
   private static renderJobCard(job: JobItem): string {
@@ -279,7 +428,7 @@ export class JobsView {
         <!-- Footer Actions -->
         <div class="job-card-footer">
           <div style="display: flex; align-items: center; gap: 8px;">
-            ${job.isSaved ? `
+            ${(job.isSaved || store.getItems().some(item => (item.jobPosting.sourceUrl && item.jobPosting.sourceUrl === job.sourceUrl) || (item.jobPosting.title.toLowerCase().trim() === job.title.toLowerCase().trim() && item.company.name.toLowerCase().trim() === job.companyName.toLowerCase().trim()))) ? `
               <button class="job-btn-save saved" data-action="go-kanban" title="Buka di Kanban Lamaran">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 <span>Tersimpan di Kanban (${job.savedStage || 'Saved'})</span>
@@ -318,6 +467,88 @@ export class JobsView {
 
   private static attachEvents(): void {
     if (!this.container) return;
+
+    // Tab switching
+    this.container.querySelector('#tabCurated')?.addEventListener('click', () => {
+      this.activeTab = 'curated';
+      if (this.jobs.length === 0) this.loadJobs();
+      else this.renderLayout();
+    });
+    this.container.querySelector('#tabFeed')?.addEventListener('click', () => {
+      this.activeTab = 'feed';
+      if (this.feedJobs.length === 0) this.loadFeed();
+      else this.renderLayout();
+    });
+
+    // Save Feed Job to Kanban
+    const saveFeedBtns = this.container.querySelectorAll<HTMLButtonElement>('.btn-save-feed-tracker');
+    saveFeedBtns.forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const feedId = btn.getAttribute('data-feed-id');
+        const feedJob = this.feedJobs.find((j) => j.id === feedId);
+        if (!feedJob) return;
+
+        this.savingFeedJobIds.add(feedJob.id);
+        this.renderLayout();
+
+        try {
+          let companyName = feedJob.title;
+          let jobTitle = feedJob.title;
+          if (feedJob.title.includes(' - ')) {
+            const parts = feedJob.title.split(' - ');
+            companyName = parts[0].trim();
+            jobTitle = parts.slice(1).join(' - ').trim();
+          }
+
+          const res = await saveJobToTracker({
+            title: jobTitle,
+            companyName: companyName,
+            sourceUrl: feedJob.link,
+            source: 'Disnakerja',
+            description: feedJob.description,
+            tags: feedJob.categories,
+            stage: 'Saved'
+          });
+
+          this.savedFeedJobIds.set(feedJob.id, res.applicationId);
+          showToast(res.message || 'Lowongan berhasil disimpan ke Kanban!', 'success');
+
+          // Real-time update store applications so Kanban board and sidebar badge update immediately
+          await store.reloadApplications();
+        } catch (err: any) {
+          showToast(err.message || 'Gagal menyimpan lowongan.', 'error');
+        } finally {
+          this.savingFeedJobIds.delete(feedJob.id);
+          this.renderLayout();
+        }
+      });
+    });
+
+    // Feed search
+    const feedSearch = this.container.querySelector<HTMLInputElement>('#feedSearchInput');
+    feedSearch?.addEventListener('input', () => {
+      clearTimeout(this.feedSearchDebounce);
+      this.feedSearchDebounce = setTimeout(() => {
+        this.feedQuery = feedSearch.value.trim();
+        this.feedPage = 1;
+        this.loadFeed();
+      }, 350);
+    });
+
+    // Feed category
+    this.container.querySelector<HTMLSelectElement>('#feedCategorySelect')?.addEventListener('change', (e) => {
+      this.feedCategory = (e.target as HTMLSelectElement).value;
+      this.feedPage = 1;
+      this.loadFeed();
+    });
+
+    // Feed pagination
+    this.container.querySelector('#btnPrevFeedPage')?.addEventListener('click', () => {
+      if (this.feedPage > 1) { this.feedPage--; this.loadFeed(); }
+    });
+    this.container.querySelector('#btnNextFeedPage')?.addEventListener('click', () => {
+      if (this.feedPage < this.feedTotalPages) { this.feedPage++; this.loadFeed(); }
+    });
 
     // 1. Search with debounce
     const searchInput = this.container.querySelector<HTMLInputElement>('#jobsSearchInput');
@@ -406,6 +637,9 @@ export class JobsView {
           job.savedStage = 'Saved';
           job.savedApplicationId = res.applicationId;
           showToast(res.message || 'Lowongan berhasil disimpan ke Kanban!', 'success');
+
+          // Real-time update store applications so Kanban board and sidebar badge update immediately
+          await store.reloadApplications();
         } catch (err: any) {
           showToast(err.message || 'Gagal menyimpan lowongan.', 'error');
         } finally {

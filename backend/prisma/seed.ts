@@ -447,9 +447,7 @@ const careerLinks: CareerLinkSeed[] = [
   { name: 'Decathlon Indonesia',     url: 'https://careers.decathlon.id',                          category: 'Multinasional', sector: 'Perdagangan Besar dan Eceran; Reparasi dan Perawatan Mobil dan Sepeda Motor' },
   { name: 'McDonald\'s Indonesia',   url: 'https://mcdonalds.co.id/karir',                         category: 'Multinasional', sector: 'Penyediaan Akomodasi dan Penyediaan Makan Minum' },
   { name: 'Starbucks Careers',       url: 'https://www.starbucks.com/careers/',                    category: 'Multinasional', sector: 'Penyediaan Akomodasi dan Penyediaan Makan Minum' },
-  { name: 'Marriott International',  url: 'https://careers.marriott.com',                          category: 'Multinasional', sector: 'Penyediaan Akomodasi dan Penyediaan Makan Minum' },
-  { name: 'Accor Hotels Indonesia',  url: 'https://careers.accor.com',                             category: 'Multinasional', sector: 'Penyediaan Akomodasi dan Penyediaan Makan Minum' },
-  { name: 'Hilton Worldwide',        url: 'https://jobs.hilton.com',                               category: 'Multinasional', sector: 'Penyediaan Akomodasi dan Penyediaan Makan Minum' },
+
 
   // ── Job Board Umum ─────────────────────────────────────────────────
   { name: 'LinkedIn Jobs',           url: 'https://www.linkedin.com/jobs/',                        category: 'JobBoard', sector: 'Aktivitas Penyewaan dan Sewa Guna Usaha Tanpa Hak Opsi, Ketenagakerjaan, Agen Perjalanan, dan Penunjang Usaha Lainnya' },

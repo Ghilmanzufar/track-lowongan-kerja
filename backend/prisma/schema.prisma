@@ -783,4 +783,22 @@ enum FeedbackStatus {
   Closed
 }
 
+// ─────────────────────────────────────────────
+// EXTERNAL JOB FEED (disnakerja.com RSS)
+// ─────────────────────────────────────────────
 
+model ExternalJobPost {
+  id          String   @id @default(cuid())
+  guid        String   @unique               // RSS <guid> sebagai deduplication key
+  title       String
+  link        String
+  description String?  @db.Text
+  content     String?  @db.Text
+  categories  String?                        // JSON array string, e.g. ["BUMN","S1","Teknik"]
+  pubDate     DateTime
+  source      String   @default("disnakerja")
+  fetchedAt   DateTime @default(now())
+
+  @@index([pubDate])
+  @@index([source])
+}

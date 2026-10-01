@@ -3,14 +3,64 @@ services:
     image: postgres:16-alpine
     container_name: jobtrack_postgres
     environment:
-      POSTGRES_USER: jobtrack
-      POSTGRES_PASSWORD: jobtrack
-      POSTGRES_DB: jobtrack_dev
-    ports:
-      - "127.0.0.1:5433:5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - jobtrack_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: jobtrack_backend
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - jobtrack_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: jobtrack_frontend
+    # Tidak expose ke luar — hanya diakses via proxy
+    restart: unless-stopped
+    networks:
+      - jobtrack_net
+
+  proxy:
+    image: nginx:alpine
+    container_name: jobtrack_proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx-proxy.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - jobtrack_net
 
 volumes:
   postgres_data:
+
+networks:
+  jobtrack_net:
+    driver: bridge
