@@ -174,9 +174,17 @@ export class JobsView {
             <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(16, 185, 129, 0.1); color: #10b981; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
               ${getIconSvg('briefcase', { size: 24 })}
             </div>
-            <h3 style="margin: 0 0 6px 0; color: var(--text-primary); font-size: 1.1rem;">Lowongan tidak ditemukan</h3>
-            <p style="margin: 0 0 16px 0; color: var(--text-secondary); font-size: 0.85rem;">Coba sesuaikan kata kunci pencarian atau ubah filter sistem kerja dan gaji.</p>
-            <button class="btn btn-secondary btn-sm" id="btnResetJobFilters">Reset Filter</button>
+            <h3 style="margin: 0 0 6px 0; color: var(--text-primary); font-size: 1.1rem;">
+              ${this.query || this.workType !== 'all' || this.category !== 'all' || this.minSalary > 0 ? 'Lowongan tidak ditemukan' : 'Belum Ada Lowongan Tersedia'}
+            </h3>
+            <p style="margin: 0 0 16px 0; color: var(--text-secondary); font-size: 0.85rem; max-width: 520px; margin-left: auto; margin-right: auto;">
+              ${this.query || this.workType !== 'all' || this.category !== 'all' || this.minSalary > 0 
+                ? 'Coba sesuaikan kata kunci pencarian atau ubah filter sistem kerja dan gaji.' 
+                : 'Saat ini belum ada lowongan aktif yang terdaftar. Anda dapat menjelajahi lowongan melalui portal karir terpercaya di atas atau menambahkan lowongan langsung ke Kanban.'}
+            </p>
+            ${this.query || this.workType !== 'all' || this.category !== 'all' || this.minSalary > 0 ? `
+              <button class="btn btn-secondary btn-sm" id="btnResetJobFilters">Reset Filter</button>
+            ` : ''}
           </div>
         ` : `
           <!-- Jobs Grid -->
