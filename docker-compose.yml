@@ -40,6 +40,8 @@ services:
       dockerfile: Dockerfile
     container_name: jobtrack_frontend
     # Tidak expose ke luar — hanya diakses via proxy
+    volumes:
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/app.conf:ro
     restart: unless-stopped
     networks:
       - jobtrack_net
