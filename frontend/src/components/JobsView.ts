@@ -127,14 +127,22 @@ export class JobsView {
           </div>
 
           <!-- Tab Switcher (Segmented Control) -->
-          <div style="display:flex;gap:10px;margin-top:16px;padding:4px;background:var(--bg-surface);border-radius:10px;width:fit-content;border:1px solid var(--border-color);">
-            <button id="tabFeed" class="jobs-tab-btn ${this.activeTab === 'feed' ? 'active' : ''}" style="padding:7px 16px;font-size:13px;font-weight:600;border-radius:7px;border:none;cursor:pointer;background:${this.activeTab === 'feed' ? 'var(--accent-primary)' : 'transparent'};color:${this.activeTab === 'feed' ? '#ffffff' : 'var(--text-secondary)'};box-shadow:${this.activeTab === 'feed' ? '0 1px 4px rgba(0,0,0,0.12)' : 'none'};display:inline-flex;align-items:center;gap:8px;transition:all 0.2s ease;">
-              ${getIconSvg('globe', { size: 14 })} Feed Disnakerja
-              <span style="background:${this.activeTab === 'feed' ? 'rgba(255,255,255,0.25)' : 'var(--border-color)'};color:${this.activeTab === 'feed' ? '#fff' : 'var(--text-secondary)'};font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;">${this.feedTotal > 0 ? this.feedTotal.toLocaleString('id') : (this.feedStatsTotal > 0 ? this.feedStatsTotal.toLocaleString('id') : '2.351')}</span>
+          <div class="jobs-tabs-container">
+            <button id="tabFeed" class="jobs-tab-btn ${this.activeTab === 'feed' ? 'active' : ''}">
+              ${getIconSvg('globe', { size: 14 })}
+              <span class="tab-label-text">
+                <span class="tab-label-full">Feed Disnakerja</span>
+                <span class="tab-label-short">Disnaker</span>
+              </span>
+              <span class="jobs-tab-badge">${this.feedTotal > 0 ? this.feedTotal.toLocaleString('id') : (this.feedStatsTotal > 0 ? this.feedStatsTotal.toLocaleString('id') : '2.351')}</span>
             </button>
-            <button id="tabCurated" class="jobs-tab-btn ${this.activeTab === 'curated' ? 'active' : ''}" style="padding:7px 16px;font-size:13px;font-weight:600;border-radius:7px;border:none;cursor:pointer;background:${this.activeTab === 'curated' ? 'var(--accent-primary)' : 'transparent'};color:${this.activeTab === 'curated' ? '#ffffff' : 'var(--text-secondary)'};box-shadow:${this.activeTab === 'curated' ? '0 1px 4px rgba(0,0,0,0.12)' : 'none'};display:inline-flex;align-items:center;gap:8px;transition:all 0.2s ease;">
-              ${getIconSvg('briefcase', { size: 14 })} Terkurasi &amp; Unggulan
-              <span style="background:${this.activeTab === 'curated' ? 'rgba(255,255,255,0.25)' : 'var(--border-color)'};color:${this.activeTab === 'curated' ? '#fff' : 'var(--text-secondary)'};font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;">${this.totalCount > 0 ? this.totalCount : '6'}</span>
+            <button id="tabCurated" class="jobs-tab-btn ${this.activeTab === 'curated' ? 'active' : ''}">
+              ${getIconSvg('briefcase', { size: 14 })}
+              <span class="tab-label-text">
+                <span class="tab-label-full">Terkurasi &amp; Unggulan</span>
+                <span class="tab-label-short">Terkurasi</span>
+              </span>
+              <span class="jobs-tab-badge">${this.totalCount > 0 ? this.totalCount : '6'}</span>
             </button>
           </div>
 
@@ -175,7 +183,7 @@ export class JobsView {
               />
             </div>
 
-            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <div class="jobs-controls-selects">
               <select id="jobsCategorySelect" class="jobs-select" title="Filter Bidang Pekerjaan">
                 <option value="all" ${this.category === 'all' ? 'selected' : ''}>Semua Bidang</option>
                 <option value="Engineering" ${this.category === 'Engineering' ? 'selected' : ''}>Engineering &amp; Tech</option>
@@ -244,11 +252,11 @@ export class JobsView {
 
           <!-- Pagination -->
           ${this.totalPages > 1 ? `
-            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px;">
+            <div class="jobs-pagination">
               <button class="btn btn-secondary btn-sm" id="btnPrevJobPage" ${this.currentPage <= 1 ? 'disabled' : ''}>
                 &larr; Sebelumnya
               </button>
-              <span style="font-size: 12px; color: var(--text-secondary); padding: 0 8px;">
+              <span class="jobs-pagination-info">
                 Halaman <strong>${this.currentPage}</strong> dari <strong>${this.totalPages}</strong>
               </span>
               <button class="btn btn-secondary btn-sm" id="btnNextJobPage" ${this.currentPage >= this.totalPages ? 'disabled' : ''}>
@@ -285,24 +293,24 @@ export class JobsView {
                );
                const isSaving = this.savingFeedJobIds.has(j.id);
                return `
-               <div class="job-card" style="display:flex;flex-direction:column;justify-content:space-between;">
+               <div class="job-card job-feed-card">
                  <div>
                    <div class="job-card-header">
                      <div class="job-company-avatar">${j.title.charAt(0).toUpperCase()}</div>
                      <div class="job-header-info">
                        <h3 class="job-title" style="font-size:0.92rem;line-height:1.4;">${this.escapeHtml(j.title)}</h3>
-                       <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">
+                       <div class="job-tags-row" style="margin-top:6px;">
                          ${j.categories.slice(0, 4).map(c => `<span class="job-tag-pill" style="font-size:10px;">${this.escapeHtml(c)}</span>`).join('')}
                        </div>
                      </div>
                    </div>
-                   <p style="margin:10px 0 0;font-size:0.82rem;color:var(--text-secondary);line-height:1.45;">
+                   <p class="job-feed-desc">
                      ${this.escapeHtml((j.description || '').substring(0, 180))}${j.description?.length > 180 ? '...' : ''}
                    </p>
                  </div>
-                 <div class="job-card-footer" style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                   <span style="font-size:11px;color:var(--text-muted);">${formatDate(j.pubDate)}</span>
-                   <div style="display:flex;align-items:center;gap:6px;">
+                 <div class="job-card-footer">
+                   <span class="job-feed-date">${formatDate(j.pubDate)}</span>
+                   <div class="job-feed-actions">
                      ${isSaved ? `
                        <button class="job-btn-save saved" data-action="go-kanban" title="Buka di Kanban Lamaran" style="padding:4px 8px;font-size:11px;">
                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -334,28 +342,30 @@ export class JobsView {
              `}).join('')}
            </div>
            ${this.feedTotalPages > 1 ? `
-             <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;">
+             <div class="jobs-pagination">
                <button class="btn btn-secondary btn-sm" id="btnPrevFeedPage" ${this.feedPage <= 1 ? 'disabled' : ''}>← Sebelumnya</button>
-               <span style="font-size:12px;color:var(--text-secondary);">${this.feedPage} / ${this.feedTotalPages} &nbsp;(${this.feedTotal.toLocaleString('id')} total)</span>
+               <span class="jobs-pagination-info">${this.feedPage} / ${this.feedTotalPages} &nbsp;(${this.feedTotal.toLocaleString('id')} total)</span>
                <button class="btn btn-secondary btn-sm" id="btnNextFeedPage" ${this.feedPage >= this.feedTotalPages ? 'disabled' : ''}>Berikutnya →</button>
              </div>
            ` : ''}` ;
 
     return `
-      <div style="margin-top:20px;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
-          <div class="jobs-search-box" style="flex:1;min-width:200px;">
+      <div class="jobs-feed-section">
+        <div class="jobs-feed-controls">
+          <div class="jobs-search-box feed-search-box">
             <svg class="jobs-search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input type="search" id="feedSearchInput" class="jobs-search-input" placeholder="Cari lowongan BUMN, CPNS, atau swasta..." value="${this.escapeHtml(this.feedQuery)}" autocomplete="off" />
           </div>
-          <select id="feedCategorySelect" class="jobs-select">
-            <option value="all" ${this.feedCategory==='all'?'selected':''}>Semua Tipe</option>
-            <option value="BUMN" ${this.feedCategory==='bumn'?'selected':''}>BUMN</option>
-            <option value="CPNS" ${this.feedCategory==='cpns'?'selected':''}>CPNS / Pemerintahan</option>
-            <option value="SWASTA" ${this.feedCategory==='swasta'?'selected':''}>Swasta</option>
-            <option value="Internship" ${this.feedCategory==='internship'?'selected':''}>Internship / Magang</option>
-            <option value="Fresh Graduate" ${this.feedCategory==='fresh graduate'?'selected':''}>Fresh Graduate</option>
-          </select>
+          <div class="feed-filter-select-wrapper">
+            <select id="feedCategorySelect" class="jobs-select feed-category-select">
+              <option value="all" ${this.feedCategory==='all'?'selected':''}>Semua Tipe Lowongan</option>
+              <option value="BUMN" ${this.feedCategory==='bumn'?'selected':''}>BUMN</option>
+              <option value="CPNS" ${this.feedCategory==='cpns'?'selected':''}>CPNS / Pemerintahan</option>
+              <option value="SWASTA" ${this.feedCategory==='swasta'?'selected':''}>Swasta</option>
+              <option value="Internship" ${this.feedCategory==='internship'?'selected':''}>Internship / Magang</option>
+              <option value="Fresh Graduate" ${this.feedCategory==='fresh graduate'?'selected':''}>Fresh Graduate</option>
+            </select>
+          </div>
         </div>
         ${feedContent}
       </div>
