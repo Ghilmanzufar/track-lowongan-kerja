@@ -24,6 +24,7 @@ if (missingEnv.length > 0) {
 
 // Security: Sembunyikan identitas software server
 app.disable('x-powered-by');
+app.set('trust proxy', 1);
 
 // Security: Pasang HTTP Security Headers dengan Helmet
 app.use(helmet({

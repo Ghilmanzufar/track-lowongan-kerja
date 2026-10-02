@@ -23,7 +23,8 @@ export const authLimiter = rateLimit({
     code: 'TOO_MANY_AUTH_ATTEMPTS',
   },
   validate: {
-    trustProxy: false, // Menghindari false positive saat proxy tidak dikonfigurasi
+    trustProxy: false,
+    xForwardedForHeader: false,
   },
 });
 
@@ -44,6 +45,7 @@ export const passwordResetLimiter = rateLimit({
   },
   validate: {
     trustProxy: false,
+    xForwardedForHeader: false,
   },
 });
 
@@ -64,5 +66,6 @@ export const globalApiLimiter = rateLimit({
   },
   validate: {
     trustProxy: false,
+    xForwardedForHeader: false,
   },
 });
