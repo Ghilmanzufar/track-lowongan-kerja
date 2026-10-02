@@ -82,6 +82,19 @@ app.use(cors({
       return callback(null, true);
     }
 
+    try {
+      const parsed = new URL(origin);
+      if (
+        parsed.hostname === 'jobtrackid.my.id' ||
+        parsed.hostname.endsWith('.jobtrackid.my.id') ||
+        parsed.hostname.endsWith('.trycloudflare.com')
+      ) {
+        return callback(null, true);
+      }
+    } catch {
+      // ignore invalid URL
+    }
+
     return callback(new Error(`Origin ${origin} tidak diizinkan oleh kebijakan CORS.`));
   },
   credentials: true
