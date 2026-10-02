@@ -5,8 +5,8 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts
+COPY package*.json ./
+RUN npm ci --ignore-scripts || npm install --ignore-scripts
 
 COPY prisma ./prisma
 COPY src ./src
@@ -28,8 +28,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # Install only production dependencies
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --ignore-scripts
+COPY package*.json ./
+RUN npm ci --omit=dev --ignore-scripts || npm install --omit=dev --ignore-scripts
 
 # Copy built output & prisma client
 COPY --from=builder /app/dist ./dist
