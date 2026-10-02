@@ -54,14 +54,17 @@ const getOrigin = (urlStr?: string): string | null => {
   }
 };
 
-const clientOrigin = getOrigin(process.env.CLIENT_URL);
+const clientOrigins = (process.env.CLIENT_URL || '')
+  .split(',')
+  .map((u) => getOrigin(u.trim()))
+  .filter((u): u is string => Boolean(u));
 
 const allowedOrigins = new Set([
   'http://localhost:5173',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:3000',
-  ...(clientOrigin ? [clientOrigin] : [])
+  ...clientOrigins
 ]);
 
 app.use(cors({
